@@ -1,0 +1,681 @@
+                                                               Conference Paper Manuscript
+                                                                             APT#: 132165
+
+
+
+
+Modeling the Ambient Condition Effects of an Air-
+Cooled Natural Circulation System
+
+prepared by
+Rui Hu, Darius Lisowski, Matthew Bucknor, Adam R. Kraus, Qiuping Lv
+
+
+
+
+Nuclear Engineering Division
+Argonne National Laboratory
+9700 South Cass Avenue, Bldg. 208
+Argonne, IL 60439-4854
+
+
+
+                      The submitted manuscript has been created by UChicago
+                      Argonne, LLC, Operator of Argonne National Laboratory
+                      (“Argonne”). Argonne, a U.S. Department of Energy Office of
+                      Science laboratory, is operated under Contract No. DE-AC02-
+                      06CH11357. The U.S. Government retains for itself, and
+                      others acting on its behalf, a paid-up nonexclusive, irrevocable
+                      worldwide license in said article to reproduce, prepare
+                      derivative works, distribute copies to the public, and perform
+                      publicly and display publicly, by or on behalf of the
+                      Government. The Department of Energy will provide public
+                      access to these results of federally sponsored research in
+                      accordance with the DOE Public Access Plan.
+                      http://energy.gov/downloads/doe-public-accessplan
+
+
+
+
+                   25th International Conference on Nuclear Engineering
+                                           ICONE25
+                                      July 02 – 06, 2017
+                                           Shanghai
+                                             China
+ About Argonne National Laboratory
+ Argonne is a U.S. Department of Energy laboratory managed by UChicago Argonne, LLC
+ under contract DE-AC02-06CH11357. The Laboratory’s main facility is outside Chicago, at
+ 9700 South Cass Avenue, Argonne, Illinois 60439. For information about Argonne and its
+ pioneering science and technology programs, see www.anl.gov.
+
+
+
+
+Disclaimer
+This manuscript was prepared as an account of work sponsored by an agency of the United States Government. Neither the United States
+Government nor any agency thereof, nor UChicago Argonne, LLC, nor any of their employees or officers, makes any warranty, express
+or implied, or assumes any legal liability or responsibility for the accuracy, completeness, or usefulness of any information, apparatus,
+product, or process disclosed, or represents that its use would not infringe privately owned rights. Reference herein to any specific
+commercial product, process, or service by trade name, trademark, manufacturer, or otherwise, does not necessarily constitute or imply
+its endorsement, recommendation, or favoring by the United States Government or any agency thereof. The views and opinions of
+document authors expressed herein do not necessarily state or reflect those of the United States Government or any agency thereof,
+Argonne National Laboratory, or UChicago Argonne, LLC.
+                                        Proceedings of the 2017 25th International Conference on Nuclear Engineering
+                                                                                                             ICONE25
+                                                                                       July 2-6, 2017, Shanghai, China
+
+
+
+
+                                                                                                 ICONE25-67418
+
+         MODELING THE AMBIENT CONDITION EFFECTS OF AN AIR-COOLED NATURAL
+                               CIRCULATION SYSTEM
+
+                              Rui Hu                                           Darius D. Lisowski
+                    Nuclear Engineering Division                           Nuclear Engineering Division
+                    Argonne National Laboratory                            Argonne National Laboratory
+                         Lemont, IL, USA                                        Lemont, IL, USA
+
+
+              Matthew Bucknor                          Adam R. Kraus                         Qiuping Lv
+          Nuclear Engineering Division           Nuclear Engineering Division        Nuclear Engineering Division
+          Argonne National Laboratory            Argonne National Laboratory         Argonne National Laboratory
+               Lemont, IL, USA                        Lemont, IL, USA                     Lemont, IL, USA
+
+
+ABSTRACT                                                           to correlate zero-power system flow rates with ambient
+     The Reactor Cavity Cooling System (RCCS) is a passive         meteorological conditions. Some coefficients in the model were
+safety concept under consideration for the overall safety          obtained based on best fitting the experimental data. The
+strategy of advanced reactors such as the High Temperature         predictive capability of the empirical model was demonstrated
+Gas-Cooled Reactor (HTGR). One such variant, air-cooled            by applying it to the new set of experimental data. The
+RCCS, uses natural convection to drive the flow of air from        empirical model was also implemented in the computational
+outside the reactor building to remove decay heat during           models of the NSTF using both RELAP5-3D and STAR-
+normal operation and accident scenarios. The Natural               CCM+ codes. Accounting for the effects of ambient conditions,
+convection Shutdown heat removal Test Facility (NSTF) at           simulations from both codes predicted the natural circulation
+Argonne National Laboratory (“Argonne”) is a half-scale            flow rates very well.
+model of the primary features of one conceptual air-cooled
+RCCS design. The facility was constructed to carry out highly
+                                                                   INTRODUCTION
+instrumented experiments to study the performance of the
+                                                                        The Natural convection Shutdown heat removal Test
+RCCS concept for reactor decay heat removal that relies on
+                                                                   Facility (NSTF) [1-3] is a large-scale thermal-hydraulics test
+natural convection cooling. Parallel modeling and simulation
+                                                                   facility that has been built at Argonne National Laboratory
+efforts were performed to support the design, operation, and
+                                                                   (“Argonne”). The facility was constructed to carry out highly
+analysis of the natural convection system.
+                                                                   instrumented experiments to validate the performance of the
+     Throughout the testing program, strong influences of          Reactor Cavity Cooling System (RCCS) concept for reactor
+ambient conditions were observed in the experimental data          decay heat removal that relies on natural convection cooling
+when baseline tests were repeated under the same test              with either air or water-based systems.
+procedures. Thus, significant analysis efforts were devoted to
+                                                                        The general facility layout is provided in Figure 1. A heat
+gaining a better understanding of these influences and the
+                                                                   flux is applied to the back cavity wall by an array of electric
+subsequent response of the NSTF to ambient conditions. It was
+                                                                   radiant heaters, which leads to the development of a natural
+determined that air humidity had negligible impacts on NSTF
+                                                                   convection loop to cool the system. In a standard test, cold air
+system performance and therefore did not warrant consideration
+                                                                   is drawn from inside the building into the “downcomer” pipe
+in the models. However, temperature differences between the
+                                                                   and inlet plenum. Flow is then split between twelve riser ducts
+building exterior and interior air, along with the outside wind
+                                                                   for the length of the heated cavity. These ducts all converge at
+speed, were shown to be dominant factors. Combining the stack
+                                                                   an outlet plenum, where the flow mixes and is then exhausted
+and wind effects together, an empirical model was developed
+                                                                   from the NSTF through the two chimneys.
+based on theoretical considerations and using experimental data
+
+
+                                                                   1                                  Copyright © 2017 by ASME
+     The scaling methodology has been developed in previous
+studies [1], which provides the background and similarity
+relationships that were derived to ensure preservation of key
+thermal-hydraulic behavior of the full-scale air-cooled RCCS
+design during the NSTF tests. Additionally, significant
+computational analyses [3, 4] have been performed for the
+NSTF to aid in its design, instrumentation, operation, and
+evaluation of its performance. Both system-level and
+computational fluid dynamics (CFD) codes were utilized in this
+effort. RELAP5-3D [5] and STAR-CCM+ [6] code evaluations
+were both conducted to provide the analytical basis for the
+NSTF to conduct scaled experimental simulations of the RCCS.
+It was concluded that the air-cooled RCCS could be simulated
+at the NSTF facility at a prototypic scale (a 19° sector slice) in
+the lateral direction and about half scale in the vertical
+direction.
+     The primary objective of the NSTF analyses is to assess         Figure 1: NSTF layout. Left: solid model rendering; Right:
+the limitations in typical approaches for modeling this type of      primary segments, A. inlet downcomer, B. inlet plenum, C.
+natural circulation RCCS system, and to validate the analysis        heated cavity, D. riser ducts, E. outlet plenum, F. chimney.
+methods and computer codes which may be used in licensing.
+Additionally, the NSTF analyses aided in the RCCS design             AMBIENT CONDITION EFFECTS
+optimization and supported experiment activities, i.e. helped to         The NSTF is housed inside Building 308 at Argonne, with
+assure that the experimental procedures, setup, and                  only the upper portion of the exhausting chimney ducts directly
+measurements were performed as planned.                              exposed to the outside environment. The presence of the
+                                                                     building influences the ambient condition effects on the
+     Significant efforts have been devoted to better understand
+                                                                     performance of the facility, which has been observed in the
+the effects of weather conditions on NSTF system flow
+                                                                     experimental data [7].
+behavior. Strong influences of ambient conditions have been
+observed in the experimental results, when baseline tests were            An example of these effects can be observed when
+repeated several times under the same test procedures, yet the       comparing the experimental results of repeated baseline tests,
+response of the system varied among the tests. The effects of        which are shown in Figure 2. The baseline test case, as
+air humidity, the building outside and inside temperatures, and      performed in the experimental testing program, was conducted
+the wind speed were investigated. A semi-analytical (or              on a regular basis to allow continuous monitoring of nominal
+empirical) model was developed based on theoretical                  facility behavior. Each test was performed in an identical
+considerations and experimental data to correlate the zero-          facility configuration (uniform power profile, full elevation
+power system flow rates and the ambient conditions. The              discharge via vertical chimney stacks) and in such a manner
+empirical model was also implemented in the computational            that maintained an equal time-power history across the test
+models of the NSTF using both RELAP5-3D and STAR-                    procedures. However, the performance of the system varied
+CCM+ codes to examine its predictive capability.                     between the tests. Across the operational testing window, a
+                                                                     total of eight baseline tests were conducted, with dates and
+                                                                     outdoor temperature conditions summarized in Table 1. Across
+                                                                     the eight runs, the observed outdoor temperature spanned -18.1
+                                                                     °C to 23.7 °C, or a total range of 41.8 °C.
+                                                                          A number of examinations were made to the multiple
+                                                                     baseline test cases in an attempt to quantify and ascertain
+                                                                     facility repeatability. Several metrics were used for comparison,
+                                                                     e.g. thermal power within the test section determined by
+                                                                     ṁCpΔT, where ṁ is the total system flow rate, Cp is the specific
+                                                                     heat determined at the average gas temperature, and ΔT is the
+                                                                     difference between the gas temperatures at the outlet and inlet
+                                                                     of the heated test section. Other metrics included as-measured
+                                                                     temperatures, pressure drop, etc. At first glance of the measured
+                                                                     thermal powers, Figure 2a, all test cases exhibit similar
+                                                                     behavior and measured values fall within an acceptable
+                                                                     variance (0.37 kW) from the sample mean (49.45 kW).
+
+
+                                                                     2                                  Copyright © 2017 by ASME
+However, further examination of additional parameters, such as
+the heated section air temperature rise (Figure 2b) and the
+system mass flow rate (Figure 2c), indicate large differences
+across the different runs. Isothermal forced flow testing was
+performed on a regular basis and indicated that frictional losses,
+e.g. due to geometric changes, had not changed within the
+bounds of experimental uncertainty. The ambient conditions
+(outside temperature and wind) and the building interior
+temperature are likely the dominant factors.
+   Table 1: Overview of repeatability testing at baseline
+                       conditions
+            Dates               Outdoor Temperature, °C
+Test No.
+            Performed       Average Minimum Maximum
+            03/10–
+Run003                         n/a         n/a          n/a
+            12/2014
+            04/09–                                                       (a) Thermal energy removed by air in risers
+Run004                        13.9        10.2          17.1
+            11/2014
+            01/28–
+Run011                        2.09        1.40          2.80
+            30/2015
+            09/05–
+Run020                        23.3        22.5          23.7
+            07/2015
+            10/12–
+SPEF003                       11.5        11.1          12.2
+            19/2015
+            01/17–
+Run022                        -17.6       -18.1        -16.8
+            22/2016
+            04/08–
+Run024                         5.3        -4.90         17.3
+            14/2016
+            05/16–
+Run026                        13.6        5.80          21.6
+            20/2016
+
+
+     The natural draft of air was continuously observed before
+power was turned on in NSTF experiments. As discussed in                      (b) Air temperature increase in risers
+Ref. [8], the natural ventilation by air inflow and outflow
+depends on the size and location of all air leakage sites on the
+building envelope and the indoor-outdoor pressure difference
+across each of these sites. These pressure differences are the
+result of a non-linear interaction between wind pressures on the
+exterior of the building and stack effect pressures caused by the
+density difference between indoor and outdoor air. The
+independent wind and stack effects would naturally interact to
+set the building indoor pressure that maintains a balance
+between the overall inflow and outflow mass flow rates across
+the building envelope.
+     Considering the uncertainty in estimating wind shelter
+effects and in determining the distribution of leakage sites, an
+analytical study of the combined wind and stack effect in
+Building 308 (which houses the NSTF) would be very
+challenging. The location of leakage on the building envelope                          (c) Mass flow rates
+determines the wind and stack pressures that occur across each            Figure 2: Repeatability of NSTF baseline tests.
+leakage site. Therefore, it was proposed to measure the airflow
+rates in the NSTF system under zero-power and a wide range of
+wind and outside air temperature conditions. By relying on a
+large database of airflow rates, an empirical relationship was
+developed between the NSTF airflow rates and the ambient
+conditions.
+
+
+                                                                     3                              Copyright © 2017 by ASME
+Stack- and Wind-Effect Pressures
+    Figure 3A illustrates the linear change of stack pressure
+with height (assuming linear change of air density due to
+temperature change for illustration purpose), h, given by
+                     ! !!
+     !! ℎ = !!"# !ℎ !" !"#                                (1)
+                          !!"
+where the maximum pressure is !!"#$% (at ℎ = !). This figure
+is for the case when !!" > !!"# . The sign of the pressure is
+reversed for !!" < !!"# . In order to balance the flows in and out
+of the building there is a pressure shift inside the building (!!,! )
+that results in the pressure variation shown in Figure 3B. This
+would result in outflow through the upper part of the building
+(chimney outlet) and inflow in the lower part. At the neutral
+level height ℎ!,! , dependent upon the leakage distribution, there
+is no pressure difference across the wall. The pressure
+difference across the structure then varies linearly with height,
+which results in flow distributions illustrated in Figure 3C.
+
+
+                                                                        Figure 4: Wind effects to air infiltration in Building 308 and
+                                                                                            NSTF system flow.
+                                                                             The wind effect on the driving pressure (pressure
+                                                                        difference between inside and outside of the building) for
+                                                                        NSTF flow can be modeled as:
+                                                                                                   ! !    !!
+                                                                             ∆!! = !! !!"#$ = ! !"# !                                 (2)
+                                                                                                     !
+   Figure 3: Stack effects on pressure and flow. A: (stack
+                                                                        In which !! is the wind effect factor, and !! is the wind speed.
+ pressure head), B: (pressure difference), C: air infiltration
+                         mass flow.
+     The wind would also affect the air infiltration dependent
+                                                                        A Semi-Analytical Model of Stack and Wind Effects
+on the leakage distribution, pressure coefficients, and inflow
+and outflow balance. In general, wind flowing over the top of a              Combining the stack and wind effects together, the total
+chimney can increase the draft by producing a driving low               additional driving pressure can be modeled as:
+pressure region that assists in pulling air from the chimney.                  ∆!!"!#$ = !! + ∆!!
+However, under different geometric configurations and wind                                                       !! !!"# !!!           (3)
+                                                                                       = !"(!!" − !!"# )!" +
+directions, the wind can be adverse to the chimney upward flow                                                       2
+by creating positive pressure at the top of the chimney. The            in which ! is the air expansion coefficient, and H is the height
+wind blowing around a building produces a positive pressure             between the NSTF chimney outlet and the ground. This
+zone on the windward side and a negative pressure zone on the           approach models the full air flow path from the outside of the
+leeward side. These pressures act on the leaks in the building          building, infiltrating to the inside of the building at the ground
+envelope, causing airflow through them and changing the                 level, entering into the NSTF downcomer, and passing through
+pressures within the building. Assuming the largest leakage             NSTF piping, and leaving the NSTF duct system through the
+path in Building 308 is through the NSTF chimney outlet, the            chimney outlets. The total driving force would be balanced by
+wind would always enhance the flow in NSTF tests. The wind              the pressure losses in all parts of the system. The total pressure
+influences on the building envelope pressure and NSTF air flow          loss can be correlated with the system flow rate:
+rate are illustrated in Figure 4.                                                                          1          !! 1 !
+                                                                               ∆!!"## = !! ! ! =        !! !!!! + !!        !!         (4)
+                                                                                                           2          !! 2 !
+                                                                        in which !! is the form loss coefficient, and !! is the friction
+                                                                        coefficient. Combining Eqs. (3) and (4), we have:
+                                                                                                               ! !       !!
+                                                                             !! ! ! = !"(!!" − !!"# )!" + ! !"# !
+                                                                                                                     !                 (5)
+                                                                        or
+                                                                              ! ! = !!! (!!" − !!"# ) + !!! !!!                        (6)
+                                                                        in which
+
+
+
+                                                                        4                                      Copyright © 2017 by ASME
+              !"#$                                                    (7)
+      !!! =
+               !!
+              !! !!"#                                                 (8)
+      !!! =
+                !!!
+    The values of the empirical coefficients !!! , !!! , and the
+exponent n (1 < ! < 2) can be determined from the NSTF
+zero-power test results. For orifice-type resistance such as
+holes, we expect ! = 2 (constant form loss coefficient). For
+long channels the lower limit on ! is the fully-developed
+                                          !
+laminar flow condition ! = 1, as ! = . For the flow rates
+                                         !"
+observed in the NSTF riser ducts, the flow is always turbulent.
+For the Reynolds number range observed, the exponent n
+should be 1.75 if the Blasius friction factor correlation [9] is
+considered,
+       ! = 0.316Re!!.!" .                                      (9)
+Combining the effects from both the form losses (! = 2) and                                       (a) Measured flow rate
+friction losses (! = 1.75 for turbulent flow and ! = 1 for
+laminar flow), and considering the dominant pressure loss in
+the whole system is the turbulent friction loss in the riser ducts
+(! = 1.75), n was chosen to be equal to 1.8, and experiment
+data was used to determine the coefficients !!! and !!! .
+       ! = !!! Δ! + !!! !!! !/! .                             (10)
+The result will provide a physical basis for predicting the
+induced flow rate as a function of ambient temperature and
+wind conditions.
+     Relevant data generated at zero power conditions were
+compiled and prepared into a format that would allow fitting of
+these two coefficients. These data sets included pre-testing zero
+flow values, along with an additional separate effects test
+SPEF005 conducted without electric heating. The span of
+available data is summarized in Table 2. The measured flow
+                                                                                              (b) Ambient wind speed
+rate and ambient wind speed from the separate effect test
+                                                                            Figure 5: Measured flow rates and wind speed in SPEF005.
+SPEF005 are shown in Figure 5. Even without active heating,
+the driving pressure differences, caused by density differences                  A fitting program was scripted in MATLAB [10] that
+(stack effects) and augmented by the wind, create a natural                 iterated over values of constants !!! and !!! , compared the
+draft through the NSTF.                                                     resulting mass flow rate against actual values, and identified
+                                                                            best fit values based on a minimum root-mean-squared-error
+   Table 2: Span of available data collected at zero power
+                                                                            (RMSE). Both constants were given a range from 0 to 20 at
+                         conditions
+                                                                            0.01 increments. The results determined that best-fit values for
+                      Tinlet   Toutdoor    ΔT     Wind    Flow Rate
+                      (°C)      (°C)      (°C)    Speed    (kg/min)         !!! and !!! were 5.53 and 3.75, respectively.
+                                                  (m/s)                            ! = 5.53 Δ! + 3.75 !!! !/! .                         (11)
+    Minimum       15.85        -16.7      0.44    0.04      0.12
+                                                                            A response surface was generated showing the calculated flow
+                                                                            rate as a function of temperature and wind speeds, as shown in
+    Maximum       25.77        27.97      32.93   11.20     37.19           Figure 6.
+                                                                                 The correlation was then compared first against the test
+                                                                            data from SPEF005, shown in Figure 7. Given that this data
+                                                                            were included in determining the constants, the high level of
+                                                                            agreement is expected. To ensure validity of this predicative
+                                                                            capability, a new test (SPEF007) was performed in the test
+                                                                            facility that generated data not used in the fitting correlation.
+                                                                            The results are shown in Figure 8, further confirming validity
+                                                                            and confidence in the findings. The goodness of the fit between
+                                                                            the correlation and measured data were further confirmed by
+                                                                            the RMSE of 0.79 kg/min and 0.66 kg/min for SPEF005 and
+                                                                            SPEF007, respectively. This is deemed very good considering
+
+                                                                            5                                  Copyright © 2017 by ASME
+that the measurement uncertainty of mass flow rate is 0.72
+kg/min. The R2 values of the comparisons between the
+correlation and measurements were 0.87 for SPEF005 and 0.93
+for SPEF007.
+
+
+
+
+                                                                    Figure 8: Fitting correlation applied to SPEF007.
+
+                                                              Building Temperature Effects
+                                                                   The differences in the baseline tests can also be partially
+                                                              attributed to changes in the building temperature. This effect
+     Figure 6: Response surface of fitting correlation.       can be described as follows: the driving pressure head of a
+                                                              natural circulation system is highly dependent on the density
+                                                              difference between the cold and hot segments. Given the non-
+                                                              linear relationship between density and temperature for an ideal
+                                                              air gas, Figure 9, the absolute inlet temperature plays a role,
+                                                              even for two systems with identical temperature differences.
+                                                              With higher absolute inlet temperatures, the Δρ/ΔT is reduced,
+                                                              which lowers the driving pressure head and reduces the overall
+                                                              efficiency of the stack effect.
+                                                                  Thus, with elevated downcomer inlet temperatures causing
+                                                              a reduction in the driving head, the mass flow rate is reduced,
+                                                              and to maintain equal thermal powers, all of the system
+                                                              parameters shift. Specifically, the air temperature rise increases,
+                                                              absolute gas temperature increases, frictional pressure drop
+                                                              decreases, etc. The inlet temperature effect can be easily
+                                                              captured by applying realistic air property models in the
+                                                              computational models.
+
+     Figure 7: Fitting correlation applied to SPEF005.
+
+
+
+
+                                                              6                                   Copyright © 2017 by ASME
+Figure 9: Relationship between density and temperature for               Figure 10: The moist air density as a function of
+                           air.                                            temperature with the relative humidity [11].
+
+Air Humidity Effects
+     In NSTF tests, the outdoor relative humidity (RH) was
+observed to span between 25 and 98%. The impact of air
+humidity on NSTF system behavior was also evaluated. Figure
+10 [11] shows the moist air density as a function of temperature
+for an increasing RH from the minimum value of 0%,
+corresponding to dry air (top curve), up to the maximum value
+of RH = 100% (lower curve), corresponding to saturated
+conditions, in 10% steps. The increase of RH leads to a
+decrease of humid air density, especially at the range of higher
+temperatures. While an RH increase between 0 and 100% leads
+to an almost negligible density decrease of humid air at near
+freezing temperatures, it is responsible for a significant
+reduction of humid air density of about 37.5%, at temperatures
+close to 100 °C.
+     Similar findings were found for other properties of the            Figure 11: The relative humidity as a function of
+humid air, i.e. when the temperature is low, the increase of RH         temperature with inlet air at 80% RH and 20 °C.
+has negligible impacts on the air properties. This is expected as
+the low temperature air can only absorb very limited content of
+water vapor in the air. Figure 11 shows the change of RH with
+the increase of temperature. If the NSTF air has 80% RH and
+20 °C air at the downcomer inlet, by the time it heats up and
+leaves the risers at ~100 °C its RH is less than 2%. The effects
+of air humidity were also investigated using RELAP5-3D
+simulations of Run020. Figure 12 compared the calculated
+mass flow rates of the system for Run020 with dry air and with
+saturated air. The maximum difference between the two cases
+in mass flow rates is approximately 2%. Note that Run020 has
+the highest inlet temperature for all baseline tests, yet the
+differences between the results for saturated air and dry air are
+very small. It therefore can be concluded that the air humidity
+would only have negligible impacts to NSTF system behavior,
+and does not need to be considered in the computational
+models.                                                             Figure 12: The effects of humidity on the system flow rate,
+                                                                               RELAP5-3D simulations of Run020.
+
+
+
+                                                                    7                               Copyright © 2017 by ASME
+APPLICATION OF THE SEMI-ANALYTICAL MODEL                             wind speed plus peak simulation results do not correspond to
+     As part of the modeling effort conducted during this            the highest experimental data points because the data collected
+project, a RELAP5-3D model was developed for the NSTF to             by the weather station was actually being averaged during data
+perform transient analysis and focused primarily on simulating       acquisition. The weather station sampled wind speed several
+the integral system performance of the facility. To analyze the      times a minute, but only records a 1-minute average and a peak
+ability of the model to predict important performance metrics of     value during that 1-minute time period. Therefore, the peaks
+the facility (such as the air mass flow rate), comparisons were      seen in the experimental wind data are lower than the true peak
+made between experimental test data and code simulation              wind speed during the same timeframe. For example, the
+results.                                                             highest 1-minute-averaged wind speed measured by the
+                                                                     weather station during Run022 was 8.5 m/s, however, the
+     After initial comparisons and the assessments [12] of the
+                                                                     actual peak wind speed was measured to be approximately 12
+experimental results of several repeated baseline tests, it
+                                                                     m/s.
+became apparent that modeling ambient effects on the facility
+would be necessary to properly simulate the overall system
+performance. To simulate these conditions in the model, virtual
+volumes were added to account for the temperature effects on
+the facility, while wind effects were simulated by controlling
+the pressure difference between the inlet and outlet of the
+facility based on Eq. (2).
+     The RELAP5-3D model, Figure 13, was calibrated to
+results from a single experimental test (Run022) to accurately
+account for flow resistances in the facility as well as air
+entering the NSTF building. Following calibration, the model
+was used to simulate additional experimental tests (Run011,
+Run020, and Run024) over a range of operating and ambient
+conditions. The simulation results compared well with
+experimental data for all of the tests for the overall system mass
+flow rate (the average absolute error was less than 5% in all of
+the simulations). These simulation results demonstrate that the
+integral behavior of the system were well captured and the
+effects of ambient conditions were correctly modeled (for
+outdoor temperatures ranging from -22.3 °C to 33.4 °C and
+wind speeds ranging from 0 m/s and 8.5 m/s).
+    Simulation results for Run022 are provided in Figure 14.
+Simulation results for the “No Wind/Temperature” are provided
+to demonstrate the importance in capturing the effects of
+outside air temperature and wind of the facility. If these effects
+were neglected, the simulation results significantly under-
+predicted the mass flow rate of the facility.
+     If the effects of outdoor air temperature on the
+performance of the facility are modeled, the results provide
+better agreement in mass flow rate to the experimental data. If
+the wind effects are also modeled, the average absolute error
+between the simulation and the experimental data is less than
+2%, which is about the same as the measurement uncertainty. It
+should be noted that the wind speed is very low from 40 hours
+to 120 hours in the test. Prior to 40 hours, significant wind
+effects were observed in the experimental data. In this region,          Figure 13: Nodalization diagram of NSTF model in
+the simulation results with no wind effects modeled under-                                 RELAP5-3D.
+approximate the mass flow rate of the system (the average
+absolute error is less than 5%). The simulation results where
+several peak wind speeds were also included to demonstrate
+that the simulation can capture the peak mass flow rates in the
+experiments if the detailed variation of wind speeds were
+modeled in the simulation. It should be noted that the average
+
+                                                                     8                                 Copyright © 2017 by ASME
+                                                                    weather and loss effects would cancel. If there was a higher
+                                                                    piezometric pressure at the inlet, it means that the weather
+                                                                    effects produce a positive pressure head in excess of that
+                                                                    subtracted by the form pressure loss at the inlet. The
+                                                                    piezometric difference can be regarded as ∆!!"# in Eq. (12).
+                                                                        The effects on mass flow rate from applying the weather
+                                                                    modeling are provided in Table 3. The impact shown on mass
+                                                                    flow rate demonstrates that the weather modeling improves the
+                                                                    flow rate estimates, particularly for the low power case in
+                                                                    which significant ambient condition (high wind speeds and low
+                                                                    outdoor temperature) effects were observed in the experiment.
+
+
+
+
+ Figure 14: Comparison of RELAP5-3D simulation results
+                and experimental data.
+     The three-dimensional modeling of the NSTF was
+performed using the computational fluid dynamics (CFD) code
+STAR-CCM+ version 10.06 [6]. Earlier works published [13,
+14] by the authors provide the background, geometry, and the
+turbulence modeling details of the CFD model. All CFD
+simulations performed within this work were steady state, with
+the objective of capturing the mean behavior of the system for a
+given power level. It was found in previous simulations of
+Run022 that the mass flow rate was under-predicted in the
+computational results, notably in the low power case.
+Accounting for the outside weather effects could increase the
+flow rate in these cases. The outside temperature is
+significantly lower than the inside temperature during the
+steady-state periods in Run022, which will create a positive
+pressure head due to the stack effects in the NSTF building.
+     The theoretical basis of the weather effects is described
+above. However, some adjustments are needed to apply it to the
+CFD model. The main issue is that there are significant
+pressure losses that are not modeled in the CFD model shown
+in Figure 15, notably the substantial losses for air leaking into
+the building. Thus the net pressure head must be modified to:
+∆!!"# = !! + ∆!! − ∆!!"##                                 (12)
+                                      !
+                             !! !!"# !!     !     !
+    = !"(!!" − !!"# )!" +                 − !!" !!" ,
+                                 !          !
+
+where K is the loss coefficient representing the building losses.
+In the CFD model, this loss is applied as a porous baffle in
+STAR-CCM+. The two left-most terms in ∆Pnet are calculated                       Figure 15: NSTF model in STAR-CCM+.
+based on the weather data and applied as a boundary condition              Table 3: Mass Flow rate comparisons for natural
+at the pressure inlet. An appropriate value for the loss                             convection simulation cases
+coefficient was calculated from forced-flow simulations.                                    High Power                     Low Power
+                                                                                  Experi-     CFD -    CFD -     Experi-     CFD -   CFD -
+     The difference in piezometric pressure [6] between the                        ment        w/o     weather    ment        w/o    weather
+domain inlet and outlet was obtained for both the high and low                               weather effects                weather effects
+power cases. As an illustration, if the piezometric pressure
+                                                                    ! (kg/s)      0.606       0.604     0.608    0.595       0.543    0.585
+difference were zero, this would mean that the mass flow rate
+would be completely governed by the buoyancy source from            Difference
+                                                                                     -         0.3       0.3        -         8.7      1.7
+the heated plate and the pressure losses of the NSTF. Thus, the        (%)
+
+
+                                                                     9                                     Copyright © 2017 by ASME
+                                                                    ∆!: Temperature Difference (K)
+CONCLUSIONS                                                         !! : Wind speed (m/s)
+     Highly instrumented experiments have been performed at         !: Density (kg/m3)
+NSTF to study the performance of the air-cooled RCCS                !: Thermal expansion coefficient, (1/K)
+concept for reactor decay heat removal that rely on natural
+convection cooling. Parallel modeling and simulation efforts        Subscripts
+were performed to support the design, operation, and analysis       in: System inlet
+of the natural convection systems. As strong influences of          out: System outlet
+ambient conditions were observed in the experimental results,       s: Stack
+significant efforts were devoted to improve the understanding       w: Wind
+of the weather effects on NSTF system flow behavior.                net: Net effective
+                                                                    loss: Loss
+      It was determined that air humidity had negligible impacts
+on NSTF system behavior and therefore did not warrant
+consideration in the models. However, temperature differences
+between the building exterior and interior air, along with the      ACKNOWLEDGMENTS
+outside wind speed, were shown to be dominant factors. An               This work was supported by the U.S. Department of
+empirical model was developed based on theoretical                  Energy Office of Nuclear Energy, Office of Advanced Reactor
+considerations of the stack pressure effects and the wind effects   Technology, under Contract No. DE-AC02-06CH11357. The
+on system flow rates, while some coefficients in the model          authors gratefully acknowledge the use of the Blues cluster at
+were obtained based on best fitting the experimental data. The      the Laboratory Computing Resource Center at Argonne
+predictive capability of the model is demonstrated by applying      National Laboratory.
+it to a wide range of zero-power test data.
+                                                                    REFERENCES
+     The empirical model has been also implemented in the           [1] S. Lomperski, W.D. Pointer, C.P. Tzanos, et al., 2011,
+computational analyses of NSTF tests using both the system              “Generation IV Nuclear Energy System Initiative: Air-
+code RELAP5-3D and CFD code STAR-CCM+. It is                            Cooled Option RCCS Studies and NSTF Preparation”,
+demonstrated that both codes can accurately simulate the                ANL-GenIV-179, Argonne National Laboratory Report.
+integral behavior of the system responses at the NSTF if the        [2] D. Lisowski, C. Gerardi, D. Kilsdonk, et al., 2016,
+effects of ambient conditions are modeled or accounted for.             "Progress Report on Water Conversion of the (NSTF)
+Very good agreement was found between the simulation results            during FY2016," ANL-ART-69, Argonne National
+and experimental data. This helped to assure high confidence in         Laboratory Report.
+NSTF experimental data that can be used to support the design       [3] R. Hu, A. Kraus, M. Bucknor, Q. Lv, D. Lisowski, 2016,
+and licensing of an RCCS in advanced reactors, and                      "Final Project Report on Computational Modeling and
+strengthened the ability of analysis to accurately model the            Analysis of Air-Based NSTF," ANL-ART-46, Argonne
+observed physical behavior. Note that the derivation of the             National Laboratory Report.
+empirical model and the modeling approaches used in                 [4] R. Hu and W.D. Pointer, 2013, “CFD Analyses of Natural
+RELAP5-3D and STAR-CCM+ to capture the ambient                          Circulation in the Air-Cooled Reactor Cavity Cooling
+condition effects can be applied in the computational modeling          System,” Proc. International Conference on Mathematics
+of other air-cooled natural circulation systems.                        and Computational Methods Applied to Nuclear Science &
+                                                                        Engineering (M&C 2013).
+NOMENCLATURE                                                        [5] The RELAP5-3D Code Development Team, 2012,
+!! ,!! ′: Wind effect coefficient                                       "RELAP5-3D Code Manual," INEEL-EXT-98-00834,
+!! ′: Stack effect coefficient                                          Rev. 4, Idaho National Laboratory Report.
+D: Hydraulic Diameter (m)                                           [6] CD-Adapco, 2015, “STAR-CCM+ 10.06 Manual.”
+f: Friction coefficient                                             [7] D. Lisowski, A. Kraus, M. Bucknor, R. Hu, and M.
+g: Gravity acceleration (m/s2)                                          Farmer, 2016, “Experimental observations of natural
+H, h: Height (m)                                                        circulation flow in the NSTF,” Nuclear Engineering and
+K: Form loss coefficient                                                Design, Vol. 306, 124-132.
+L: Length (m)                                                       [8] I.S. Walker and D.J. Wilson, “Evaluating Models for
+!: Flow rate (kg/s)                                                     Superposition of Wind and Stack Effect in Air
+P: Pressure (Pa)                                                        Infiltration,” Building and Environment, Vol. 28, No. 2,
+!! , !!"#$% : Stack pressure effect (Pa)                                pp. 201-210, 1993.
+!! : Wind pressure effect (Pa)                                      [9] F. P. Incropera and D. P. DeWitt., Fundamentals of Heat
+∆!: Pressure drop (Pa)                                                  and Mass Transfer. New York: J. Wiley, 2002.
+Re: Reynolds number
+T: Temperature (K)
+
+                                                                    10                                Copyright © 2017 by ASME
+[10] The MathWorks, Inc., 2013, MATLAB and Statistics
+     Toolbox Release 2013b, Natick, Massachusetts, United
+     States.
+[11] P. T. Tsilingiris, “Thermophysical and transport properties
+     of humid air at temperature range between 0 and 100 °C,”
+     Energy Conversion and Management, Vol. 49, pp. 1098–
+     1110, 2008.
+[12] M. Bucknor, R. Hu, D. Lisowski, A. Kraus, 2016,
+     “Comparisons of RELAP5-3D Analyses to Experimental
+     Data from the Natural Convention Shutdown Heat
+     Removal Test Facility”, Proceedings of 2016 International
+     Congress on Advances in Nuclear Power Plants
+     (ICAPP’16).
+[13] A. Kraus, R. Hu, D.D. Lisowski, M.D. Bucknor, 2016,
+     “Turbulence Modeling Studies for Application to
+     Buoyancy-Driven Air Flow Simulations of the NSTF,”
+     Proceedings of 11th Nuclear Reactor Thermal Hydraulics,
+     Operation and Safety (NUTHOS-11).
+[14] A. Kraus, R. Hu, D.D. Lisowski, M.D. Bucknor, 2016,
+     “Simulation of Buoyancy-Driven Flow for Various Power
+     Levels at the NSTF,” Proceedings of 24th International
+     Conference on Nuclear Engineering (ICONE-24).
+
+
+
+
+                                                                   11   Copyright © 2017 by ASME
+
