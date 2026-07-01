@@ -1,0 +1,8 @@
+/*--------------------------------*- C++ -*----------------------------------*/
+FoamFile
+{ version 2.0; format ascii; class dictionary; object boundaryRadiationProperties; }
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+plate     { type lookup; emissivity 0.785; absorptivity 0.785; }
+riser     { type lookup; emissivity 0.8; absorptivity 0.8; }
+adiabatic { type lookup; emissivity 1.0; absorptivity 1.0; }

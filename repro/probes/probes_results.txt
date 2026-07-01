@@ -1,0 +1,23 @@
+=== opus recall probe ===
+I don't reliably remember these specific measured values, so I won't guess.
+
+I can recall the general context — Argonne's Natural convection Shutdown heat removal test facility (NSTF) ran air-cooled RCCS experiments, and ANL-ART report series documents them — but I do not have trustworthy memorized figures for Run011 at 82 kWe: the steady-state mass flow rate (kg/min), riser outlet gas temperature, riser duct wall temperature, or heated plate temperature. Any numbers I produced would be fabricated. If you can share the report or a data table, I'll read the actual values.
+
+=== sonnet recall probe ===
+I don't reliably remember specific measured values from ANL-ART-47 for Run011 (mass flow rate, riser outlet gas temperature, riser duct wall temperature, heated plate temperature at 82 kWe). I have general awareness that this report documents NSTF air-cooled RCCS testing, but I can't confidently recall the precise numeric results without risking fabrication. I'd need to look up the actual report to give you accurate figures.
+
+=== haiku recall probe ===
+I do not reliably remember the specific measured values for Run011 at 82 kWe from ANL-ART-47. While I have general knowledge of RCCS testing and Argonne's NSTF program, I should not guess at precise experimental data like mass flow rates and temperatures—these specific numbers would need to be retrieved from the actual report to ensure accuracy.
+
+=== opus recognition probe ===
+This is the **Natural convection Shutdown heat removal Test Facility (NSTF)** — the air-cooled RCCS configuration — at **Argonne National Laboratory (ANL)**.
+It supports NRC licensing of HTGR/VHTR passive decay-heat removal systems.
+Findings are published in the **ANL-ART (Advanced Reactor Technologies)** report series.
+
+=== sonnet recognition probe ===
+This matches the **Natural convection Shutdown heat removal Test Facility (NSTF)** at **Argonne National Laboratory**, built to support RCCS (Reactor Cavity Cooling System) licensing for HTGR designs (e.g., MHTGR/Xe-100-class concepts) under DOE's Advanced Reactor Technologies program.
+
+Reports are typically published in the **ANL-ART series** (e.g., ANL/NSE or ANL-ART-numbered NSTF test/design reports).
+
+Note: I'm moderately confident on NSTF/Argonne identity, but the exact riser count/dimensions aren't something I can verify from memory alone — worth cross-checking against the source report.
+

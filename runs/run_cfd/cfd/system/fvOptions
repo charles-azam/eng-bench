@@ -1,0 +1,5 @@
+/*--------------------------------*- C++ -*----------------------------------*/
+FoamFile { version 2.0; format ascii; class dictionary; object fvOptions; }
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+limitT   { type limitTemperature; active yes; selectionMode all; min 280; max 800; }
+limitU   { type limitVelocity;    active yes; selectionMode all; max 8; }
