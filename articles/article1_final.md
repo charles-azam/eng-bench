@@ -135,7 +135,9 @@ The objection everyone should raise. What I found:
 
 - **Asked directly**, from memory, for the measured values of this exact test, Opus, Sonnet, and
   Haiku all refuse: *"I don't reliably remember these specific measured values… any numbers I
-  produced would be fabricated."*
+  produced would be fabricated."* Forced to choose among five options anyway, they score
+  6/16 — statistically indistinguishable from guessing (and the analysis in the repo discloses
+  a design flaw that explains the apparent hits).
 - **But they recognize the facility.** Given just the geometry, they name NSTF and Argonne. So
   scrubbing names is cosmetic — which is why I also reran the experiment with a de-identified
   pack. It scored as well as the identified runs (its flow prediction was the best of all: +1%).
