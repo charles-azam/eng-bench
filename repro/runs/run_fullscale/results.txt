@@ -1,0 +1,66 @@
+Geometry: A_duct=0.01008 m^2  P_wet=0.5714 m  D_h=0.0706 m
+          A_flow_tot=2.289 m^2  L_riser=15.22 m  H_disch=40.0 m
+          K_form=2.5
+
+=== NORMAL 700 kWt ===
+  mdot_total   = 9.964 kg/s  (597.8 kg/min)
+  mdot/duct    = 43.89 g/s
+  riser dT     = 69.7 C   (T_out=89.7 C, T_mean=54.9 C)
+  V_riser      = 4.04 m/s   Re=15471   f=0.0289  K_tot=8.73
+  dP_drive     = 76.9 Pa
+  h (D-B)      = 18.1 W/m2K  Nu=45
+  q_plate      = 2249 W/m2   q_wet=389 W/m2
+  T_wall_avg   = 111 C   T_wall_front(peak)=122 C
+  T_PLATE peak = 266 C
+  radiative fraction ~ 0.82  (Ra_cav=6.36e+08, h_conv=3.37, q_conv=484)
+
+=== PEAK 1.5 MWt ===
+  mdot_total   = 12.085 kg/s  (725.1 kg/min)
+  mdot/duct    = 53.24 g/s
+  riser dT     = 122.9 C   (T_out=142.9 C, T_mean=81.5 C)
+  V_riser      = 5.30 m/s   Re=17684   f=0.0281  K_tot=8.56
+  dP_drive     = 119.8 Pa
+  h (D-B)      = 21.4 W/m2K  Nu=50
+  q_plate      = 4820 W/m2   q_wet=834 W/m2
+  T_wall_avg   = 182 C   T_wall_front(peak)=201 C
+  T_PLATE peak = 378 C
+  radiative fraction ~ 0.90  (Ra_cav=3.44e+08, h_conv=3.17, q_conv=559)
+
+======================================================================
+1) SENSITIVITY TO ASSUMED DISCHARGE HEIGHT (buoyancy column)
+======================================================================
+  H=  30 m  700kW:  mdot=  8.68 kg/s  dT= 80.0 C  T_plate=  272 C
+  H=  30 m  1.5MW:  mdot= 10.45 kg/s  dT=142.1 C  T_plate=  389 C
+
+  H=  40 m  700kW:  mdot=  9.96 kg/s  dT= 69.7 C  T_plate=  266 C
+  H=  40 m  1.5MW:  mdot= 12.08 kg/s  dT=122.9 C  T_plate=  378 C
+
+  H=  50 m  700kW:  mdot= 11.02 kg/s  dT= 63.0 C  T_plate=  263 C
+  H=  50 m  1.5MW:  mdot= 13.44 kg/s  dT=110.6 C  T_plate=  372 C
+
+======================================================================
+2) SENSITIVITY OF PLATE TEMP TO RISER EMISSIVITY (0.7 / 0.8 / 0.9)
+======================================================================
+  700kW: eps=0.7: 277C  eps=0.8: 266C  eps=0.9: 257C
+  1.5MW: eps=0.7: 391C  eps=0.8: 378C  eps=0.9: 367C
+
+======================================================================
+3) HALF-SCALE FACILITY PREDICTION (same solver, scaled geometry)
+   to verify the scaling mapping to full scale
+======================================================================
+  26.16kW (norm): mdot= 0.432 kg/s ( 25.9 kg/min)  dT= 60.1 C  V=3.27 m/s  Re=12833  T_plate=299 C
+  56.07kW (peak): mdot= 0.528 kg/s ( 31.7 kg/min)  dT=105.2 C  V=4.28 m/s  Re=14907  T_plate=420 C
+
+  Full-scale for comparison (per-duct velocity & Re):
+  700kW: V=4.04 m/s  Re=15471  mdot/duct=43.9 g/s
+  1.5MW: V=5.30 m/s  Re=17684  mdot/duct=53.2 g/s
+
+  --> velocity ratio (half/full) and Re ratio show whether sqrt(l_R)=0.707 holds
+
+======================================================================
+4) WEATHER SENSITIVITY (ambient T) at 1.5 MW, full scale
+======================================================================
+  T_amb= -18.0 C:  mdot= 14.11 kg/s  dT=105.6 C  T_out= 87.6 C  T_plate=  358 C
+  T_amb=   0.0 C:  mdot= 13.08 kg/s  dT=113.8 C  T_out=113.8 C  T_plate=  366 C
+  T_amb=  20.0 C:  mdot= 12.08 kg/s  dT=122.9 C  T_out=142.9 C  T_plate=  378 C
+  T_amb=  24.0 C:  mdot= 11.90 kg/s  dT=124.8 C  T_out=148.8 C  T_plate=  380 C
