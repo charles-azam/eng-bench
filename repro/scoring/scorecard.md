@@ -110,8 +110,9 @@ argument (T⁴ radiation + buoyancy strengthening = negative feedback at every p
 
 ## Contamination controls
 
-1. **Recall probes** (`../probes/probes.txt`): Opus, Sonnet, Haiku all explicitly decline to state
-   the measured values from memory ("Any numbers I produced would be fabricated").
+1. **Recall probes** (`../probes/probes_results.txt`, prompts included): Opus, Sonnet, Haiku all
+   explicitly decline to state the measured values from memory ("Any numbers I produced would be
+   fabricated"). Forced-choice variant: `../probes/forced_choice_analysis.md` (6/16, n.s.).
 2. **Recognition probes**: Opus & Sonnet *do* identify the facility from its geometry — disclosed;
    the de-identified rerun scored as well or better than the identified runs.
 3. **Transcript audit**: 0 WebSearch, 0 WebFetch, 0 curl/wget across every run. The agents even
