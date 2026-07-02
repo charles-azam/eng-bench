@@ -1,0 +1,24 @@
+FoamFile { version 2.0; format ascii; class dictionary; object blockMeshDict; }
+scale 1.0;
+// Vertical cavity slice: x = depth (plate->riser) 0..0.7066 m, y = height 0..6.7 m
+vertices
+(
+    (0      0     0)
+    (0.7066 0     0)
+    (0.7066 6.7   0)
+    (0      6.7   0)
+    (0      0     0.1)
+    (0.7066 0     0.1)
+    (0.7066 6.7   0.1)
+    (0      6.7   0.1)
+);
+blocks ( hex (0 1 2 3 4 5 6 7) (60 200 1) simpleGrading (1 1 1) );
+edges ();
+boundary
+(
+    plate   { type wall; faces ( (0 4 7 3) ); }   // x=0  heated plate (mock RPV)
+    riser   { type wall; faces ( (1 2 6 5) ); }   // x=L  riser front plane (cooled)
+    topAndBottom { type wall; faces ( (3 7 6 2) (0 1 5 4) ); }
+    frontAndBack { type empty; faces ( (0 3 2 1) (4 5 6 7) ); }
+);
+mergePatchPairs ();

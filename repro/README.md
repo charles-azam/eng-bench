@@ -49,14 +49,14 @@ that's the point. Score it against the measured values and see where it lands.
    assumptions push (e.g. its heat-loss assumption ⇒ its ΔT overshoot). Memorized answers
    don't produce self-consistent errors.
 
-## Headline result (ensemble of 4 fully-archived Opus baseline runs)
+## Headline result (ensemble of 6 fully-archived Opus baseline runs)
 
 | Quantity | Measured (Argonne, Run011) | Agent predictions (range) | Verdict |
 |---|---|---|---|
-| System mass flow | 0.574 kg/s | 0.55–0.58 kg/s | within ±4% every run |
-| Heated-plate temperature | 390.7 °C | 359–390 °C | −8…0% |
-| Riser wall (front, mid-plane) | 163.1 °C | 135–185 °C | −17…+13% |
-| Riser air ΔT | 84.1 °C | 96–103 °C | **+14…+23% high, every run** (see scorecard for why) |
+| System mass flow | 0.574 kg/s | 0.55–0.65 kg/s | ±4% in 5 of 6; +13% in the run that overrode the given duty |
+| Heated-plate temperature | 390.7 °C | 359–420 °C | −8…+7.5% |
+| Riser wall (front, mid-plane) | 163.1 °C | 135–195 °C | −17…+20% |
+| Riser air ΔT | 84.1 °C | 96–110 °C | **+14…+31% high, every run** (see scorecard for why) |
 | Radiation dominant? | yes (~0.80) | yes (0.90–0.96) | right regime, **fraction over-predicted every run** |
 | Accident: bounded turn-over below limit | yes, peak 408.7 °C | yes, peak 359–391 °C | correct call, every run |
 | Weather: colder ⇒ more flow | yes (~25% swing) | yes (9–21% swing) | sign right, magnitude low |

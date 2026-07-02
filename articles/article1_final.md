@@ -3,10 +3,10 @@
 **TL;DR.** I gave Claude the geometry, materials, and heater settings of a US national-lab
 passive-cooling experiment and asked it — like any engineer — for a calculation note. Working
 autonomously on a cheap VPS, it built physics models from textbook first principles and predicted
-the lab's measured airflow within ±4% in every run, the vessel-wall temperature within 8%, and
-correctly called the accident-transient outcome every time. It also got things wrong in
-instructive ways, and an independent adversarial AI audit of my own claims found real issues —
-all published. Everything is in the repo, transcripts included.
+the lab's measured airflow within ±4% in five of six runs, the vessel-wall temperature within
+−8…+8%, and correctly called the accident-transient outcome every single time. It also got
+things wrong in instructive ways, and an independent adversarial AI audit of my own claims found
+real issues — all published. Everything is in the repo, transcripts included. Total cost: ~$50.
 
 ## The experiment
 
@@ -39,10 +39,11 @@ engineer, but that pairing quietly encodes the rig's measured heater efficiency.
 own loss estimates disagreed with it (they computed 66–72 kW should reach the air); they trusted
 the given number. Remember that — it explains their one systematic miss.
 
-I ran this six times over two evenings: four identical baseline runs with Claude Opus (one of
-them additionally required to cross-check itself with CFD), one with the facility identity
-scrubbed from the inputs, one with a weaker model (Sonnet) — plus a final run on scenarios the
-prompt had never mentioned. 13–27 minutes each. About $28 of API, total.
+I ran this nine times over three evenings with Claude Opus: six baseline runs (one with the
+facility identity scrubbed from the inputs, two additionally required to cross-check themselves
+with CFD — more on that below), one with a weaker model (Sonnet), one on blind scenarios the
+prompt had never mentioned, and one early run whose server I deleted before archiving it (so it's
+excluded from every claim here). 11–57 minutes each. About $50 of API, total.
 
 ## What came back
 
@@ -55,13 +56,17 @@ compute cost of the *physics* is milliseconds. The judgment is the product.
 
 Against Argonne's measurements (their baseline test, 82 kWe):
 
-| Quantity | Measured | Four Opus runs | Verdict |
+| Quantity | Measured | Six Opus runs | Verdict |
 |---|---|---|---|
-| Loop airflow | 0.574 kg/s | 0.55 – 0.58 | **within ±4%, every run** |
-| Vessel-wall temperature | 390.7 °C | 359 – 390 °C | −8…0% |
-| Riser duct wall | 163.1 °C | 135 – 185 °C | −17…+13% |
-| Air temperature rise | 84.1 °C | 96 – 103 °C | **+14…+23% high, every run** |
-| Radiation carries the heat? | yes, ~80% | yes, 90–96% | right regime, fraction too high |
+| Loop airflow | 0.574 kg/s | 0.55 – 0.65 | **±4% in five runs**; +13% in one |
+| Vessel-wall temperature | 390.7 °C | 359 – 420 °C | −8…+8% |
+| Riser duct wall | 163.1 °C | 135 – 195 °C | −17…+20% |
+| Air temperature rise | 84.1 °C | 96 – 110 °C | **+14…+31% high, every run** |
+| Radiation carries the heat? | yes, ~80% | yes, 89–96% | right regime, fraction too high |
+
+The +13% flow outlier is its own story: that run was the only one to *reject* the supplied heat
+duty and trust its own heat-loss physics instead — and its numbers moved exactly as that choice
+predicts. Same physics, different judgment call, self-consistent either way.
 
 ![Every run's predictions against the measured values — including the misses](figures/fig_ensemble.png)
 
@@ -72,11 +77,16 @@ exact input as its riskiest assumption *before any comparison existed*. (The fac
 energy accounting is ambiguous at the ~13% level between two ways of measuring heat-to-air —
 the agents' overshoot sits inside that ambiguity, but a miss is a miss.)
 
-The run that had to cross-check itself installed OpenFOAM in Docker, unaided, generated a cavity
-case with surface-to-surface view-factor radiation, ran it, and reconciled the CFD's radiative
-fluxes with its own hand-built network to within 2% — in 27 minutes, for $8.71. (Scope honesty:
-the CFD verified the radiation arithmetic at prescribed temperatures, not the temperatures
-themselves.)
+Two runs had to cross-check themselves with CFD. The first installed OpenFOAM in Docker,
+unaided, built a cavity case with surface-to-surface view-factor radiation, and reconciled the
+radiative fluxes with its own hand-built network to within 2% — in 27 minutes, for $8.71. (Scope
+honesty: that case verified the radiation arithmetic at prescribed temperatures.) So the second
+was required to do it the hard way: prescribe **only the heater flux** and let the solver find
+the temperatures. It chose discrete-ordinates radiation with a k-ω SST model, invented a
+flux-ramping scheme to converge the stiff radiation coupling, and got wall temperatures — as
+*outputs* — within ~10% of its hand model, radiation share 89%, disclosing its own remaining
+energy-imbalance caveat. That's 57 minutes and $16.42 for what a thermal-hydraulics consultancy
+would happily bill a week for.
 
 ## The accident that saves itself
 
@@ -165,7 +175,7 @@ why this project works now and didn't two years ago.
 
 ## The bill
 
-Six runs, one with CFD: **$28.53 of API usage, ~13–27 minutes each, on a €30/month VPS.** The
+Nine runs, two with CFD: **~$50 of API usage, 11–57 minutes each, on a €30/month VPS.** The
 original facility program ran 33 months. The point is not that AI replaces the lab — the lab is
 the only reason I can grade any of this. The point is that *verification-grade engineering
 analysis* — the months of modeling labor between "here are the drawings" and "here is a defensible

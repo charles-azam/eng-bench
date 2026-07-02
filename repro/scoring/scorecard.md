@@ -40,6 +40,29 @@ Systematic patterns across Opus runs — the misses as important as the hits:
   assumption band** — across runs the wall spread is −17…+13% and the measured 8-run repeat band
   is itself 152.5–183.3 °C. Judge the ensemble, not the luckiest draw.
 
+## Phase-2 runs (added after the adversarial audit)
+
+| Quantity | Measured | Rep C (Opus) | Rep D (Opus) | CHT run (Opus, reduced / CFD-solved) |
+|---|---|---|---|---|
+| Mass flow (kg/s) | **0.574** | 0.550 (−4%) | 0.650 (+13%) | 0.580 (+1%) |
+| Riser ΔT (°C) | **84.1** | 100 (+19%) | 110 (+31%) | ~99 (+18%) |
+| Riser wall, front (°C) | **163.1** | 170 (+4%) | 195 (+20%) | 181 (+11%) / mean 124 CFD |
+| Heated plate (°C) | **390.7** | 375 (−4%) | 420 (+7.5%) | 372 (−5%) / **333 CFD-solved** (−15%) |
+| Radiative fraction | **~0.80** | 0.91 ✗ | 0.92 ✗ | 0.91 / **0.89 CFD** ✗ |
+| Cost / time | — | $2.39 / 11 min | $2.89 / 12 min | $16.42 / 57 min |
+
+**Rep D is the outlier that proves the ambiguity:** it was the only run to trust its *own*
+parasitic-loss physics (Q_air ≈ 71 kW) over the stated 56 kW duty — its flow and wall
+temperatures moved high together, exactly as that choice predicts. The duty input cuts both ways.
+
+**The CHT run answers the audit's strongest criticism.** Its OpenFOAM case (fvDOM discrete-
+ordinates radiation, k-ω SST, 2-D cavity slice) prescribed **only the heat flux** (5501 W/m²)
+and **solved for the temperatures**: plate 333–335 °C, riser mean 122–124 °C, radiative share
+89% — corroborating its reduced model within ~10% with temperatures as *outputs*, and
+self-disclosing a ~20% energy-imbalance caveat on the 2-D slice. It also invented a flux-ramping
+continuation strategy to converge the stiff radiation coupling — an authentically expert
+numerical move.
+
 ## The CFD cross-check (the "make complex software work" test)
 
 The CFD run set up OpenFOAM v2312 unaided (official Docker image, no compilation), generated a
@@ -97,4 +120,6 @@ argument (T⁴ radiation + buoyancy strengthening = negative feedback at every p
    blocked-duct radiation) — the signature of derivation, not retrieval.
 
 ## Total cost of everything above
-≈ $28 of API usage + ~€1 of VPS time. Six autonomous runs, one with CFD, 13–27 minutes each.
+≈ $50 of API usage + ~€2 of VPS time. Nine autonomous runs (6 archived Opus baselines + 1 Sonnet
+ladder + 1 blind-scenario + 1 reconstructed), two with CFD, 11–57 minutes each, plus probes and
+an adversarial audit.

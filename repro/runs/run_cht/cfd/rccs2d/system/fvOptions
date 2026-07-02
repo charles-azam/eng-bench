@@ -1,0 +1,3 @@
+FoamFile { version 2.0; format ascii; class dictionary; object fvOptions; }
+limitT { type limitTemperature; active true; selectionMode all; min 280; max 1200; }
+limitU { type limitVelocity;    active true; selectionMode all; max 5; }
