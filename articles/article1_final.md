@@ -63,6 +63,8 @@ Against Argonne's measurements (their baseline test, 82 kWe):
 | Air temperature rise | 84.1 °C | 96 – 103 °C | **+14…+23% high, every run** |
 | Radiation carries the heat? | yes, ~80% | yes, 90–96% | right regime, fraction too high |
 
+![Every run's predictions against the measured values — including the misses](figures/fig_ensemble.png)
+
 Two things to say like an adult. First, the best run landed on 163 °C and 390 °C — within 0.2% of
 measurement. That's luck inside a ±5–10% assumption band, not accuracy; judge the ensemble.
 Second, the air-ΔT miss is systematic, and it's the supplied heat duty: every run flagged that
@@ -81,6 +83,9 @@ themselves.)
 The marquee test at Argonne: drive the wall with a scaled reactor decay-heat curve — 3.5 days of
 slowly rising then fading heat — and see if passive cooling keeps up. Measured: the wall climbed
 to ~409 °C, flattened, and came back down. The rig saved itself.
+
+![One agent's own transient plot: heat load rises for 3.5 days; the wall temperature follows, flattens, turns over](figures/fig_accident_transient.png)
+*(Figure produced by the agent itself during its run, unprompted.)*
 
 Every single run — even the weak-model one — predicted that outcome, with the right argument:
 radiated power grows as temperature to the fourth power, and the chimney draft strengthens with
@@ -101,6 +106,8 @@ about 30 minutes later. Predicted, from scratch: a "density lock" — the heavy 
 buoyancy and stalls the loop in seconds-to-tens-of-seconds; the trapped heat then warms the argon
 until it becomes buoyant again at a computed threshold of **131 °C**, and the loop purges itself
 in minutes. Mechanism, timescales, and a 5 °C hit on the restart temperature — on physics alone.
+
+![The agent's own argon analysis: density lock below the computed 131 °C buoyancy threshold](figures/fig_argon_stall.png)
 
 **Block half the cooling ducts.** Prediction: airflow drops 40% (measured: 37% — good) and the
 wall heats up ~100 °C. Measured: it barely rose **13 °C**. Wrong by a factor of eight — and the

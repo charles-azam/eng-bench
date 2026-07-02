@@ -73,6 +73,8 @@ The safety system literally runs better in winter. Wind matters too — gusts ov
 outlets add suction (growing as wind speed squared), and one windy start-up attempt actually
 drove the flow *backwards* before the buoyancy won.
 
+![Airflow and temperatures across the outdoor-temperature range — an AI agent's own weather sweep of this facility](figures/fig_weather_sweep.png)
+
 None of this breaks the safety case — the vessel temperature barely notices, because the T⁴
 radiation clamp dominates — but it means a passive system's performance envelope includes the
 weather report. The lab ended up fitting a little formula for the no-power airflow:
