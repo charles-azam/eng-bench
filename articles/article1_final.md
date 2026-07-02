@@ -3,10 +3,10 @@
 **TL;DR.** I gave Claude the geometry, materials, and heater settings of a US national-lab
 passive-cooling experiment and asked it — like any engineer — for a calculation note. Working
 autonomously on a cheap VPS, it built physics models from textbook first principles and predicted
-the lab's measured airflow within ±4% in five of six runs, the vessel-wall temperature within
+the lab's measured airflow within ±4% in six of seven runs, the vessel-wall temperature within
 −8…+8%, and correctly called the accident-transient outcome every single time. It also got
 things wrong in instructive ways, and an independent adversarial AI audit of my own claims found
-real issues — all published. Everything is in the repo, transcripts included. Total cost: ~$50.
+real issues — all published. Everything is in the repo, transcripts included. Total cost: ~$61.
 
 ## The experiment
 
@@ -39,11 +39,13 @@ engineer, but that pairing quietly encodes the rig's measured heater efficiency.
 own loss estimates disagreed with it (they computed 66–72 kW should reach the air); they trusted
 the given number. Remember that — it explains their one systematic miss.
 
-I ran this twelve times over three evenings with Claude Opus: six baseline runs (one with the
-facility identity scrubbed from the inputs, two additionally required to cross-check themselves
-with CFD — more on that below), one with a weaker model (Sonnet), one on blind scenarios the
-prompt had never mentioned, and one early run whose server I deleted before archiving it (so it's
-excluded from every claim here). 11–57 minutes each. About $60 of API, total.
+I ran this twelve times over three evenings with Claude Opus: seven baseline runs (one with the
+facility identity scrubbed, one on inputs curated by a *separate* agent from the raw report, two
+additionally required to cross-check themselves with CFD — more on that below), one with a weaker
+model (Sonnet), one on blind scenarios the prompt had never mentioned, two asked for things nobody
+measured the usual way (a blind correlation derivation and a full-plant scale-up), and one early
+run whose server I deleted before archiving it (excluded from every claim here). 6–57 minutes
+each. About $61 of API, total.
 
 ## What came back
 
@@ -56,11 +58,11 @@ compute cost of the *physics* is milliseconds. The judgment is the product.
 
 Against Argonne's measurements (their baseline test, 82 kWe):
 
-| Quantity | Measured | Six Opus runs | Verdict |
+| Quantity | Measured | Seven Opus runs | Verdict |
 |---|---|---|---|
-| Loop airflow | 0.574 kg/s | 0.55 – 0.65 | **±4% in five runs**; +13% in one |
+| Loop airflow | 0.574 kg/s | 0.55 – 0.65 | **±4% in six runs**; +13% in one |
 | Vessel-wall temperature | 390.7 °C | 359 – 420 °C | −8…+8% |
-| Riser duct wall | 163.1 °C | 135 – 195 °C | −17…+20% |
+| Riser duct wall | 163.1 °C | 110 – 195 °C | −32…+20% |
 | Air temperature rise | 84.1 °C | 96 – 110 °C | **+14…+31% high, every run** |
 | Radiation carries the heat? | yes, ~80% | yes, 89–96% | right regime, fraction too high |
 
