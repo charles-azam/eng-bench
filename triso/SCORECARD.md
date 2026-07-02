@@ -62,4 +62,9 @@ exactly.** (Sr was excluded from scoring a priori: all professional codes overpr
    within ×2 at 1800 °C, orders high at 1600 °C. Inherited correlations ⇒ inherited biases.
 5. Costs: Opus $1.7–2.1 / 11–14 turns / ~10 min per run; Fable ~96k tokens; all offline.
 
-(Sonnet ladder run: pending — to be added. Probes + adversarial audit: pending.)
+## Sonnet ladder row (52 turns, $4.74, 22 min — ~2.5× Opus cost)
+Failures: A1 0.002 ✓ · A2 0.024 ✗(÷450) · B 0.034 ✗(÷150) · C1 0.020 ✗ · C2 0.002 ✓.
+Meticulous inventory bookkeeping (tracked fuel batches, decay-corrected Kr-85 atoms), correct
+zero-failure calls and phase placements — but purely the given pressure-vessel physics, no
+invented mechanism. The ladder pattern repeats: the weaker model executes the supplied physics;
+the frontier models are the ones that notice what's missing. (Probes + audit: pending.)
