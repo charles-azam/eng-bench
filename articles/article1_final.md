@@ -39,11 +39,11 @@ engineer, but that pairing quietly encodes the rig's measured heater efficiency.
 own loss estimates disagreed with it (they computed 66–72 kW should reach the air); they trusted
 the given number. Remember that — it explains their one systematic miss.
 
-I ran this nine times over three evenings with Claude Opus: six baseline runs (one with the
+I ran this twelve times over three evenings with Claude Opus: six baseline runs (one with the
 facility identity scrubbed from the inputs, two additionally required to cross-check themselves
 with CFD — more on that below), one with a weaker model (Sonnet), one on blind scenarios the
 prompt had never mentioned, and one early run whose server I deleted before archiving it (so it's
-excluded from every claim here). 11–57 minutes each. About $50 of API, total.
+excluded from every claim here). 11–57 minutes each. About $60 of API, total.
 
 ## What came back
 
@@ -144,10 +144,17 @@ The objection everyone should raise. What I found:
 - **The transcripts are published.** Every command of every surviving run: zero web searches,
   zero fetches. The agents even wrote their own air-property functions rather than downloading a
   library. The measured data never existed on that machine.
-- **The errors are the tell.** Five independent runs missing the same quantity, in the same
+- **The errors are the tell.** Independent runs missing the same quantity, in the same
   direction, for the same self-stated reason — and a blind-scenario miss whose cause was
   pre-flagged — is the signature of derivation, not retrieval. Memorized answers don't come with
   consistent, explainable mistakes.
+- **Even the inputs weren't mine, in the end.** Our audit noted I had curated the input files
+  while holding the answers. So a separate agent re-derived the inputs directly from the raw
+  report under a written no-outcomes protocol (gate-checked before use), and a fresh run on
+  *that* pack produced the best baseline numbers of the whole campaign — airflow +0.3%, vessel
+  wall −1.3%. That pack legitimately contained the *design-intent* flow value; the agent
+  explicitly rejected it in favor of its own momentum balance, and the measurement sided with
+  the agent.
 
 Can I *prove* latent memory didn't subtly steer an assumption somewhere? No — nobody can, and
 you should distrust anyone who claims to. What I can do is publish everything and let you grep.
@@ -177,7 +184,7 @@ why this project works now and didn't two years ago.
 
 ## The bill
 
-Nine runs, two with CFD: **~$50 of API usage, 11–57 minutes each, on a €30/month VPS.** The
+Twelve runs, two with CFD: **~$61 of API usage, 6–57 minutes each, on a €30/month VPS.** The
 original facility program ran 33 months. The point is not that AI replaces the lab — the lab is
 the only reason I can grade any of this. The point is that *verification-grade engineering
 analysis* — the months of modeling labor between "here are the drawings" and "here is a defensible

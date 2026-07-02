@@ -121,9 +121,10 @@ argument (T⁴ radiation + buoyancy strengthening = negative feedback at every p
    blocked-duct radiation) — the signature of derivation, not retrieval.
 
 ## Total cost of everything above
-≈ $50 of API usage + ~€2 of VPS time. Nine autonomous runs (6 archived Opus baselines + 1 Sonnet
-ladder + 1 blind-scenario + 1 reconstructed), two with CFD, 11–57 minutes each, plus probes and
-an adversarial audit.
+≈ $61 of API usage + ~€2 of VPS time. Twelve autonomous runs (7 archived Opus baselines incl. an
+independently-curated-inputs run + 1 Sonnet ladder + 1 blind-scenario + 1 correlation derivation
++ 1 full-scale extrapolation + 1 reconstructed), two with CFD, 6–57 minutes each, plus an
+independent curator agent, recall/forced-choice probes, and an adversarial audit.
 
 ## Extension experiments (post-audit)
 
