@@ -134,3 +134,22 @@ independent curator agent, recall/forced-choice probes, and an adversarial audit
 | **Full-scale extrapolation** (227-duct real plant) | GA design basis: peak 12.2 kg/s / 121 °C; normal 10.6 / 67 | peak **12.1 kg/s / 123 °C**; normal 10.0 / 70 | −0.8% / +1.7% peak (vs designer's calcs, not measurements — disclosed) |
 | **Forced-choice recall probes** | (contamination control) | 6/16, p≈0.12 n.s., all self-labeled guesses | no recall demonstrated; probe design flaw disclosed in `../probes/forced_choice_analysis.md` |
 | **Independent curation** (agent-curated pack from raw report, gate-checked leak-free) | same baseline measurements | flow **+0.3%**, plate **−1.3%** (both best-of-campaign), ΔT +14%, wall −32%, rad 0.87 | caveat closed; builder also *rejected* the pack's design-intent flow (0.456) for its own physics (0.576) — measurement said 0.574 |
+
+## Fable 5 runs (2× subagents, fully offline, frozen pack — added Jul 2)
+
+| Quantity | Measured | Fable A | Fable B |
+|---|---|---|---|
+| Mass flow (kg/s) | **0.574** | 0.550 (−4%) | 0.650 (+13%) |
+| Riser ΔT (°C) | **84.1** | 101 (+20%) | **88 (+4.6%)** |
+| Riser wall, front (°C) | **163.1** | **160 (−1.9%)** | 155 (−5%) |
+| Heated plate (°C) | **390.7** | **386 (−1.2%)** | **386 (−1.2%)** |
+| Radiative fraction | **~0.80** | 0.87 | **0.83 (closest of any run)** |
+| Accident peak (°C, bounded?) | **408.7, yes** | 321 (−21%) ✓ | **398 (−2.6%)** ✓ |
+
+Notes: both hit the plate within 1.2%; Fable B's radiative fraction is the campaign's closest
+(it modeled inter-duct gap absorption — a physics nuance no other run added) and its accident
+peak the most accurate. Honesty: B's ΔT accuracy is partly error compensation (flow +13% ×
+duty +18% ≈ measured ṁcpΔT); A swept the loss fraction unprompted. EVIDENCE CAVEAT: these ran
+as in-session subagents on the orchestrator machine, not on the VPS — transcripts are not in
+`../transcripts/`, so they carry a lower evidence grade than the Opus/Sonnet runs and are
+reported separately from the headline ensemble.
