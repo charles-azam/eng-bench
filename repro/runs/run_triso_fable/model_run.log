@@ -1,0 +1,53 @@
+Cs-SiC prefactor recalibration: second-term D0 = 1.793e-02 m2/s (D(1600C) = 1.011e-16, D(1700C) = 4.698e-16, D(1800C) = 2.046e-15 m2/s)
+SiC decomposition rate: 0.0012 um/h @1600C, 0.0289 um/h @1800C
+
+case  P_peak  F_gas    O/F   sigma  L_eff   phi   E[fail]  onset_h      Kr85     Cs137 Cs_intact
+A1      22.0  0.999 0.0617     125   35.4  0.41     0.010        -  1.06e-05  1.08e-02  1.08e-02
+A2      26.7  0.947 0.0019     162   33.0  0.77     0.279        -  2.64e-05  1.09e-01  1.09e-01
+B       39.8  1.000 0.1500     348   23.6  1.00   283.129      253  1.94e-02  4.79e-01  4.71e-01
+C1      36.9  0.989 0.0376     208   35.6  0.32     0.042        -  3.59e-05  2.32e-03  2.30e-03
+C2      26.2  0.965 0.0075     148   35.6  0.30     0.003        -  1.16e-05  1.28e-03  1.28e-03
+
+Sensitivity envelope (expected failures):
+  A1: fail 0.002..0.0  Kr 1.0e-05..1.1e-05  Cs 1.1e-02..2.6e-02
+      nominal                    fail=    0.010 onset=     - Kr=1.06e-05 Cs=1.08e-02
+      KD=0.20                    fail=    0.006 onset=     - Kr=1.03e-05 Cs=1.08e-02
+      KD=0.50                    fail=    0.017 onset=     - Kr=1.11e-05 Cs=1.08e-02
+      no CO                      fail=    0.002 onset=     - Kr=1.01e-05 Cs=1.08e-02
+      dec x3                     fail=    0.013 onset=     - Kr=1.08e-05 Cs=1.08e-02
+      dec /3                     fail=    0.009 onset=     - Kr=1.05e-05 Cs=1.08e-02
+      Dcs x1.46 (participant)    fail=    0.013 onset=     - Kr=1.08e-05 Cs=2.60e-02
+  A2: fail 0.087..1.4  Kr 1.5e-05..9.1e-05  Cs 1.1e-01..1.7e-01
+      nominal                    fail=    0.279 onset=     - Kr=2.64e-05 Cs=1.09e-01
+      KD=0.20                    fail=    0.087 onset=     - Kr=1.51e-05 Cs=1.09e-01
+      KD=0.50                    fail=    1.100 onset=  185h Kr=7.47e-05 Cs=1.09e-01
+      no CO                      fail=    0.265 onset=     - Kr=2.56e-05 Cs=1.09e-01
+      dec x3                     fail=    1.377 onset=  181h Kr=9.09e-05 Cs=1.09e-01
+      dec /3                     fail=    0.175 onset=     - Kr=2.03e-05 Cs=1.09e-01
+      Dcs x1.46 (participant)    fail=    0.528 onset=     - Kr=4.10e-05 Cs=1.73e-01
+  B: fail 12.063..14580.0  Kr 8.4e-04..1.0e+00  Cs 4.7e-01..9.0e-01
+      nominal                    fail=  283.129 onset=  253h Kr=1.94e-02 Cs=4.79e-01
+      KD=0.20                    fail=   53.978 onset=  288h Kr=3.71e-03 Cs=4.73e-01
+      KD=0.50                    fail= 2165.760 onset=  181h Kr=1.49e-01 Cs=5.35e-01
+      no CO                      fail=   12.063 onset=  424h Kr=8.37e-04 Cs=4.71e-01
+      dec x3                     fail=14580.000 onset=  216h Kr=1.00e+00 Cs=9.00e-01
+      dec /3                     fail=   25.921 onset=  274h Kr=1.79e-03 Cs=4.72e-01
+      Dcs x1.46 (participant)    fail=  283.129 onset=  211h Kr=1.94e-02 Cs=6.19e-01
+  C1: fail 0.017..0.1  Kr 2.0e-05..5.1e-05  Cs 2.3e-03..7.8e-03
+      nominal                    fail=    0.042 onset=     - Kr=3.59e-05 Cs=2.32e-03
+      KD=0.20                    fail=    0.028 onset=     - Kr=2.69e-05 Cs=2.31e-03
+      KD=0.50                    fail=    0.067 onset=     - Kr=5.06e-05 Cs=2.34e-03
+      no CO                      fail=    0.017 onset=     - Kr=2.02e-05 Cs=2.31e-03
+      dec x3                     fail=    0.050 onset=     - Kr=4.05e-05 Cs=2.33e-03
+      dec /3                     fail=    0.040 onset=     - Kr=3.45e-05 Cs=2.32e-03
+      Dcs x1.46 (participant)    fail=    0.053 onset=     - Kr=4.21e-05 Cs=7.82e-03
+  C2: fail 0.002..0.0  Kr 1.1e-05..1.2e-05  Cs 1.3e-03..5.0e-03
+      nominal                    fail=    0.003 onset=     - Kr=1.16e-05 Cs=1.28e-03
+      KD=0.20                    fail=    0.002 onset=     - Kr=1.10e-05 Cs=1.28e-03
+      KD=0.50                    fail=    0.004 onset=     - Kr=1.24e-05 Cs=1.28e-03
+      no CO                      fail=    0.002 onset=     - Kr=1.13e-05 Cs=1.28e-03
+      dec x3                     fail=    0.003 onset=     - Kr=1.18e-05 Cs=1.28e-03
+      dec /3                     fail=    0.002 onset=     - Kr=1.15e-05 Cs=1.28e-03
+      Dcs x1.46 (participant)    fail=    0.003 onset=     - Kr=1.19e-05 Cs=4.97e-03
+
+Wrote /Users/charlesazam/eng-bench/runs/run_triso_fable/results.json
