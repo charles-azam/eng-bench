@@ -86,6 +86,11 @@ weather report. The lab ended up fitting a little formula for the no-power airfl
 ṁ = (5.53·ΔT + 3.75·V²)^(1/1.8) — temperature difference and wind speed in, kilograms of air
 per minute out.
 
+(A coda from the companion experiment: asked to *derive* such a formula blind from the geometry,
+the AI produced ṁ = (20.5·ΔT + 6.25·V²)^(1/2) — the same structure, a wind term within ~10% of
+the lab's fit, and a temperature term about 45% hot, having itself flagged the exact assumption
+responsible. Six minutes, $1.37.)
+
 ## Why I'm telling you this
 
 Two reasons. First, it's the most elegant piece of engineering I know of: a nuclear safety
