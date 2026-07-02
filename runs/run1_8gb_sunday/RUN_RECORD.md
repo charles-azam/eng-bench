@@ -1,6 +1,6 @@
 # Run 1 — Sunday 2026-06-28, 8 GB VPS (RECONSTRUCTED RECORD)
 
-> The original box (135.181.30.117, 4-core/7.6GB Hetzner, `ubuntu-8gb-hel1-1`) was deleted on
+> The original box (<old-vps>, 4-core/7.6GB Hetzner, `ubuntu-8gb-hel1-1`) was deleted on
 > 2026-07-01 before artifacts could be tarred off. This record was reconstructed from a full
 > read of `output/calculation_note.md` and `output/results.json` performed over SSH on
 > 2026-07-01 (see session transcript). Numbers below are verbatim from that read.

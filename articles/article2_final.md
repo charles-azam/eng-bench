@@ -47,6 +47,11 @@ day and night, for free, forever.
 Chain them together and you get a machine with no parts: **glow across the gap, float up the
 chimney.** The hotter the accident, the harder both mechanisms work.
 
+**Don't take my word for it — [play with the physics yourself](rccs_calculator.html).** Drag the
+heat load, the outdoor temperature, and the wind, and watch the airflow and wall temperatures
+respond. The model behind the sliders is the one the AI built and validated against the
+measurements; it runs entirely in your browser.
+
 ## Proving it: a 26-metre chimney in a building near Chicago
 
 You don't license a nuclear plant on "trust me, hot air rises." Argonne National Laboratory
