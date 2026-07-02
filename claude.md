@@ -1,5 +1,9 @@
 # Project constitution
 
+**FRESH SESSION? Read `handoff/00_INDEX.md` first** — it is the complete project memory
+(history, the finished NSTF campaign record, infrastructure runbook, follow-up benchmark
+briefs, and the ACTIVE TRISO campaign brief).
+
 The objective is to showcase how an AI can — or cannot — do real engineering work.
 
 The final objective is to generate an article that would work well on Hacker News and showcase
