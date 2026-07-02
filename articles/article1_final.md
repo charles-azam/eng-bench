@@ -183,6 +183,14 @@ the only reason I can grade any of this. The point is that *verification-grade e
 analysis* — the months of modeling labor between "here are the drawings" and "here is a defensible
 number with an uncertainty budget" — just became something you can rent by the minute.
 
+One last experiment, because it's the actual point of all this. The reason labs build half-scale
+rigs is to validate models that then predict the *real* plant. So I asked a fresh run to scale
+its facility-validated physics up to the full 227-duct system of the actual reactor design. Its
+predictions — peak-accident airflow of 12.1 kg/s with a 123 °C air rise — landed within **2%**
+of General Atomics' own design-basis calculations (12.2 kg/s, 121 °C), numbers it was never
+shown. (Designer's calculations, not measurements — but that agreement is exactly the workflow
+engineering firms exist to perform: validate small, predict large.) Seven minutes, $1.92.
+
 Hard-tech engineering is labor-bound, not physics-bound. The physics didn't change. The labor
 just did.
 

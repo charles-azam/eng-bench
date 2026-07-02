@@ -123,3 +123,12 @@ argument (T⁴ radiation + buoyancy strengthening = negative feedback at every p
 ≈ $50 of API usage + ~€2 of VPS time. Nine autonomous runs (6 archived Opus baselines + 1 Sonnet
 ladder + 1 blind-scenario + 1 reconstructed), two with CFD, 11–57 minutes each, plus probes and
 an adversarial audit.
+
+## Extension experiments (post-audit)
+
+| Experiment | Held-out target | Agent result | Verdict |
+|---|---|---|---|
+| **Zero-power draft correlation** (derive ṁ(ΔT,V) blind) | lab fit (5.53·ΔT+3.75·V²)^(1/1.8) | (20.5·ΔT+6.25·V²)^(1/2) | form ✓ exactly; wind coeff −7%; stack +45% (assumption self-flagged); n=2 vs 1.8 |
+| **Full-scale extrapolation** (227-duct real plant) | GA design basis: peak 12.2 kg/s / 121 °C; normal 10.6 / 67 | peak **12.1 kg/s / 123 °C**; normal 10.0 / 70 | −0.8% / +1.7% peak (vs designer's calcs, not measurements — disclosed) |
+| **Forced-choice recall probes** | (contamination control) | 6/16, p≈0.12 n.s., all self-labeled guesses | no recall demonstrated; probe design flaw disclosed in `../probes/forced_choice_analysis.md` |
+| **Independent curation** (agent-curated pack from raw report, gate-checked leak-free) | same baseline measurements | *run in progress* | closes the "curator held the answers" caveat |
