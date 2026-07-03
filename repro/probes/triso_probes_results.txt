@@ -1,0 +1,26 @@
+=== opus tq1 ===
+I don't reliably remember the specific values for HFR-K3/3 in that table. I recall HFR-K3 spheres were heating-tested in the KüFA furnace under CRP-6 and generally performed well, but I can't confidently state the exact number of failed particles (out of 16,400) or the final Kr-85 fractional release at 1800 °C from Table 8.2 without guessing. I'd rather not give you a fabricated number.
+
+=== opus tq2 ===
+C) 5 — low confidence; recalling KüFA accelerated-irradiation tests generally showed very few failures, ~5 seems plausible but I'm not certain.
+
+=== opus tq3 ===
+B — low confidence (~30%); guessing, but a ~10⁻⁵ order-of-magnitude release fits a well-retentive HFR fuel sphere at 1600 °C.
+
+=== sonnet tq1 ===
+I don't reliably remember the specific numbers for this data point (KüFA test of HFR-K3/3 at 1800°C from IAEA TECDOC-1674, Table 8.2). I'd be guessing rather than recalling, so I won't state figures for particle failures or Kr-85 release — please check the source document directly.
+
+=== sonnet tq2 ===
+**B) 2** — confidence: low (recalling TECDOC-1674's HFR-K3/3 KüFA test as showing very few coated-particle failures, but I don't have reliable specific-value memory of this table).
+
+=== sonnet tq3 ===
+C) 6.5e-4 — low confidence, reconstructing from general HTGR spherical-fuel KüFA heating-test release trends rather than a specific recalled table value.
+
+
+=== ANALYSIS (orchestrator) ===
+Recall probes: Opus and Sonnet both REFUSE to state HFR-K3/3 values from memory.
+Forced-choice (truth placed OFF-median this time, fixing the NSTF probe design flaw):
+tq2 failure count, correct D(12): Opus C(5) ✗, Sonnet B(2) ✗.
+tq3 K3/1 Kr-85, correct A(1.8e-6): Opus B(4.2e-5) ✗, Sonnet C(6.5e-4) ✗
+  (Sonnet picked the SISTER sphere's value for the wrong sphere — pattern-plausibility, not recall).
+Score: 0/4 vs 20% chance. No recall demonstrated. All answers self-labeled low-confidence guesses.
