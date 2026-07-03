@@ -104,7 +104,8 @@ Full per-run detail, disclosures, and the misses: `scoring/scorecard.md`, `triso
 ## Costs
 
 NSTF: ~$61 (12 runs incl. 2 CFD-bearing + curator + probes + audit) + $26.50 for the two Fable 5
-VPS runs. TRISO: $15.8 metered (6 runs). HTTR: $16.08 (+ ~3.3 h background Monte Carlo on the
+VPS runs. TRISO: $15.8 across the five metered runs (of 6 total — one ran as an unmetered local
+subagent). HTTR: $16.08 (+ ~3.3 h background Monte Carlo on the
 box) + $3.87 for the xenon addendum. Total ≈ $125. VPS: €30/month Hetzner, ~€2 of actual usage.
 Everything ran on an 8-core / 30 GB box.
 
