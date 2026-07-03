@@ -1,8 +1,5 @@
 # The nuclear reactor that cools itself — with help from the weather
 
-<!-- Companion piece to article 1. Pure physics explainer, Ciechanowski-spirit but text-first.
-     ~1,200 words. Devs who haven't done physics since school. -->
-
 **TL;DR.** Modern high-temperature reactor designs can survive a total power blackout with a
 safety system that has no pumps, no valves, no software, and no moving parts. It is, essentially,
 a chimney. Argonne built a half-scale one to prove it — and discovered its performance changes
@@ -40,19 +37,19 @@ rises. That's a built-in negative feedback loop — a thermostat made of geometr
 **2. Hot air rises.** The air inside the ducts absorbs that radiated heat, warms by ~80–100 °C,
 becomes lighter than the outside air, and floats up the chimney — pulling fresh cold air in
 behind it. A 20-metre chimney with ~90 °C of warming generates a driving pressure of about
-60 pascals. That's 0.06% of atmospheric pressure — the pressure difference across a soap
-bubble — yet it silently pumps roughly half a kilogram of air per second through the system,
-day and night, for free, forever.
+60 pascals. That's 0.06% of atmospheric pressure — yet it silently pumps roughly half a kilogram of air per second through the system,
+day and night, for free, forever. (For scale: that's about the pressure your lungs make in
+quiet breathing — driving the safety system of a nuclear plant.)
 
 Chain them together and you get a machine with no parts: **glow across the gap, float up the
 chimney.** The hotter the accident, the harder both mechanisms work.
 
 **Don't take my word for it — [play with the physics yourself](rccs_calculator.html).** Drag the
 heat load, the outdoor temperature, and the wind, and watch the airflow and wall temperatures
-respond. The model behind the sliders is the one the AI built and validated against the
-measurements; it runs entirely in your browser.
+respond. The sliders drive a JavaScript port of the physics model the AI agents built and
+validated against the measurements; it runs entirely in your browser.
 
-## Proving it: a 26-metre chimney in a building near Chicago
+## Proving it: a 26-metre rig in a building near Chicago
 
 You don't license a nuclear plant on "trust me, hot air rises." Argonne National Laboratory
 built NSTF — a half-scale slice of the real thing: a 220 kW electrically heated steel wall
@@ -63,7 +60,10 @@ The centerpiece test: drive the heated wall with the exact decay-heat curve of a
 depressurization accident — 3.5 days of slowly climbing then fading heat — and watch. The wall
 climbed to about 409 °C, flattened out *below* the steel limit, and came back down, tracking
 the decay curve the whole way. The reactor mock-up saved itself, on camera, with no moving
-parts. [FIGURE: temperature vs time, rise → plateau → decline]
+parts.
+
+![Decay-heat transient: the heat load rises for 3.5 days; the wall temperature follows, flattens below the limit, and turns over](figures/fig_accident_transient.png)
+*(This particular plot was produced by an AI agent predicting the test — the companion article's story. The measured curve does the same thing, peaking at 408.7 °C.)*
 
 ## The surprise: the weather got a vote
 
@@ -76,7 +76,7 @@ between the hot air inside the chimney and the cold air outside the building. **
 outside air near Chicago is dense; the draft is strong. In July, it's light; the draft sags.**
 The safety system literally runs better in winter. Wind matters too — gusts over the chimney
 outlets add suction (growing as wind speed squared), and one windy start-up attempt actually
-drove the flow *backwards* before the buoyancy won.
+drove the flow *backwards*; the lab aborted that test and repeated it on a calmer day.
 
 ![Airflow and temperatures across the outdoor-temperature range — an AI agent's own weather sweep of this facility](figures/fig_weather_sweep.png)
 
@@ -101,7 +101,3 @@ Second: this experiment has something almost nothing else has — years of publi
 measured data of a system doing pure physics. Which made it the perfect exam question for a
 different kind of test: whether an AI, given only the blueprints, could predict these
 measurements from first principles. That's the companion article: [link to article 1].
-
-<!-- FIGURE candidates: (1) schematic wall/gap/ducts/chimney with radiation arrows + air loop;
-(2) T⁴ curve vs linear convection; (3) accident transient rise-plateau-decline;
-(4) flow vs outdoor temperature (winter/summer). Simple SVG or matplotlib, from repro data. -->

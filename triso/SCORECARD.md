@@ -81,4 +81,6 @@ Failures: A1 0.002 ✓ · A2 0.024 ✗(÷450) · B 0.034 ✗(÷150) · C1 0.020 
 Meticulous inventory bookkeeping (tracked fuel batches, decay-corrected Kr-85 atoms), correct
 zero-failure calls and phase placements — but purely the given pressure-vessel physics, no
 invented mechanism. The ladder pattern repeats: the weaker model executes the supplied physics;
-the frontier models are the ones that notice what's missing. (Probes + audit: pending.)
+the frontier models are the ones that notice what's missing. (Probes: 0/4 off-median
+forced-choice, both models refuse recall — `../repro/probes/triso_probes_results.txt`; audit:
+`AUDIT.md`, corrections applied above.)

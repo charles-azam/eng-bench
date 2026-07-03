@@ -3,7 +3,7 @@
 **TL;DR.** I gave Claude the geometry, materials, and heater settings of a US national-lab
 passive-cooling experiment and asked it — like any engineer — for a calculation note. Working
 autonomously on a cheap VPS, it built physics models from textbook first principles and predicted
-the lab's measured airflow within ±4% in six of seven runs, the vessel-wall temperature within
+the lab's measured airflow within ~4% in six of seven runs, the vessel-wall temperature within
 −8…+8%, and correctly called the accident-transient outcome every single time. It also got
 things wrong in instructive ways, and an independent adversarial AI audit of my own claims found
 real issues — all published. Everything is in the repo, transcripts included. Total cost: ~$61.
@@ -39,18 +39,19 @@ engineer, but that pairing quietly encodes the rig's measured heater efficiency.
 own loss estimates disagreed with it (they computed 66–72 kW should reach the air); they trusted
 the given number. Remember that — it explains their one systematic miss.
 
-I ran this twelve times over three evenings with Claude Opus: seven baseline runs (one with the
-facility identity scrubbed, one on inputs curated by a *separate* agent from the raw report, two
-additionally required to cross-check themselves with CFD — more on that below), one with a weaker
-model (Sonnet), one on blind scenarios the prompt had never mentioned, two asked for things nobody
-measured the usual way (a blind correlation derivation and a full-plant scale-up), and one early
-run whose server I deleted before archiving it (excluded from every claim here). 6–57 minutes
-each. About $61 of API, total.
+I ran this twelve times over three days, eleven runs on Claude Opus: seven baseline runs (one
+with the facility identity scrubbed, one on inputs curated by a *separate* agent from the raw
+report, two additionally required to cross-check themselves with CFD — more on that below), one
+with a weaker model (Sonnet), one on blind scenarios the prompt had never mentioned, two asked
+for things nobody measured the usual way (a blind correlation derivation and a full-plant
+scale-up), and one early run whose server I deleted before archiving it (excluded from every
+claim here). 6–57 minutes each. About $61 of API total, including the separate curator agent,
+the probes, and the audit.
 
 ## What came back
 
 Every run independently chose roughly what a good thermal-hydraulics engineer would: a radiation
-network across the cavity (hot things glow as T⁴ — that's how ~90% of the heat crosses the gap),
+network across the cavity (hot things glow as T⁴ — that's how ~80–90% of the heat crosses the gap),
 textbook convection correlations for the duct interiors, and a buoyancy-vs-friction loop balance
 for the flow — solved in a few hundred lines of Python it wrote from scratch, with cited
 correlations (Gnielinski, Churchill–Chu, Sutherland). No CFD mesh needed to get the numbers: the
@@ -60,11 +61,11 @@ Against Argonne's measurements (their baseline test, 82 kWe):
 
 | Quantity | Measured | Seven Opus runs | Verdict |
 |---|---|---|---|
-| Loop airflow | 0.574 kg/s | 0.55 – 0.65 | **±4% in six runs**; +13% in one |
+| Loop airflow | 0.574 kg/s | 0.55 – 0.65 | **within ~4% in six runs**; +13% in one |
 | Vessel-wall temperature | 390.7 °C | 359 – 420 °C | −8…+8% |
 | Riser duct wall | 163.1 °C | 110 – 195 °C | −32…+20% |
 | Air temperature rise | 84.1 °C | 96 – 110 °C | **+14…+31% high, every run** |
-| Radiation carries the heat? | yes, ~80% | yes, 89–96% | right regime, fraction too high |
+| Radiation carries the heat? | yes, ~80% | yes, 87–93% | right regime, fraction too high |
 
 The +13% flow outlier is its own story: that run was the only one to *reject* the supplied heat
 duty and trust its own heat-loss physics instead — and its numbers moved exactly as that choice
@@ -103,7 +104,7 @@ Every single run — even the weak-model one — predicted that outcome, with th
 radiated power grows as temperature to the fourth power, and the chimney draft strengthens with
 heat, so every degree of warming buys disproportionately more cooling. Negative feedback
 everywhere; nothing to run away. Opus runs put the peak at 359–391 °C (−4 to −12%), classified it
-"levels off, no runaway," and stated safety margins. One run even caught that the decay-curve
+"levels off, no runaway," and stated safety margins. Several runs also caught that the decay-curve
 polynomial I'd supplied was corrupt (a missing coefficient made it diverge), refused it, and used
 the stated curve shape instead.
 
@@ -117,7 +118,8 @@ a dead stop within ~90 seconds, gas temperatures spiked to 126 °C, and the loop
 about 30 minutes later. Predicted, from scratch: a "density lock" — the heavy cold gas kills the
 buoyancy and stalls the loop in seconds-to-tens-of-seconds; the trapped heat then warms the argon
 until it becomes buoyant again at a computed threshold of **131 °C**, and the loop purges itself
-in minutes. Mechanism, timescales, and a 5 °C hit on the restart temperature — on physics alone.
+in minutes (measured: ~30). Mechanism, order-of-magnitude timescales, and a 5 °C hit on the
+restart temperature — on physics alone.
 
 ![The agent's own argon analysis: density lock below the computed 131 °C buoyancy threshold](figures/fig_argon_stall.png)
 
@@ -136,16 +138,18 @@ under-predicted how much the airflow shifts.
 The objection everyone should raise. What I found:
 
 - **Asked directly**, from memory, for the measured values of this exact test, Opus, Sonnet, and
-  Haiku all refuse: *"I don't reliably remember these specific measured values… any numbers I
-  produced would be fabricated."* Forced to choose among five options anyway, they score
+  Haiku all refuse — Opus's words: *"I don't reliably remember these specific measured values…
+  any numbers I produced would be fabricated."* Forced to choose among five options anyway, they score
   6/16 — statistically indistinguishable from guessing (and the analysis in the repo discloses
   a design flaw that explains the apparent hits).
-- **But they recognize the facility.** Given just the geometry, they name NSTF and Argonne. So
-  scrubbing names is cosmetic — which is why I also reran the experiment with a de-identified
-  pack. It scored as well as the identified runs (its flow prediction was the best of all: +1%).
+- **But they recognize the facility.** Given just the geometry, Opus and Sonnet name NSTF and
+  Argonne. So scrubbing names is cosmetic — which is why I also reran the experiment with a
+  de-identified pack. It scored as well as the identified runs (flow within +1%).
 - **The transcripts are published.** Every command of every surviving run: zero web searches,
-  zero fetches. The agents even wrote their own air-property functions rather than downloading a
-  library. The measured data never existed on that machine.
+  zero document fetches (one run pinged hub.docker.com before pulling the OpenFOAM image — it's
+  in the log). Several runs wrote their own air-property functions from Sutherland's law; others
+  pip-installed CoolProp; none fetched anything about the facility. The measured data never
+  existed on that machine.
 - **The errors are the tell.** Independent runs missing the same quantity, in the same
   direction, for the same self-stated reason — and a blind-scenario miss whose cause was
   pre-flagged — is the signature of derivation, not retrieval. Memorized answers don't come with
@@ -203,5 +207,5 @@ engineering firms exist to perform: validate small, predict large.) Seven minute
 Hard-tech engineering is labor-bound, not physics-bound. The physics didn't change. The labor
 just did.
 
-*Repo with everything — inputs, prompts, all five transcripts, the agents' models, the scoring
-against the public Argonne reports, and the adversarial audit: [LINK].*
+*Repo with everything — inputs, prompts, every surviving run's full transcript, the agents'
+models, the scoring against the public Argonne reports, and the adversarial audit: [LINK].*
