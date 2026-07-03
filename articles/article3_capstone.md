@@ -1,18 +1,17 @@
 # I ran an AI engineering department for a week
 
-<!-- CAPSTONE — spans all three experiments. ~2,000 words target. HTTR slots marked [HTTR].
-     Fill from httr harvest, then final polish pass. -->
-
 **TL;DR.** Over one week, on a €30/month server, I gave autonomous AI agents three nuclear
-engineering problems of increasing cruelty: a passive cooling rig a national lab spent 33 months
-measuring, a statistical fuel-failure benchmark the IAEA designed to be hard, and a real
-reactor's most famous self-rescue test — which required the agent to install a Monte Carlo
-neutronics code, download 3.4 GB of nuclear data, and compute its own physics constants for
-hours before it could even start predicting. Total spend: roughly $120 of API. The agents
-matched a national lab's measurements to a few percent, reproduced the nuclear industry's own
-systematic errors with eerie fidelity, invented missing physics when the spec sheet was
-incomplete — and got things wrong in ways that taught me more than the successes. Everything —
-transcripts, models, scoring, an adversarial AI audit of my own claims — is public: [REPO].
+engineering problems of increasing cruelty: a passive cooling rig a national lab spent 33
+months measuring, a statistical fuel-failure benchmark the IAEA designed to be hard, and a
+real reactor's most famous self-rescue test — for which an agent installed a Monte Carlo
+neutronics code, downloaded 3.4 GB of nuclear data, and computed its own physics constants
+through the night before predicting. Total spend: ~$110 of API. The agents matched the lab's
+measurements to a few percent where the physics was complete, beat a national lab's post-hoc
+code on one number, reproduced the nuclear industry's own systematic errors with eerie
+fidelity where they used its correlations, invented missing physics when the spec sheet was
+incomplete — and every major miss of the week was *pre-flagged by the agent that made it*.
+Two adversarial AI audits of my own claims caught me overselling; their unedited reports and
+my corrections are published. Everything — transcripts, models, scoring — is public: [REPO].
 
 ## The setup, once
 
@@ -91,32 +90,48 @@ Cost: ~$2 and ~12 minutes per run.
 
 ## Problem 3: the reactor that wakes itself back up
 
-[HTTR — FILL FROM HARVEST. Structure:]
-Japan's HTTR is a real 30 MW high-temperature reactor. In 2010 they did something wonderful:
-tripped every cooling circulator at 9 MW and froze the control rods — no scram — and watched.
-Fission power collapsed within minutes (the core heats up, negative temperature feedback kills
-the chain reaction). Then, about [~7–8] hours later, as the graphite slowly cooled, **the
-reactor spontaneously went critical again** — waking itself up — and settled at a low simmer
-(~0.3 MW) where the passive vessel cooling could carry the heat away indefinitely.
+Japan's HTTR is a real 30 MW high-temperature reactor. In 2010 its operators did something
+wonderful: they tripped every cooling circulator at 9 MW and froze the control rods — no
+scram — and watched. Fission power collapsed within minutes (the core heats up; negative
+temperature feedback kills the chain reaction). Then, hours later, as the graphite slowly
+cooled, **the reactor spontaneously went critical again** — woke itself up — and settled into
+a low simmer that the passive vessel cooling could carry away indefinitely.
 
-This problem is different in kind: there's no spec sheet with a property annex. To predict the
-transient you need the core's temperature-feedback coefficients, and I refused to supply them —
-the agent had to *compute* them. [DESCRIBE: it installed OpenMC, pulled 3.4 GB of ENDF/B-VIII.0
-nuclear data, built a pin-in-block lattice model with explicit TRISO double heterogeneity from
-public design data (design sources allowed and logged; test results forbidden), argued —
-correctly — that the transient needs the *shape* of α(T) since the frozen rods set absolute
-criticality, and ran Monte Carlo for [N hours] to get coefficients with statistical error bars.
-This was the week's long computation: [X] hours wall-clock, [турns/cost].]
+This problem is different in kind: there is no spec sheet with a property annex. To predict
+the transient you need the core's temperature-feedback coefficients, and I refused to supply
+them — the agent had to *compute* them. So it did. It installed OpenMC (the Monte Carlo
+neutron-transport code), pulled 3.4 GB of nuclear data, built an HTTR fuel-lattice model with
+fifteen thousand explicitly placed TRISO particles from public design documents (design
+sources were allowed and every one is logged; test results were forbidden — and when LOFC
+test papers surfaced in its searches, it logged the incident and declined to open them). It
+argued, correctly, that with the rods frozen only the *shape* of reactivity-vs-temperature
+matters, ran its temperature sweep two ways to bracket the burnable-poison uncertainty, and
+left the Monte Carlo grinding through the night on its own orchestrator script — about 3.5
+hours of compute, the week's one genuinely long calculation. Out the other end: a temperature
+coefficient of −7 pcm/K with error bars, a delayed-neutron fraction of 0.0073 ± 0.0009 —
+numbers squarely in the range the design literature quotes, derived from geometry and cross
+sections on a rented box.
 
-[RESULTS: predicted power-collapse timescale [..] vs measured ~minutes; recriticality at [..] h
-vs measured ~7–8 h; stabilized power [..] vs measured ~0.3 MW; bounded verdict [..]. Context
-that must be included honestly: a US national lab's post-hoc analysis with RELAP5-3D predicted
-recriticality at 7 h but overpredicted the power peak by roughly 2× (0.65 vs ~0.3 MW) — so the
-professional bar is itself approximate. Whatever the agent got, compare against BOTH the
-measurement and the professional code.]
+Then it coupled those constants to reactor kinetics and a thermal model and predicted the
+test. Scorecard, against the measurement and against a US national lab's own post-hoc
+analysis:
 
-[If the run fails or stalls: report that honestly as the week's boundary — "here is where
-autonomous engineering currently stops."]
+- **Self-shutdown**: predicted — power collapses five orders of magnitude in minutes, no rods,
+  no operator. Measured: yes, within minutes. ✓
+- **Spontaneous recriticality**: predicted, with the right mechanism (graphite heat capacity
+  governs everything). Measured: yes — the famous result. ✓
+- **The stabilized power**: predicted **287 kW**. Measured: **~300 kW**. The national lab's
+  post-hoc code predicted 650 kW — **the $23 agent beat the professional analysis on this
+  number**. ✓✓
+- **The clock**: predicted recriticality within ~1 hour. Measured: **7–8 hours**. Off by
+  seven-fold — the week's biggest miss, and its most instructive. The timing depends on one
+  number physics can't supply: how well the core couples thermally to its surroundings, a
+  conductance that isn't published anywhere. The professionals had the plant's thermal data;
+  the agent had to guess — and had *pre-registered exactly this dependency* as its dominant
+  uncertainty, in writing, before any comparison existed. (Its stated uncertainty band still
+  didn't reach 7 hours: a genuine calibration failure, reported here as such.)
+- **Bounded, no runaway**: predicted (peak fuel ~583 °C against a 1600 °C limit); measured:
+  bounded, everything far below limits. ✓
 
 ## What three problems in one week actually taught me
 
@@ -133,17 +148,25 @@ errors are debuggable. That's what makes this engineering rather than oracle-con
 
 **Qualitative safety verdicts were bulletproof; quantitative precision was model-tier
 dependent.** Every run of every model on every problem got the "does it save itself?" question
-right, with correct mechanisms. The numbers separated the model generations — [one line on
-Sonnet vs Opus vs Fable 5 across the week: Sonnet's structural radiation error at +49%; Opus
-ensembles within single digits; Fable 5 hitting the vessel wall within 1.2% twice and producing
-the campaign's best radiative fraction — and, on TRISO, the boldest invented mechanism with the
-widest error bars].
+right, with correct mechanisms. The numbers separated the generations: Sonnet made a
+structural radiation error worth +49% on a vessel temperature and executed supplied physics
+without questioning it; Opus ensembles landed in the single digits and one Opus run flagged
+the missing TRISO mechanism with an honest judgment band; Fable 5 hit the vessel wall within
+1.2% twice, produced the campaign's best radiation split — and, on TRISO, was the only model
+bold enough to *code* the missing mechanism, wearing the widest error bars of the week for
+it. Capability, at the frontier, looks less like arithmetic and more like nerve.
+
+**The misses were the best part.** The cooling rig's air-temperature bias: pre-flagged
+(supplied heat duty). The TRISO undercount: the historically correct mistake (missing
+degradation physics). The HTTR clock: pre-registered (unpublished conductance). Three
+problems, three different physics domains, one signature — agents that derive rather than
+retrieve make errors you can *name*, and errors you can name are errors you can fix.
 
 **And the meta-lesson: the harness mattered more than the model.** Held-out answers, frozen
-prompts, published transcripts, independent input curation, an adversarial audit that made every
-claim in this post more honest — that machinery is what turns "an AI said a number" into
-something an engineer can defend. The models will keep improving on their own. The trust
-machinery is the part you have to build.
+prompts, published transcripts, independent input curation, adversarial audits that made
+every claim in this post more modest and more true — that machinery is what turns "an AI said
+a number" into something an engineer can defend. The models will keep improving on their own.
+The trust machinery is the part you have to build.
 
 *Everything is public: inputs, prompts, every transcript, the agents' models, the measured
 values with citations, the audit. [REPO]. The two deep-dives: [ARTICLE 1 — the cooling rig],
