@@ -43,7 +43,7 @@ systematic miss — air temperature rise +14–31% everywhere — traced to one 
 agent had flagged as its riskiest assumption before any comparison existed.
 
 Score: the kind of agreement engineering consultancies would happily invoice a month for,
-at $3–16 per run. But it's one physics domain. The obvious objection: maybe thermal-hydraulics
+at $2–16 per run. But it's one physics domain. The obvious objection: maybe thermal-hydraulics
 of a big chimney is just... forgiving. So, problem 2.
 
 ## Problem 2: a billion tiny pressure vessels
@@ -61,7 +61,8 @@ failures out of 16,400**. Its sister sphere at **1800 °C: ten to twelve failure
 hundred hours**. A cliff, between twins.
 
 I gave agents the conditions and the benchmark's own material-property annex — offline, no web
-— and asked for predictions. Five runs (three Opus, one Sonnet, one Fable 5). What came back:
+— and asked for predictions. Five runs (three Opus, one Sonnet, one Fable 5; a sixth — a
+transcript-backed Fable rerun — came later, and is folded into the costs below). What came back:
 
 - **Every run correctly called the zero-failure cases** (the 1600 °C sphere and the
   lower-burnup compact): ten verdicts, ten correct.
@@ -83,7 +84,8 @@ I gave agents the conditions and the benchmark's own material-property annex —
   benchmark report notes that professional fuel-performance codes are decent on hot
   high-release tests but overpredict caesium on 1600 °C tests by an order of magnitude. The
   agents — using the community's own diffusion correlations — landed within ×2 on the pure
-  1800 °C sphere, ×3–12 on the staged case (where the professional codes were also specifically
+  1800 °C sphere (the later Fable rerun broke even that pattern — ×150 *under*), ×3–12 on the
+  staged case (where the professional codes were also specifically
   bad), and one to three orders high at 1600 °C — in four runs of five; the Sonnet run
   under-predicted instead. A tendency, not a law. An agent is a mirror: give it the field's
   data and it mostly returns the field's blind spots.
@@ -99,7 +101,8 @@ Japan's HTTR is a real 30 MW high-temperature reactor. In 2010 its operators did
 wonderful: they tripped every cooling circulator at 9 MW and froze the control rods — no
 scram — and watched. Fission power collapsed within minutes (the core heats up; negative
 temperature feedback kills the chain reaction). Then, hours later, as the graphite slowly
-cooled, **the reactor spontaneously went critical again** — woke itself up — and settled into
+cooled and its xenon poison decayed away, **the reactor spontaneously went critical again** —
+woke itself up — and settled into
 a low simmer that the passive vessel cooling could carry away indefinitely.
 
 This problem is different in kind: there is no spec sheet with a property annex. To predict
@@ -107,12 +110,12 @@ the transient you need the core's temperature-feedback coefficients, and I refus
 them — the agent had to *compute* them. So it did. It installed OpenMC (the Monte Carlo
 neutron-transport code), pulled 3.4 GB of nuclear data, built an HTTR fuel-lattice model with
 fifteen thousand explicitly placed TRISO particles from public design documents (design
-sources were allowed and every one is logged; test results were forbidden — and when LOFC
+sources were allowed and logged; test results were forbidden — and when LOFC
 test papers surfaced in its searches, it logged the incident and declined to open them). It
 argued, correctly, that with the rods frozen only the *shape* of reactivity-vs-temperature
 matters, ran its temperature sweep two ways to bracket the burnable-poison uncertainty, and
-left the Monte Carlo grinding through the night on its own orchestrator script — about three
-and a half hours of compute, the week's one genuinely long calculation. Out the other end: a
+left the Monte Carlo grinding through the night on its own orchestrator script — about 3.3
+hours of compute, the week's one genuinely long calculation. Out the other end: a
 temperature coefficient of −7 pcm/K with error bars, a delayed-neutron fraction of
 0.0073 ± 0.0009 — consistent with the design literature, derived from geometry and cross
 sections on a rented box. (An adversarial audit of this campaign later re-derived every one of
@@ -131,8 +134,8 @@ test. Scorecard — with the corrections that audit forced on my first draft bak
   agent beat the professional code" here. The audit killed that framing, correctly: the agent's
   own uncertainty band had a median of 575 kW — a ~2× miss statistically indistinguishable
   from the professionals' — and its winning low end traces to an input assumption it never
-  verified. What honestly survives: the band brackets the measurement; the single number
-  doesn't deserve the trophy.
+  verified. What honestly survives: the band's low end is consistent with the measurement;
+  the single number doesn't deserve the trophy.
 - **The clock**: predicted recriticality within ~1 hour. Measured: **7–8 hours**. Off by
   seven-fold — the week's biggest miss, and its most instructive, in two layers. The agent
   *pre-registered*, in writing, before any comparison existed, that the timing hinged on one
@@ -180,7 +183,7 @@ without questioning it; Opus ensembles landed in the single digits and one Opus 
 the missing TRISO mechanism with an honest judgment band. Fable 5, the newest tier, showed
 something different: judgment. On the cooling rig, both of its transcript-backed runs
 independently *rejected my supplied heat duty* — the input my own audit had flagged as encoding
-the answer — trading the campaign's best flow numbers for its widest air-ΔT misses,
+the answer — trading some of the campaign's best flow numbers for its widest air-ΔT misses,
 self-consistently; only one of seven Opus runs had dared that. On TRISO, one Fable run was the
 only agent of the week bold enough to *code* the missing degradation mechanism, wearing the
 widest error bars of the week for it — and a rerun of the same model on the same pack chose a

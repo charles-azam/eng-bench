@@ -7,7 +7,7 @@ the lab's measured airflow within ~4% in six of seven runs, the vessel-wall temp
 −8…+8%, and correctly called the accident-transient outcome every single time. It also got
 things wrong in instructive ways, and an independent adversarial AI audit of my own claims found
 real issues — all published. Everything is in the repo, transcripts included. The twelve-run
-campaign cost ~$61.
+campaign cost ~$61 (four later Fable 5 runs, graded separately, added ~$27).
 
 ## The experiment
 
@@ -195,11 +195,11 @@ why this project works now and didn't two years ago.
 I later ran the same frozen pack four times on Fable 5 (Anthropic's newest tier; two runs on
 the VPS with full transcripts, two earlier ones as local subagents — graded separately in the
 repo). The interesting part isn't the accuracy, though the transcript-backed runs' flows
-(−1.7%, −1.8%) were among the campaign's best and their vessel walls solid (+3.9%, +8.3%).
+(−1.7%, −1.8%) were among the campaign's best and their vessel walls solid (+8.3%, +3.9%).
 It's the judgment: **both VPS runs
 independently rejected my supplied heat duty** — the exact input the audit had flagged as
-encoding the answer — and computed their own losses instead, which bought them the best flow
-numbers and the worst air-ΔT misses of the campaign, self-consistently. Only one of seven Opus
+encoding the answer — and computed their own losses instead, which bought them some of the campaign's best flow
+numbers and its worst air-ΔT misses, self-consistently. Only one of seven Opus
 runs had dared to do that. Run-to-run judgment variance isn't noise; it's the signature of
 models that actually weigh their inputs. The unit of AI engineering analysis is the ensemble,
 not the run.

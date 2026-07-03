@@ -46,7 +46,7 @@ published transcripts confirm zero web calls.
 
 Each agent built its model from scratch (Booth diffusion for gas release, thin-shell stress,
 Weibull failure statistics, some with full time-marching), in 8–23 minutes, for $1.7–5.4 per
-metered run.
+metered run (that range includes the transcript-backed rerun described below).
 
 ## What they got right, and the beautiful way they got it wrong
 
@@ -80,9 +80,11 @@ engineering temperaments, all visible, none of them right.
 A coda that keeps me honest about "temperaments": when I later reran Fable 5 on the same frozen
 pack (on the VPS this time, with a full published transcript), it *didn't* code a mechanism —
 it took the banding path instead, and its "0–5, most likely the final phase" call on the staged
-test landed like the Opus one. Same model, same inputs, different engineering personality.
-These are sampled behaviors, not fixed model properties — one more reason to run ensembles and
-judge distributions, not single runs.
+test landed like the Opus one — while its 1800 °C caesium swung the other way entirely (×150
+*under* the measurement, a second counter-example to the "accurate when hot" pattern below).
+Same model, same inputs, different engineering personality. These are sampled behaviors, not
+fixed model properties — one more reason to run ensembles and judge distributions, not single
+runs.
 
 ## The mirror
 

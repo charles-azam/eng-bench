@@ -78,7 +78,7 @@ between the hot air inside the chimney and the cold air outside the building. **
 outside air near Chicago is dense; the draft is strong. In July, it's light; the draft sags.**
 The safety system literally runs better in winter. Wind matters too — gusts over the chimney
 outlets add suction (growing as wind speed squared), and one windy start-up attempt actually
-drove the flow *backwards*; the lab aborted that test and repeated it on a calmer day.
+drove the flow *backwards*; the lab aborted that attempt, and the repeat succeeded.
 
 ![Airflow and temperatures across the outdoor-temperature range — an AI agent's own weather sweep of this facility](figures/fig_weather_sweep.png)
 
