@@ -6,7 +6,8 @@ autonomously on a cheap VPS, it built physics models from textbook first princip
 the lab's measured airflow within ~4% in six of seven runs, the vessel-wall temperature within
 −8…+8%, and correctly called the accident-transient outcome every single time. It also got
 things wrong in instructive ways, and an independent adversarial AI audit of my own claims found
-real issues — all published. Everything is in the repo, transcripts included. Total cost: ~$61.
+real issues — all published. Everything is in the repo, transcripts included. The twelve-run
+campaign cost ~$61.
 
 ## The experiment
 
@@ -37,8 +38,8 @@ data.**
 One disclosure before the results, because it matters: the boundary conditions included the
 facility's design duty ("82 kW electric ≈ 56 kW scaled thermal duty") — a normal thing to give an
 engineer, but that pairing quietly encodes the rig's measured heater efficiency. The agents'
-own loss estimates disagreed with it (they computed 66–72 kW should reach the air); they trusted
-the given number. Remember that — it explains their one systematic miss.
+own loss estimates disagreed with it (they computed 66–72 kW should reach the air); all but one
+trusted the given number anyway. Remember that — it explains their one systematic miss.
 
 I ran this twelve times over three days, eleven runs on Claude Opus: seven baseline runs (one
 with the facility identity scrubbed, one on inputs curated by a *separate* agent from the raw
