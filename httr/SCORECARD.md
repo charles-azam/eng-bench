@@ -60,3 +60,25 @@ produced the timing.
 Carlo physics computation whose every number reproduces from the raw outputs; every qualitative
 safety call correct; and a quantitative miss whose causes are nameable (one pre-registered, one
 found by the audit). What does not survive: "beat the professional code."
+
+## The xenon addendum (diagnostic re-run, Jul 3 — `../runs/run_httr_xenon/`)
+
+To test whether the audit's diagnosis was *quantitatively* sufficient, a follow-up agent run
+($3.87, 37 turns, offline) extended the original model with I-135/Xe-135 dynamics — standard
+nuclear data, no tuning. Framing: it knew the original was "×7 too short" (direction and size
+of the miss) but not the measured value; this is a **mechanism-sufficiency test, not a fresh
+prediction**, and the addendum note says so itself.
+
+| Quantity | Original (T-only) | With xenon | Measured |
+|---|---|---|---|
+| Recriticality time | 1.0 h (band 0.24–1.1) | **12.5 h nominal, P10–P90 1.8–21 h** | ~7–8 h (inside the band) |
+| Stabilized power | 287 kW nominal | ~480 kW nominal, median 0.93 MW | peak ≈0.3 MW (see Finding 2 caveats) |
+| Bounded? | yes | yes (peak graphite ≤869 °C worst-case, ≪1600) | yes |
+
+Post-trip xenon build-up adds ~−1270 pcm beyond equilibrium (peaking ≈8 h), forcing ~180 K of
+overcooling before criticality can return — the clock is set by the xenon transient, not
+graphite inertia alone. The mechanism **over-explains** the ×7 gap (×10–13 nominal, governed by
+the assumed operating flux — the honest residual uncertainty). Note the correction moves the
+stabilized power *toward* the professional code's 0.65 MW and away from the lucky 287 kW —
+the audit's retraction of that trophy, independently reinforced. One missing term, named by an
+audit, added by a $4 run, spans the week's biggest miss: structured errors are debuggable.

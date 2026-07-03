@@ -5,7 +5,7 @@ engineering problems of increasing cruelty: a passive cooling rig a national lab
 months measuring, a statistical fuel-failure benchmark the IAEA designed to be hard, and a
 real reactor's most famous self-rescue test — for which an agent installed a Monte Carlo
 neutronics code, downloaded 3.4 GB of nuclear data, and computed its own physics constants
-through the night before predicting. Total spend: about $90 of API. The agents matched the
+through the night before predicting. Total spend: about $125 of API. The agents matched the
 lab's measurements to a few percent where the physics was complete, reproduced the nuclear
 industry's own systematic errors with eerie fidelity where they used its correlations,
 invented missing physics when the spec sheet was incomplete — and the biggest miss in each
@@ -145,6 +145,19 @@ test. Scorecard — with the corrections that audit forced on my first draft bak
 - **Bounded, no runaway**: predicted (peak fuel ~583 °C against a 1600 °C limit); measured:
   bounded, everything far below limits. ✓
 
+And then the part I care about most. If these errors are really *structured* — debuggable —
+then naming the missing physics should fix the clock. So I ran the diagnosis: a follow-up
+agent run ($3.87, fifteen minutes, offline) was told only that its original answer was
+seven-fold short and that the review suspected xenon, and was asked to extend its own model —
+standard nuclear data, no tuning, measured value withheld. One xenon term later, the 1-hour
+clock became **12.5 hours, with an uncertainty band of 1.8–21 h** — the measured 7–8 sits
+inside it. (Being honest about what this is: a mechanism-sufficiency test, not a fresh
+prediction — the agent knew the size of the gap it was trying to explain. What it demonstrates
+is that the named mechanism, at standard nuclear-data values, produces a delay of exactly the
+required scale — and, tellingly, the corrected model's stabilized power moved *toward* the
+professional code's answer, reinforcing the audit's retraction rather than my original trophy.)
+An error you can name is an error you can fix, for four dollars, before lunch.
+
 ## What three problems in one week actually taught me
 
 **Accuracy tracked the completeness of the physics I handed over, not the difficulty of the
@@ -164,12 +177,16 @@ dependent.** Every run of every model on every problem got the "does it save its
 right, with correct mechanisms. The numbers separated the generations: Sonnet made a
 structural radiation error worth +49% on a vessel temperature and executed supplied physics
 without questioning it; Opus ensembles landed in the single digits and one Opus run flagged
-the missing TRISO mechanism with an honest judgment band; Fable 5 hit the vessel wall within
-1.2% twice, produced the campaign's best radiation split — and, on TRISO, one Fable run was
-the only agent of the week bold enough to *code* the missing mechanism, wearing the widest
-error bars of the week for it. (A rerun of the same model on the same pack chose the cautious
-band instead — these temperaments are sampled, not fixed.) Capability, at the frontier, looks
-less like arithmetic and more like nerve — nerve you have to sample.
+the missing TRISO mechanism with an honest judgment band. Fable 5, the newest tier, showed
+something different: judgment. On the cooling rig, both of its transcript-backed runs
+independently *rejected my supplied heat duty* — the input my own audit had flagged as encoding
+the answer — trading the campaign's best flow numbers for its widest air-ΔT misses,
+self-consistently; only one of seven Opus runs had dared that. On TRISO, one Fable run was the
+only agent of the week bold enough to *code* the missing degradation mechanism, wearing the
+widest error bars of the week for it — and a rerun of the same model on the same pack chose a
+cautious judgment band instead. Temperaments are sampled, not fixed. Capability, at the
+frontier, looks less like arithmetic and more like nerve — nerve you have to sample, which is
+why the unit of AI engineering analysis is the ensemble, not the run.
 
 **The misses were the best part.** The cooling rig's air-temperature bias: pre-flagged
 (supplied heat duty). The TRISO undercount: the textbook-correct mistake (missing degradation

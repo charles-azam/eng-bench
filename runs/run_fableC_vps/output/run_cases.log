@@ -1,0 +1,85 @@
+== Case 1: baseline 82 kWe ==
+m_dot        = 0.564 kg/s (33.9 kg/min)
+T_in/out     = 20.0 / 148.0 C   dT = 128.0 K
+T_cav        = 231.1 C
+plate mean/mid/max = 423 / 423 / 432 C ; heater sheet ~542 C
+riser7 z=3.5m: front 215.4 / side 176.9 / rear 188.2 C ; air 84.2 C
+Q into air   = 72.9 kW | heater-back loss 6.8 kW | cavity-wall loss 2.3 kW
+risers: radiation 62.7 kW, ext convection 10.3 kW | plate convection 8.4 kW
+radiative fraction of riser heat pickup = 0.86
+Re_mid = 15642, h_int mid = 15.8 W/m2K, stack exit 142.6 C
+
+== Normal-operation duty 26.16 kWe ==
+m_dot        = 0.455 kg/s (27.3 kg/min)
+T_in/out     = 20.0 / 67.4 C   dT = 47.4 K
+T_cav        = 107.8 C
+plate mean/mid/max = 228 / 228 / 231 C ; heater sheet ~321 C
+riser7 z=3.5m: front 86.4 / side 75.1 / rear 77.7 C ; air 44.3 C
+Q into air   = 21.8 kW | heater-back loss 3.6 kW | cavity-wall loss 0.9 kW
+risers: radiation 15.6 kW, ext convection 6.2 kW | plate convection 5.5 kW
+radiative fraction of riser heat pickup = 0.72
+Re_mid = 13788, h_int mid = 14.2 W/m2K, stack exit 64.4 C
+
+== Steady at accident peak power 56.07 kWe ==
+m_dot        = 0.531 kg/s (31.8 kg/min)
+T_in/out     = 20.0 / 111.6 C   dT = 91.6 K
+T_cav        = 178.0 C
+plate mean/mid/max = 349 / 349 / 355 C ; heater sheet ~459 C
+riser7 z=3.5m: front 156.4 / side 130.1 / rear 137.0 C ; air 66.3 C
+Q into air   = 49.1 kW | heater-back loss 5.5 kW | cavity-wall loss 1.6 kW
+risers: radiation 39.8 kW, ext convection 9.2 kW | plate convection 7.8 kW
+radiative fraction of riser heat pickup = 0.81
+Re_mid = 15277, h_int mid = 15.4 W/m2K, stack exit 107.3 C
+
+== Sensitivities on Case 1 ==
+riser eps=0.7                m=0.564 dT=127.8 Tp=427C Tf=212C
+riser eps=0.9                m=0.565 dT=128.1 Tp=420C Tf=219C
+form losses x0.5             m=0.623 dT=116.2 Tp=418C Tf=202C
+form losses x1.5             m=0.521 dT=138.2 Tp=427C Tf=227C
+plate eps=0.7                m=0.564 dT=127.8 Tp=436C Tf=215C
+plate eps=0.9                m=0.565 dT=128.2 Tp=409C Tf=216C
+chimney UA x2                m=0.562 dT=128.4 Tp=423C Tf=216C
+downcomer inlet z=1.5 m      m=0.572 dT=126.3 Tp=422C Tf=214C
+downcomer inlet z=8.0 m      m=0.552 dT=130.7 Tp=424C Tf=218C
+
+== Case 2: decay-heat transient ==
+Tp=   87C  Q_removed=   4.4 kW  m=0.337 kg/s  dT=12.4 K
+Tp=  127C  Q_removed=   8.3 kW  m=0.374 kg/s  dT=20.9 K
+Tp=  177C  Q_removed=  14.4 kW  m=0.417 kg/s  dT=33.0 K
+Tp=  227C  Q_removed=  22.3 kW  m=0.455 kg/s  dT=46.9 K
+Tp=  277C  Q_removed=  32.2 kW  m=0.489 kg/s  dT=63.2 K
+Tp=  327C  Q_removed=  44.4 kW  m=0.519 kg/s  dT=82.2 K
+Tp=  377C  Q_removed=  59.1 kW  m=0.545 kg/s  dT=104.3 K
+Tp=  427C  Q_removed=  76.5 kW  m=0.566 kg/s  dT=129.9 K
+Tp=  477C  Q_removed=  96.5 kW  m=0.582 kg/s  dT=159.0 K
+Tp=  527C  Q_removed= 119.0 kW  m=0.594 kg/s  dT=191.9 K
+Tp=  627C  Q_removed= 169.6 kW  m=0.603 kg/s  dT=267.5 K
+Tp=  727C  Q_removed= 224.2 kW  m=0.600 kg/s  dT=352.9 K
+peak plate T = 353 C at t = 85.0 h (power peak 84.85 h)
+peak mass flow = 0.532 kg/s; peak riser dT = 93.7 K
+
+== Case 3: weather sensitivity ==
+Tout=-18C building_inlet  m=0.624 dT=116.0 Tp=418C
+Tout=-18C outdoor_inlet   m=0.604 dT=120.7 Tp=409C
+Tout=-10C building_inlet  m=0.599 dT=120.7 Tp=420C
+Tout=-10C outdoor_inlet   m=0.583 dT=124.7 Tp=413C
+Tout= -2C building_inlet  m=0.576 dT=125.5 Tp=422C
+Tout= -2C outdoor_inlet   m=0.564 dT=128.6 Tp=416C
+Tout= +6C building_inlet  m=0.553 dT=130.4 Tp=424C
+Tout= +6C outdoor_inlet   m=0.546 dT=132.5 Tp=420C
+Tout=+14C building_inlet  m=0.532 dT=135.5 Tp=426C
+Tout=+14C outdoor_inlet   m=0.529 dT=136.4 Tp=424C
+Tout=+24C building_inlet  m=0.507 dT=142.0 Tp=429C
+Tout=+24C outdoor_inlet   m=0.509 dT=141.3 Tp=430C
+wind= 0.0 m/s adverse   m=0.564 dT=128.0 Tp=423C
+wind= 0.0 m/s favorable m=0.564 dT=128.0 Tp=423C
+wind= 2.0 m/s adverse   m=0.561 dT=128.6 Tp=423C
+wind= 2.0 m/s favorable m=0.567 dT=127.3 Tp=423C
+wind= 5.0 m/s adverse   m=0.545 dT=132.3 Tp=425C
+wind= 5.0 m/s favorable m=0.583 dT=123.9 Tp=421C
+wind= 8.0 m/s adverse   m=0.515 dT=139.7 Tp=428C
+wind= 8.0 m/s favorable m=0.613 dT=118.2 Tp=419C
+wind=11.0 m/s adverse   m=0.472 dT=152.2 Tp=433C
+wind=11.0 m/s favorable m=0.655 dT=110.7 Tp=416C
+
+results.json written

@@ -140,21 +140,35 @@ independent curator agent, recall/forced-choice probes, and an adversarial audit
 | **Forced-choice recall probes** | (contamination control) | 6/16, p≈0.12 n.s., all self-labeled guesses | no recall demonstrated; probe design flaw disclosed in `../probes/forced_choice_analysis.md` |
 | **Independent curation** (agent-curated pack from raw report, gate-checked leak-free) | same baseline measurements | flow **+0.3%**, plate **−1.3%** (both best-of-campaign), ΔT +14%, wall −32%, rad 0.87 | caveat closed; builder also *rejected* the pack's design-intent flow (0.456) for its own physics (0.576) — measurement said 0.574 |
 
-## Fable 5 runs (2× subagents, fully offline, frozen pack — added Jul 2)
+## Fable 5 runs (4 total: 2 first-class VPS runs + 2 earlier local subagents)
 
-| Quantity | Measured | Fable A | Fable B |
+**VPS runs (Jul 3) — first-class evidence: frozen pack, full transcripts
+(`../transcripts/fableC_vps.run.log`, `fableD_vps.run.log`), 0 web calls:**
+
+| Quantity | Measured | Fable C (VPS, $14.06/66t/31m) | Fable D (VPS, $12.44/54t/22m) |
 |---|---|---|---|
-| Mass flow (kg/s) | **0.574** | 0.550 (−4%) | 0.650 (+13%) |
-| Riser ΔT (°C) | **84.1** | 101 (+20%) | **88 (+4.6%)** |
-| Riser wall, front (°C) | **163.1** | **160 (−1.9%)** | 155 (−5%) |
-| Heated plate (°C) | **390.7** | **386 (−1.2%)** | **386 (−1.2%)** |
-| Radiative fraction | **~0.80** | 0.87 | **0.83 (closest of any run)** |
-| Accident peak (°C, bounded?) | **408.7, yes** | 321 (−21%) ✓ | **398 (−2.6%)** ✓ |
+| Mass flow (kg/s) | **0.574** | **0.564 (−1.7%)** | **0.5635 (−1.8%)** |
+| Riser ΔT (°C) | **84.1** | 128 (+52%) ✗ | 120 (+42%) ✗ |
+| Riser wall, front (°C) | **163.1** | 215 (+32%) ✗ | 210 (+29%) ✗ |
+| Heated plate (°C) | **390.7** | 423 (+8.3%) | **406 (+3.9%)** |
+| Radiative fraction | **~0.80** | 0.86 | 0.89 |
+| Accident peak (°C, bounded?) | **408.7, yes** | 353 (−14%) ✓ | 334 (−18%) ✓ |
 
-Notes: both hit the plate within 1.2%; Fable B's radiative fraction is the campaign's closest
-(it modeled inter-duct gap absorption — a physics nuance no other run added) and its accident
-peak the most accurate. Honesty: B's ΔT accuracy is partly error compensation (flow +13% ×
-duty +18% ≈ measured ṁcpΔT); A swept the loss fraction unprompted. EVIDENCE CAVEAT: these ran
-as in-session subagents on the orchestrator machine, not on the VPS — transcripts are not in
-`../transcripts/`, so they carry a lower evidence grade than the Opus/Sonnet runs and are
-reported separately from the headline ensemble.
+**Both VPS runs independently rejected the supplied 82 kWe→56.07 kWt duty mapping** and trusted
+their own parasitic-loss physics instead (73 and 68 kW to air) — the judgment call only one of
+seven Opus runs (repD) made. Their flows are among the campaign's best and their ΔT misses the
+campaign's widest, exactly as that choice predicts (the rig really does lose ~32% of heater
+power; the agents' loss physics says 8–17%). Fable D explicitly pre-flagged the parasitic
+fraction as its dominant uncertainty and noted the design mapping implied 32%; it also caught
+the corrupt C10 polynomial. The duty input cuts both ways — third confirmation.
+
+**Earlier local subagent runs (Jul 2) — LOWER EVIDENCE GRADE (in-session subagents on the
+orchestrator machine; no transcripts):** Fable A: flow −4%, ΔT +20%, wall **−1.9%**, plate
+**−1.2%**, rad 0.87, accident 321 (−21%) ✓. Fable B: flow +13%, ΔT +4.6% (partly error
+compensation: flow +13% × duty ≈ measured ṁcpΔT), wall −5%, plate **−1.2%**, rad **0.83
+(closest of any run)**, accident **398 (−2.6%)** ✓. These two *accepted* the duty.
+
+**The four Fable runs sampled both sides of the campaign's central judgment call** (accept the
+spec vs trust your own physics) — 2 vs 2, where Opus went 6 vs 1. Run-to-run judgment variance
+is a property of frontier models, not a defect of one; ensembles, not single runs, are the unit
+of engineering analysis.

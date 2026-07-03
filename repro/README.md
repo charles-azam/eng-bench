@@ -51,7 +51,7 @@ interactive calculator).
 | `runs/` | Each run's full output: calculation note, Python models, results, figures, plus `META.md` (model, machine, cost, wall-clock, evidence grade) |
 | `scoring/` | Predicted-vs-measured tables; measured values cited to report page/table |
 | `probes/` | Contamination probes: prompts + responses, forced-choice analysis |
-| `transcripts/` | Full transcripts of every surviving run (17 logs across the three campaigns) |
+| `transcripts/` | Full transcripts of every surviving run (21 logs across the three campaigns) |
 | `packs/` | The de-identified pack, the independent-curator protocol and pack, blind-scenario file |
 | `AUDIT.md` | The NSTF adversarial audit, unedited |
 | `triso/`, `httr/` | The other two campaigns: pack, held-out refs, scorecard, audit each |
@@ -94,16 +94,19 @@ prediction biases reproduced from the community's own correlations. → `triso/S
 **HTTR:** feedback coefficients computed from scratch (α ≈ −7 pcm/K, β_eff = 0.0073 ± 0.0009,
 audit-reproduced from the raw Monte Carlo outputs); self-shutdown and bounded outcome correct;
 recriticality clock missed ×7 for causes now fully named (half pre-registered by the agent,
-half — xenon — found by the audit). → `httr/SCORECARD.md` and `httr/AUDIT.md`
+half — xenon — found by the audit), and a $3.87 diagnostic rerun adding the xenon term moved
+the clock from 1.0 h to 12.5 h (band 1.8–21 h; measured 7–8 h inside it) — structured errors
+are debuggable. → `httr/SCORECARD.md`, `httr/AUDIT.md`, `runs/run_httr_xenon/`
 
 Full per-run detail, disclosures, and the misses: `scoring/scorecard.md`, `triso/SCORECARD.md`,
 `httr/SCORECARD.md`. The audits: `AUDIT.md`, `triso/AUDIT.md`, `httr/AUDIT.md`.
 
 ## Costs
 
-NSTF: ~$61 (12 runs incl. 2 CFD-bearing + curator + probes + audit). TRISO: $15.8 metered
-(6 runs). HTTR: $16.08 (+ ~3.3 h background Monte Carlo on the box). VPS: €30/month Hetzner,
-~€2 of actual usage. Everything ran on an 8-core / 30 GB box.
+NSTF: ~$61 (12 runs incl. 2 CFD-bearing + curator + probes + audit) + $26.50 for the two Fable 5
+VPS runs. TRISO: $15.8 metered (6 runs). HTTR: $16.08 (+ ~3.3 h background Monte Carlo on the
+box) + $3.87 for the xenon addendum. Total ≈ $125. VPS: €30/month Hetzner, ~€2 of actual usage.
+Everything ran on an 8-core / 30 GB box.
 
 *Measured values © the cited public reports (ANL, IAEA, JAEA, INL). Everything else: MIT
 (see LICENSE).*

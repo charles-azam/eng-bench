@@ -38,8 +38,8 @@ rises. That's a built-in negative feedback loop — a thermostat made of geometr
 becomes lighter than the outside air, and floats up the chimney — pulling fresh cold air in
 behind it. A 20-metre chimney with ~90 °C of warming generates a driving pressure of about
 60 pascals. That's 0.06% of atmospheric pressure — yet it silently pumps roughly half a kilogram of air per second through the system,
-day and night, for free, forever. (For scale: that's about the pressure your lungs make in
-quiet breathing — driving the safety system of a nuclear plant.)
+day and night, for free, forever. (60 pascals is the pressure under six millimetres of water —
+driving the safety system of a nuclear plant.)
 
 Chain them together and you get a machine with no parts: **glow across the gap, float up the
 chimney.** The hotter the accident, the harder both mechanisms work.

@@ -188,6 +188,20 @@ the qualitative safety physics is robust even when the numbers aren't. The gap b
 like an engineer" and "lands on the measurement" is exactly the frontier-model edge, and it's
 why this project works now and didn't two years ago.
 
+## What a newer model does
+
+I later ran the same frozen pack four times on Fable 5 (Anthropic's newest tier; two runs on
+the VPS with full transcripts, two earlier ones as local subagents — graded separately in the
+repo). The interesting part isn't the accuracy, though the transcript-backed runs' flows
+(−1.7%, −1.8%) were among the campaign's best and their vessel walls solid (+3.9%, +8.3%).
+It's the judgment: **both VPS runs
+independently rejected my supplied heat duty** — the exact input the audit had flagged as
+encoding the answer — and computed their own losses instead, which bought them the best flow
+numbers and the worst air-ΔT misses of the campaign, self-consistently. Only one of seven Opus
+runs had dared to do that. Run-to-run judgment variance isn't noise; it's the signature of
+models that actually weigh their inputs. The unit of AI engineering analysis is the ensemble,
+not the run.
+
 ## The bill
 
 Twelve runs, two with CFD: **~$61 of API usage, 6–57 minutes each, on a €30/month VPS.** The
