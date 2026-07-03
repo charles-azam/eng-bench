@@ -1,0 +1,41 @@
+k_inf(T)  [BP ON, main]:
+   294.0 K : 1.08290 +/- 0.00068
+   600.0 K : 1.05486 +/- 0.00068
+   900.0 K : 1.03567 +/- 0.00066
+  1200.0 K : 1.01690 +/- 0.00062
+isothermal temperature coefficient alpha(T)  [BP ON]:
+  alpha(400K) =   -9.01 +/- 0.38 pcm/K
+  alpha(600K) =   -7.15 +/- 0.19 pcm/K
+  alpha(800K) =   -5.76 +/- 0.35 pcm/K
+  alpha(1000K) =   -6.03 +/- 0.22 pcm/K
+  alpha(1200K) =   -6.31 +/- 0.62 pcm/K
+
+k_inf(T)  [BP OFF, nobp]:
+   294.0 K : 1.49628 +/- 0.00086
+   900.0 K : 1.42714 +/- 0.00082
+  1200.0 K : 1.40209 +/- 0.00083
+isothermal temperature coefficient alpha(T)  [BP OFF]:
+  alpha(400K) =   -8.60 +/- 0.26 pcm/K
+  alpha(600K) =   -7.81 +/- 0.13 pcm/K
+  alpha(800K) =   -6.99 +/- 0.11 pcm/K
+  alpha(1000K) =   -6.12 +/- 0.24 pcm/K
+  alpha(1100K) =   -5.68 +/- 0.31 pcm/K
+
+range-avg alpha: BP-on -6.85 pcm/K, BP-off -7.04 pcm/K (bracket [-7.04, -6.85])
+beta_eff (prompt method @ 900.0K) = 0.00728 +/- 0.00093
+
+=== NOMINAL transient ===
+  power min (first 30 min): 0.01 kW at 29.4 min
+  peak core temp: 583 C at 0.09 h
+  recriticality time: 1.0 h
+  stabilized fission power: 287 kW (3.2% of pre-trip 9MW)
+  peak vessel temp: 280 C (end 280 C)
+
+=== SENSITIVITY (random sample over thermal parameters) ===
+  recriticality time: median 0.4 h, P10-P90 [0.3, 0.8] h (min 0.2, max 1.1)
+  stabilized fission power: median 575 kW, [312, 826] kW
+  peak core graphite temp: median 572 C, [521, 633] C, max 651 C
+  peak vessel temp: median 336 C, max 605 C
+
+saved output/lofc_transient.png
+saved output/results.json
