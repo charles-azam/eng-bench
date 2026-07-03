@@ -47,3 +47,25 @@ against. The harder claim (design, not analysis) is the next post.
 **"What about [other vendor]'s model?"**
 Not tested — this ran Claude only (Opus vs Sonnet ladder included). The repo prompt is
 model-agnostic; PRs with other-model runs welcome.
+
+**"You claimed the agent beat the national lab's code, then retracted it. Why should I trust
+the rest?"**
+Because the retraction is the system working as designed: a fresh-context adversarial audit
+(published unedited, `httr/AUDIT.md`) caught the quantity mismatch and the nominal-vs-median
+cherry-pick, and the claim died before publication. Every other number in the posts survived
+the same treatment. Trust the process that killed the claim, not my first draft.
+
+**"The xenon rerun knew it was ×7 off — that's the answer leaking in."**
+Correct, and the addendum says so itself: it's a *mechanism-sufficiency test*, not a fresh
+prediction. Knowing the gap is ×7 doesn't make xenon physics produce a ×10–13 delay at
+standard nuclear-data values — that either falls out of the yields, half-lives, and flux, or
+it doesn't. It did (band 1.8–21 h). The claim is "the audit's diagnosis is quantitatively
+sufficient," never "the agent blindly predicted 7 hours."
+
+**"Fable rejected your heat duty and got the worst ΔT of the campaign — so the newest model
+is worse?"**
+It made the *defensible* engineering call (trust your own loss physics over an unexplained
+spec pairing) and paid for it against a rig whose real losses are larger than textbook
+estimates suggest. One of seven Opus runs made the same call with the same result. That's a
+judgment distribution, not a capability ranking — and it's exactly why the unit of analysis
+is the ensemble.

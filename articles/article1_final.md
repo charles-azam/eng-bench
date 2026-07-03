@@ -16,7 +16,8 @@ gap to a wall of steel ducts, and the warmed air rises up a chimney on its own. 
 claim, Argonne National Laboratory built NSTF — a half-scale, 26-metre-tall rig: an electrically
 heated steel wall standing in for the vessel (up to 220 kW), twelve steel riser ducts, two
 chimneys, ~400 sensors, nuclear-grade QA, 33 months of testing. If you want the physics of *why*
-this works (and how the weather gets a vote), that's a companion post.
+this works (and how the weather gets a vote), that's
+[a companion post](https://charles-azam.github.io/blog/reactor-cools-itself).
 
 The point here: this produced years of public, measured truth about a system doing pure physics.
 Which makes it a perfect exam for a different question — **can an AI, given only what a design
@@ -222,4 +223,4 @@ Hard-tech engineering is labor-bound, not physics-bound. The physics didn't chan
 just did.
 
 *Repo with everything — inputs, prompts, every surviving run's full transcript, the agents'
-models, the scoring against the public Argonne reports, and the adversarial audit: [LINK].*
+models, the scoring against the public Argonne reports, and the adversarial audit: https://github.com/charles-azam/ai-eng-bench.*

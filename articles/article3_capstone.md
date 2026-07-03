@@ -12,7 +12,7 @@ invented missing physics when the spec sheet was incomplete — and the biggest 
 campaign traced to a nameable cause, most of them flagged by an agent in advance. Three
 adversarial AI audits of my own claims caught me overselling, repeatedly; their unedited
 reports and my corrections are published. Everything — transcripts, models, scoring — is
-public: [REPO].
+public: https://github.com/charles-azam/ai-eng-bench.
 
 ## The setup, once
 
@@ -30,7 +30,7 @@ had to retract entirely. All three unedited reports and my corrections are in th
 
 ## Problem 1: the reactor cooling system with no moving parts
 
-*(Covered in depth in [ARTICLE 1] — summary here.)*
+*(Covered in depth in [the deep-dive article](https://charles-azam.github.io/blog/ai-predicts-nuclear-experiment) — summary here.)*
 
 Argonne built a half-scale mock-up of a passive reactor cooling system: a 220 kW heated wall
 radiating across an air gap to steel ducts, air rising by buoyancy alone up a 20-metre chimney.
@@ -55,10 +55,10 @@ elegant trick: under irradiation the carbon layers shrink and squeeze the SiC in
 pre-stressing the vessel against the fission-gas pressure building inside.
 
 The IAEA ran a benchmark on exactly this — accident furnace tests where irradiated fuel spheres
-(16,400 particles each) were held at 1600–1800 °C while a detector counted each particle
+(~15,000 particles each) were held at 1600–1800 °C while a detector watched for each particle
 failure via krypton release. The measured drama: one sphere spent **500 hours at 1600 °C: zero
-failures**. Its sister sphere at **1800 °C: ten failures in the first hundred hours**, each
-individually timestamped. A cliff, between twins.
+failures out of 16,400**. Its sister sphere at **1800 °C: ten to twelve failures within a
+hundred hours**. A cliff, between twins.
 
 I gave agents the conditions and the benchmark's own material-property annex — offline, no web
 — and asked for predictions. Five runs (three Opus, one Sonnet, one Fable 5). What came back:
@@ -202,6 +202,5 @@ a number" into something an engineer can defend. The models will keep improving 
 The trust machinery is the part you have to build.
 
 *Everything is public: inputs, prompts, the transcripts, the agents' models, the measured
-values with citations, all three adversarial audits. [REPO]. The deep-dives: [ARTICLE 1 — the
-cooling rig], [ARTICLE 2 — the physics of the chimney, with an interactive calculator],
-[ARTICLE 4 — a billion tiny pressure vessels].*
+values with citations, all three adversarial audits. https://github.com/charles-azam/ai-eng-bench. The deep-dives: [the cooling rig](https://charles-azam.github.io/blog/ai-predicts-nuclear-experiment), [the physics of the chimney, with an interactive calculator](https://charles-azam.github.io/blog/reactor-cools-itself),
+[a billion tiny pressure vessels](https://charles-azam.github.io/blog/billion-tiny-pressure-vessels).*

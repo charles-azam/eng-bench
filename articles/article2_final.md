@@ -44,7 +44,7 @@ driving the safety system of a nuclear plant.)
 Chain them together and you get a machine with no parts: **glow across the gap, float up the
 chimney.** The hotter the accident, the harder both mechanisms work.
 
-**Don't take my word for it — [play with the physics yourself](rccs_calculator.html).** Drag the
+**Don't take my word for it — [play with the physics yourself](/rccs-calculator.html).** Drag the
 heat load, the outdoor temperature, and the wind, and watch the airflow and wall temperatures
 respond. The sliders drive a JavaScript port of the physics model the AI agents built and
 validated against the measurements; it runs entirely in your browser.
@@ -100,4 +100,4 @@ system whose parts list is *a wall, a gap, and a chimney*, whose failure mode an
 Second: this experiment has something almost nothing else has — years of public, nuclear-grade
 measured data of a system doing pure physics. Which made it the perfect exam question for a
 different kind of test: whether an AI, given only the blueprints, could predict these
-measurements from first principles. That's the companion article: [link to article 1].
+measurements from first principles. That's the companion article: [I gave an AI the blueprints of a nuclear-safety experiment](https://charles-azam.github.io/blog/ai-predicts-nuclear-experiment).
