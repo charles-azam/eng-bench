@@ -1,16 +1,27 @@
 # Reviewer brief — Francisco (domain review before publication)
 
 Salut Francisco — before this goes on HN I need your nuclear-engineer eyes on three specific
-things. Time budget: ~45 min. Everything is in the repo (`repro/`) and two short articles.
+things. Time budget: ~45 min. Everything is in the repo (github.com/charles-azam/ai-eng-bench)
+and the articles.
 
 ## What happened (30 s)
 Claude, running autonomously on a VPS, was given the geometry/materials/BCs of Argonne's NSTF
-(½-scale air-cooled RCCS) and asked for a calculation note. Across 6 archived Opus runs it
-predicted the measured baseline within: flow ±4% (5/6), plate −8…+8%, wall −17…+20%, ΔT
+(½-scale air-cooled RCCS) and asked for a calculation note. Across 7 archived Opus runs it
+predicted the measured baseline within: flow ~4% (6/7), plate −8…+8%, wall −32…+20%, ΔT
 +14…+31% (systematic, duty-input-driven). All runs called the DCC accident transient "bounded,
 levels off" (measured: peaked 409 °C, turned over). One run installed OpenFOAM and cross-checked
 with fvDOM radiation, temperatures solved as outputs. An adversarial AI audit of my claims is
-published unedited in `repro/AUDIT.md`.
+published unedited in the repo's `AUDIT.md`.
+
+**Since we last spoke, two more campaigns ran the same pipeline** — and the first one is your
+home turf: (a) **TRISO accident heating** (the CRP-6/KüFA cases you originally suggested —
+HFR-K3 sister spheres, K6/3 staged, P4 compacts): every zero-failure case called correctly,
+1800 °C counts under-predicted ÷8…÷450 on pressure-vessel-only physics, community Cs biases
+reproduced (`triso/SCORECARD.md`); (b) **HTTR LOFC** with the agent computing its own
+temperature coefficients via OpenMC — recriticality clock missed ×7, then explained by a
+xenon term its audit identified (`httr/SCORECARD.md`, `httr/AUDIT.md`). If you have 15 extra
+minutes, a sanity pass on the TRISO scorecard would be gold — you know these experiments
+better than anyone I can ask.
 
 ## The three things I need from you
 
@@ -26,7 +37,7 @@ published unedited in `repro/AUDIT.md`.
 
 ## Known limitations already disclosed (don't burn time re-finding these)
 Duty input encodes the measured heater efficiency; best-run 0.2% hits are luck within ±5–10%
-bands; radiative fraction over-predicted in all runs (0.89–0.97 vs ~0.80); one early run's
+bands; radiative fraction over-predicted in all runs (0.83–0.97 across models vs ~0.80); one early run's
 artifacts lost; models recognize the facility (though they can't recall its data); wind coupling
 low-confidence everywhere.
 
