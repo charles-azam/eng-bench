@@ -22,6 +22,8 @@ insultingly simple. The hot steel reactor vessel sits in a concrete cavity. Faci
 feet away, stands a wall of hollow steel ducts, open to outside air at the bottom and connected
 to a tall chimney at the top.
 
+![The whole system: a hot wall glows across an air gap to steel ducts; the warmed air rises up a chimney, pulling cold air in behind it](figures/rccs_schematic.svg)
+
 Two pieces of physics do all the work:
 
 **1. Hot things glow.** Everything radiates heat as electromagnetic waves, at a rate that grows

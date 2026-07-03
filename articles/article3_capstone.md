@@ -91,7 +91,7 @@ I gave agents the conditions and the benchmark's own material-property annex —
   *more* in 100 hours than the staged sphere did in 400 — plausibly a fuel-batch difference
   that identical-particles physics cannot express. Reality keeps information off the spec sheet.
 
-Cost: $1.7–4.7 and 8–23 minutes per metered run.
+Cost: $1.7–5.4 and 8–23 minutes per metered run.
 
 ## Problem 3: the reactor that wakes itself back up
 
