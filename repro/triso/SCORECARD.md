@@ -79,7 +79,7 @@ exactly.** (Sr was excluded from scoring a priori: all professional codes overpr
 ## Fable 5 — VPS rerun with full transcript (added Jul 3; 14 turns, $5.44, 14 min, 0 web calls)
 
 Launched to close the evidence gap on the original local-subagent Fable run (`run_triso_fable`,
-no transcript). Same frozen pack, first-class evidence (`../repro/transcripts/triso_fableV.run.log`).
+no transcript). Same frozen pack, first-class evidence (`../transcripts/triso_fableV.run.log`).
 
 | Case | **Measured** | Fable 5 (VPS) |
 |---|---|---|
@@ -109,5 +109,5 @@ Meticulous inventory bookkeeping (tracked fuel batches, decay-corrected Kr-85 at
 zero-failure calls and phase placements — but purely the given pressure-vessel physics, no
 invented mechanism. The ladder pattern repeats: the weaker model executes the supplied physics;
 the frontier models are the ones that notice what's missing. (Probes: 0/4 off-median
-forced-choice, both models refuse recall — `../repro/probes/triso_probes_results.txt`; audit:
+forced-choice, both models refuse recall — `../probes/triso_probes_results.txt`; audit:
 `AUDIT.md`, corrections applied above.)

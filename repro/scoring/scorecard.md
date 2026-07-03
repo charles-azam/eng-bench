@@ -1,8 +1,10 @@
 # Scorecard — every run vs. the measured data
 
 Measured values: Argonne ANL-ART-47 (see `measured_values.md` for citations). None of these
-numbers were on the machine during any run. **5 baseline-prediction runs + 1 blind-scenario run**,
-all with the same fully-open prompt (`GOAL.txt`); the agent chose its own methods every time.
+numbers were on the machine during any run. **7 archived baseline-prediction runs + 1 Sonnet
+ladder + 1 blind-scenario run + extensions** (phase-2 runs and post-audit runs are in their own
+sections below), all with the same fully-open prompt (`GOAL.txt`); the agent chose its own
+methods every time.
 This scorecard was adversarially audited (`../AUDIT.md`); corrections applied.
 
 **Two disclosures up front (from the audit):**
@@ -115,8 +117,11 @@ argument (T⁴ radiation + buoyancy strengthening = negative feedback at every p
    fabricated"). Forced-choice variant: `../probes/forced_choice_analysis.md` (6/16, n.s.).
 2. **Recognition probes**: Opus & Sonnet *do* identify the facility from its geometry — disclosed;
    the de-identified rerun scored as well or better than the identified runs.
-3. **Transcript audit**: 0 WebSearch, 0 WebFetch, 0 curl/wget across every run. The agents even
-   wrote their own air-property functions rather than downloading libraries.
+3. **Transcript audit**: 0 WebSearch and 0 WebFetch across every RCCS run; 0 curl/wget of any
+   document (the cht run issued one `curl -sI hub.docker.com` connectivity check before its
+   OpenFOAM Docker pull — it's in the log). Several runs wrote their own air-property functions
+   from Sutherland's law; others pip-installed CoolProp; none fetched anything about the
+   facility.
 4. **Error structure**: consistent, self-flagged, physically-caused biases (ΔT ↔ Q_air; B1 plate ↔
    blocked-duct radiation) — the signature of derivation, not retrieval.
 

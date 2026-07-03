@@ -4,7 +4,7 @@
 Addressed head-on in the article. Short version: the models *recognize* the facility but
 demonstrably can't *recall* its measured values (refusal probes + forced-choice probes in
 `repro/probes/`); the de-identified rerun scored equally well; all transcripts show zero web
-access; and five independent runs miss the same quantities in the same self-explained directions
+access; and seven independent runs miss the same quantities in the same self-explained directions
 — memorization doesn't produce consistent, physically-caused errors. Can I prove latent memory
 never steered an assumption? No, and neither can anyone; that's why everything is published.
 
@@ -15,9 +15,9 @@ any engineer would receive; one run rejected it in favor of its own loss physics
 moved exactly as predicted); and the temperatures/flow still require the whole radiation-network
 + buoyant-loop machinery to be right.
 
-**"n=6 is not statistics."**
-Correct. It's replication evidence, not a distribution: 6/6 runs produced working physics models,
-6/6 called the accident transient right, 5/6 landed flow within ±4%. Run it yourself — the repo
+**"n=7 is not statistics."**
+Correct. It's replication evidence, not a distribution: 7/7 runs produced working physics models,
+7/7 called the accident transient right, 6/7 landed flow within ~4%. Run it yourself — the repo
 reproduces the experiment for ~$3.
 
 **"The best-run 0.2% hits are cherry-picked."**

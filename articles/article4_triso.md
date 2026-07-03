@@ -45,8 +45,8 @@ kept off the launch allowlist (a headless run can't grant itself permissions), a
 published transcripts confirm zero web calls.
 
 Each agent built its model from scratch (Booth diffusion for gas release, thin-shell stress,
-Weibull failure statistics, some with full time-marching), in 8–23 minutes, for $1.7–4.7 per
-metered run. <!-- FABLE_COST_SLOT: update with triso_fableV cost when scored -->
+Weibull failure statistics, some with full time-marching), in 8–23 minutes, for $1.7–5.4 per
+metered run.
 
 ## What they got right, and the beautiful way they got it wrong
 
@@ -76,6 +76,13 @@ but attached a self-described low-confidence "0–5 failures" judgment band whos
 happened to touch the measured 5 — and whiffed the other two nonzero cases. The rest reported
 the pressure-vessel answer as-is. Code the missing physics, band it, or decline: three
 engineering temperaments, all visible, none of them right.
+
+A coda that keeps me honest about "temperaments": when I later reran Fable 5 on the same frozen
+pack (on the VPS this time, with a full published transcript), it *didn't* code a mechanism —
+it took the banding path instead, and its "0–5, most likely the final phase" call on the staged
+test landed like the Opus one. Same model, same inputs, different engineering personality.
+These are sampled behaviors, not fixed model properties — one more reason to run ensembles and
+judge distributions, not single runs.
 
 ## The mirror
 
@@ -109,11 +116,11 @@ get.
 ## The trust part
 
 Same machinery as the previous experiments: answers held out, transcripts published (zero web
-calls — grep them; one evidence gap disclosed: the original Fable 5 run executed as a local
-subagent, so its transcript isn't in the set <!-- FABLE_TRANSCRIPT_SLOT -->), recall probes
-showing the models *cannot* retrieve these measured values from memory (0/4 on forced-choice
-questions with the truth deliberately off-center; both probed models refuse the open
-question), and a fresh-context adversarial AI audit of my claims. The
+calls — grep them; one evidence gap disclosed: the *original* Fable 5 run executed as a local
+subagent without a transcript, which is why the VPS rerun above exists — that one's transcript
+is in the set), recall probes showing the models *cannot* retrieve these measured values from
+memory (0/4 on forced-choice questions with the truth deliberately off-center; both probed
+models refuse the open question), and a fresh-context adversarial AI audit of my claims. The
 audit re-ran all five agents' models itself, verified nothing was hardcoded and no input
 leaked — and then caught me overselling the "invented mechanism" story, mislabeling a judgment
 band as a calibrated bracket, and quietly omitting the one run that contradicted my bias
@@ -122,9 +129,9 @@ and more true. That's the process working.
 
 ## The bill
 
-Five runs: **~$10.4 across the four metered runs** (the fifth ran as an unmetered subagent),
-8–23 minutes each, on a €30/month VPS, fully offline.
-<!-- FABLE_COST_SLOT: fold in triso_fableV VPS run cost + transcript when scored -->
+Six runs in the end: **$15.8 across the five metered ones** (the original Fable run executed
+as an unmetered local subagent; its VPS rerun cost $5.44), 8–23 minutes each, on a €30/month
+VPS, fully offline.
 
 *Part of a series: [the passive cooling rig a national lab measured for 33 months], [the
 physics of reactors that cool themselves], and [a real reactor's self-rescue, predicted from

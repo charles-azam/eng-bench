@@ -50,4 +50,4 @@ Sensitivity envelope (expected failures):
       dec /3                     fail=    0.002 onset=     - Kr=1.15e-05 Cs=1.28e-03
       Dcs x1.46 (participant)    fail=    0.003 onset=     - Kr=1.19e-05 Cs=4.97e-03
 
-Wrote /Users/charlesazam/eng-bench/runs/run_triso_fable/results.json
+Wrote [local-machine]/runs/run_triso_fable/results.json

@@ -165,9 +165,11 @@ right, with correct mechanisms. The numbers separated the generations: Sonnet ma
 structural radiation error worth +49% on a vessel temperature and executed supplied physics
 without questioning it; Opus ensembles landed in the single digits and one Opus run flagged
 the missing TRISO mechanism with an honest judgment band; Fable 5 hit the vessel wall within
-1.2% twice, produced the campaign's best radiation split — and, on TRISO, was the only model
-bold enough to *code* the missing mechanism, wearing the widest error bars of the week for
-it. Capability, at the frontier, looks less like arithmetic and more like nerve.
+1.2% twice, produced the campaign's best radiation split — and, on TRISO, one Fable run was
+the only agent of the week bold enough to *code* the missing mechanism, wearing the widest
+error bars of the week for it. (A rerun of the same model on the same pack chose the cautious
+band instead — these temperaments are sampled, not fixed.) Capability, at the frontier, looks
+less like arithmetic and more like nerve — nerve you have to sample.
 
 **The misses were the best part.** The cooling rig's air-temperature bias: pre-flagged
 (supplied heat duty). The TRISO undercount: the textbook-correct mistake (missing degradation

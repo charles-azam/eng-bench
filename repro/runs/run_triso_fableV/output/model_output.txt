@@ -1,0 +1,137 @@
+TRISO accident-heating predictions (central model)
+assumptions: Y(Xe+Kr)=0.3/fission, O/f=0.05, buffer porosity vs 2.25 g/cc,
+             V_res = kernel volume (Cs concentration continuity), Gamma=2 in Eq 10.9
+
+=== Case A1  (1600 C / 500 h hold) ===
+  fissions/particle = 1.193e+17; gas = 59.45 nmol; CO = 9.91 nmol; V_void = 57.8e-12 m3
+  kernel release at end: F_gas = 0.999, F_Cs = 1.000
+  peak P = 18.7 MPa;  peak SiC sigma_t = 104 MPa
+  Weibull P_fail/particle = 3.93e-08  ->  E[N_fail] = 0.001 of 16400
+  P(>=1 failure) = 0.001
+  Kr-85 fractional release = 3.93e-08  (1-particle threshold 6.1e-05)
+  Cs-137 fractional release = 1.010e-01 (intact-particle diffusion 1.010e-01, of which crossed in-pile 1.972e-02)
+  schedule-node log (t_h into furnace, T_C, P_MPa, sig_max_MPa, E[Nfail]):
+    t=    0.0 h  T=  1120 C  P= 13.2  sig_max=   73  E[N]=0.0000
+    t=    0.5 h  T=   300 C  P=  5.0  sig_max=   73  E[N]=0.0000
+    t=    1.0 h  T=   300 C  P=  5.4  sig_max=   73  E[N]=0.0000
+    t=    2.5 h  T=  1050 C  P= 12.1  sig_max=   73  E[N]=0.0000
+    t=    8.0 h  T=  1050 C  P= 12.5  sig_max=   73  E[N]=0.0000
+    t=    8.5 h  T=  1250 C  P= 14.1  sig_max=   78  E[N]=0.0001
+    t=   25.0 h  T=  1250 C  P= 14.4  sig_max=   80  E[N]=0.0001
+    t=   31.5 h  T=  1550 C  P= 17.2  sig_max=   96  E[N]=0.0003
+    t=   32.5 h  T=   300 C  P=  6.4  sig_max=   96  E[N]=0.0003
+    t=   41.5 h  T=  1600 C  P= 17.6  sig_max=   98  E[N]=0.0004
+    t=  541.5 h  T=  1600 C  P= 18.7  sig_max=  104  E[N]=0.0006
+
+=== Case A2  (1800 C / 100 h (two holds)) ===
+  fissions/particle = 1.581e+17; gas = 78.75 nmol; CO = 13.13 nmol; V_void = 57.8e-12 m3
+  kernel release at end: F_gas = 0.947, F_Cs = 1.000
+  peak P = 26.2 MPa;  peak SiC sigma_t = 146 MPa
+  Weibull P_fail/particle = 5.87e-07  ->  E[N_fail] = 0.010 of 16400
+  P(>=1 failure) = 0.010
+  Kr-85 fractional release = 5.87e-07  (1-particle threshold 6.1e-05)
+  Cs-137 fractional release = 1.494e-03 (intact-particle diffusion 1.493e-03, of which crossed in-pile 1.232e-14)
+  schedule-node log (t_h into furnace, T_C, P_MPa, sig_max_MPa, E[Nfail]):
+    t=    0.0 h  T=   840 C  P=  5.6  sig_max=   31  E[N]=0.0000
+    t=    0.5 h  T=   300 C  P=  2.6  sig_max=   31  E[N]=0.0000
+    t=    1.0 h  T=   300 C  P=  2.9  sig_max=   31  E[N]=0.0000
+    t=    2.5 h  T=  1050 C  P=  6.4  sig_max=   36  E[N]=0.0000
+    t=    8.0 h  T=  1050 C  P=  6.7  sig_max=   37  E[N]=0.0000
+    t=    8.5 h  T=  1250 C  P=  7.5  sig_max=   42  E[N]=0.0000
+    t=   22.0 h  T=  1250 C  P=  8.0  sig_max=   45  E[N]=0.0000
+    t=   34.0 h  T=  1800 C  P= 13.3  sig_max=   74  E[N]=0.0000
+    t=   59.5 h  T=  1800 C  P= 20.3  sig_max=  113  E[N]=0.0013
+    t=   60.5 h  T=   300 C  P=  6.8  sig_max=  113  E[N]=0.0013
+    t=   62.0 h  T=  1050 C  P= 12.6  sig_max=  113  E[N]=0.0013
+    t=   81.5 h  T=  1050 C  P= 13.0  sig_max=  113  E[N]=0.0013
+    t=   82.0 h  T=  1250 C  P= 14.6  sig_max=  113  E[N]=0.0013
+    t=  101.0 h  T=  1250 C  P= 15.0  sig_max=  113  E[N]=0.0013
+    t=  113.0 h  T=  1800 C  P= 21.1  sig_max=  117  E[N]=0.0017
+    t=  187.5 h  T=  1800 C  P= 26.2  sig_max=  146  E[N]=0.0096
+
+=== Case B  (staged 1600/1700/1800/1800 C, 100+100+100+300 h) ===
+  fissions/particle = 1.789e+17; gas = 89.12 nmol; CO = 14.85 nmol; V_void = 65.8e-12 m3
+  kernel release at end: F_gas = 1.000, F_Cs = 1.000
+  peak P = 27.2 MPa;  peak SiC sigma_t = 156 MPa
+  Weibull P_fail/particle = 1.02e-06  ->  E[N_fail] = 0.015 of 14580
+  P(>=1 failure) = 0.015
+  Kr-85 fractional release = 1.02e-06  (1-particle threshold 6.9e-05)
+  Cs-137 fractional release = 3.139e-01 (intact-particle diffusion 3.139e-01, of which crossed in-pile 1.140e-01)
+  schedule-node log (t_h into furnace, T_C, P_MPa, sig_max_MPa, E[Nfail]):
+    t=    0.0 h  T=  1140 C  P= 18.5  sig_max=  106  E[N]=0.0007
+    t=    1.0 h  T=   300 C  P=  7.2  sig_max=  106  E[N]=0.0007
+    t=    8.0 h  T=   300 C  P=  7.5  sig_max=  106  E[N]=0.0007
+    t=   10.0 h  T=  1050 C  P= 16.9  sig_max=  106  E[N]=0.0007
+    t=   23.5 h  T=  1050 C  P= 17.3  sig_max=  106  E[N]=0.0007
+    t=   34.5 h  T=  1600 C  P= 24.5  sig_max=  140  E[N]=0.0063
+    t=  133.5 h  T=  1600 C  P= 24.6  sig_max=  141  E[N]=0.0065
+    t=  150.5 h  T=    20 C  P=  3.9  sig_max=  141  E[N]=0.0065
+    t=  156.0 h  T=  1700 C  P= 25.5  sig_max=  147  E[N]=0.0089
+    t=  256.0 h  T=  1700 C  P= 25.9  sig_max=  149  E[N]=0.0099
+    t=  273.0 h  T=    20 C  P=  4.0  sig_max=  149  E[N]=0.0099
+    t=  275.0 h  T=  1800 C  P= 26.3  sig_max=  151  E[N]=0.0110
+    t=  375.0 h  T=  1800 C  P= 27.2  sig_max=  156  E[N]=0.0148
+    t=  392.0 h  T=    20 C  P=  4.0  sig_max=  156  E[N]=0.0148
+    t=  399.0 h  T=   300 C  P=  7.5  sig_max=  156  E[N]=0.0148
+    t=  400.0 h  T=  1800 C  P= 25.6  sig_max=  156  E[N]=0.0148
+    t=  700.0 h  T=  1800 C  P= 27.2  sig_max=  156  E[N]=0.0148
+
+=== Case C1  (1600 C / 304 h hold) ===
+  fissions/particle = 2.154e+17; gas = 107.32 nmol; CO = 17.89 nmol; V_void = 57.8e-12 m3
+  kernel release at end: F_gas = 0.989, F_Cs = 1.000
+  peak P = 33.4 MPa;  peak SiC sigma_t = 186 MPa
+  Weibull P_fail/particle = 4.17e-06  ->  E[N_fail] = 0.007 of 1631
+  P(>=1 failure) = 0.007
+  Kr-85 fractional release = 4.17e-06  (1-particle threshold 6.1e-04)
+  Cs-137 fractional release = 3.556e-02 (intact-particle diffusion 3.555e-02, of which crossed in-pile 4.609e-03)
+  schedule-node log (t_h into furnace, T_C, P_MPa, sig_max_MPa, E[Nfail]):
+    t=    0.0 h  T=  1075 C  P= 21.2  sig_max=  118  E[N]=0.0002
+    t=    0.5 h  T=   300 C  P=  8.3  sig_max=  118  E[N]=0.0002
+    t=    1.0 h  T=   300 C  P=  9.0  sig_max=  118  E[N]=0.0002
+    t=    2.5 h  T=  1050 C  P= 20.2  sig_max=  118  E[N]=0.0002
+    t=    8.0 h  T=  1050 C  P= 20.8  sig_max=  118  E[N]=0.0002
+    t=    8.5 h  T=  1250 C  P= 23.5  sig_max=  131  E[N]=0.0004
+    t=   22.0 h  T=  1250 C  P= 24.0  sig_max=  134  E[N]=0.0005
+    t=   29.5 h  T=  1600 C  P= 29.6  sig_max=  165  E[N]=0.0026
+    t=  333.5 h  T=  1600 C  P= 33.4  sig_max=  186  E[N]=0.0068
+
+=== Case C2  (1600 C / 304 h hold) ===
+  fissions/particle = 1.720e+17; gas = 85.70 nmol; CO = 14.28 nmol; V_void = 57.8e-12 m3
+  kernel release at end: F_gas = 0.965, F_Cs = 1.000
+  peak P = 26.1 MPa;  peak SiC sigma_t = 146 MPa
+  Weibull P_fail/particle = 5.81e-07  ->  E[N_fail] = 0.001 of 1631
+  P(>=1 failure) = 0.001
+  Kr-85 fractional release = 5.81e-07  (1-particle threshold 6.1e-04)
+  Cs-137 fractional release = 6.777e-03 (intact-particle diffusion 6.776e-03, of which crossed in-pile 8.097e-07)
+  schedule-node log (t_h into furnace, T_C, P_MPa, sig_max_MPa, E[Nfail]):
+    t=    0.0 h  T=   940 C  P= 10.0  sig_max=   56  E[N]=0.0000
+    t=    0.5 h  T=   300 C  P=  4.3  sig_max=   56  E[N]=0.0000
+    t=    1.0 h  T=   300 C  P=  4.7  sig_max=   56  E[N]=0.0000
+    t=    2.5 h  T=  1050 C  P= 10.6  sig_max=   59  E[N]=0.0000
+    t=    8.0 h  T=  1050 C  P= 10.9  sig_max=   61  E[N]=0.0000
+    t=    8.5 h  T=  1250 C  P= 12.3  sig_max=   69  E[N]=0.0000
+    t=   22.0 h  T=  1250 C  P= 12.7  sig_max=   71  E[N]=0.0000
+    t=   29.5 h  T=  1600 C  P= 16.0  sig_max=   89  E[N]=0.0000
+    t=  333.5 h  T=  1600 C  P= 26.1  sig_max=  146  E[N]=0.0009
+
+
+================ SENSITIVITIES ================
+A1: E[N_fail] O/f=0.01 -> 0.0002 | 0.05 -> 0.0006 | 0.10 -> 0.0019
+A2: E[N_fail] O/f=0.01 -> 0.0035 | 0.05 -> 0.0096 | 0.10 -> 0.0295
+B: E[N_fail] O/f=0.01 -> 0.0056 | 0.05 -> 0.0148 | 0.10 -> 0.0433
+C1: E[N_fail] O/f=0.01 -> 0.0025 | 0.05 -> 0.0068 | 0.10 -> 0.0200
+C2: E[N_fail] O/f=0.01 -> 0.0003 | 0.05 -> 0.0009 | 0.10 -> 0.0029
+
+A1: F_Cs central 1.010e-01 | V_res=kernel+buffer+IPyC (x3.68) -> 3.358e-02
+A2: F_Cs central 1.494e-03 | V_res=kernel+buffer+IPyC (x3.68) -> 4.390e-04
+B: F_Cs central 3.139e-01 | V_res=kernel+buffer+IPyC (x3.76) -> 1.150e-01
+C1: F_Cs central 3.556e-02 | V_res=kernel+buffer+IPyC (x3.68) -> 1.124e-02
+C2: F_Cs central 6.777e-03 | V_res=kernel+buffer+IPyC (x3.68) -> 2.044e-03
+
+================ SUMMARY ================
+case  E[Nfail]   P(>=1)    F_Kr85  thr(1p)   F_Cs137
+A1      0.0006    0.001  3.93e-08  6.1e-05 1.010e-01
+A2      0.0096    0.010  5.87e-07  6.1e-05 1.494e-03
+B       0.0148    0.015  1.02e-06  6.9e-05 3.139e-01
+C1      0.0068    0.007  4.17e-06  6.1e-04 3.556e-02
+C2      0.0009    0.001  5.81e-07  6.1e-04 6.777e-03

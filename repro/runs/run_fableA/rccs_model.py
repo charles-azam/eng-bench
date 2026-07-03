@@ -619,6 +619,6 @@ if __name__ == '__main__':
                     accident={k: v for k, v in acc.items() if k != 'history'},
                     weather=wx),
     )
-    with open('/Users/charlesazam/eng-bench/runs/run_fableA/results.json', 'w') as f:
+    with open('results.json', 'w')  # path redacted: ran on local machine (see META) as f:
         json.dump(results, f, indent=2)
     print("\nresults.json written.")

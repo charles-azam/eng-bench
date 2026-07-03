@@ -1,69 +1,109 @@
-# Can an AI predict a nuclear-safety experiment from its blueprints?
+# Can an AI do real engineering? Three nuclear problems, graded against measured data
 
-This repo is the complete, auditable record of an experiment: an AI agent (Claude, running
-autonomously via Claude Code on a small VPS) was given **only the geometry, materials, and
-boundary conditions** of Argonne National Laboratory's NSTF — a ½-scale passive reactor-cavity
-cooling experiment — and asked, like any engineer, to produce a **calculation note** predicting
-what the lab measured. The measured data was never on the machine.
+This repo is the complete, auditable record of three experiments in AI-driven engineering
+analysis. In each, autonomous Claude agents (running headless via Claude Code on a small VPS)
+were given **only what a design engineer would receive** — geometry, materials, operating
+conditions — and asked to produce a **calculation note** predicting quantities that a real
+facility actually measured. The measured answers were held out for grading and never on the
+machine.
 
-Companion article: [link]
+| Campaign | The question | Ground truth | Where |
+|---|---|---|---|
+| **NSTF** — passive reactor-cavity cooling | Predict airflow, temperatures, radiation split, accident transient, weather sensitivity of Argonne's ½-scale natural-circulation rig | Argonne ANL-ART-47 measured campaign (33 months, NQA-1) | this directory: `inputs/`, `runs/`, `transcripts/`, `scoring/`, `AUDIT.md` |
+| **TRISO** — fuel-particle failure statistics | Predict particle failures & fission-product release in 1600–1800 °C accident furnace tests (Weibull statistics of ~15,000-particle fuel elements) | IAEA TECDOC-1674 / TECDOC-2090 measured heating tests | `triso/` |
+| **HTTR** — reactor loss-of-forced-cooling | Predict Japan's HTTR LOFC test — self-shutdown, spontaneous recriticality, stabilized power — *computing its own reactivity coefficients* (OpenMC Monte Carlo, 3.4 GB ENDF, overnight) | JAEA 2010 LOFC test (9 MW, VCS on) | `httr/` |
 
-## What's here
+Companion articles: see the repository's website links (capstone + three deep-dives + an
+interactive calculator).
+
+## Integrity model (read this before objecting)
+
+1. **The measured data is public** (Argonne / IAEA / JAEA reports). Secrecy is impossible and
+   not claimed. The claim: the agents **derived** their numbers rather than retrieved them.
+2. **Recall probes** (`probes/`): asked directly, the models decline to state the measured
+   values from memory; forced-choice probes score at chance (NSTF: 6/16 n.s. with a disclosed
+   design flaw; TRISO: 0/4 with the truth placed off-median). The models *recognize* the
+   facilities; they cannot *recall* their data.
+3. **Transcripts** (`transcripts/`): the complete stream-json log of every surviving run —
+   every command, every tool call. `grep -c '"name":"WebSearch"' transcripts/*.log` → 0 for
+   every NSTF and TRISO run (the cht run issued a single `curl -sI hub.docker.com`
+   connectivity check before pulling the OpenFOAM Docker image — it's in the log).
+   `httr.run.log` has web hits **by design**: that campaign allowed public *design* data and
+   forbade test results; the adversarial audit swept every tool result and found zero measured
+   LOFC numbers entering the context (`httr/AUDIT.md`, Finding 1).
+4. **Independent curation + adversarial audits.** The NSTF inputs were re-derived by a separate
+   curator agent from the raw report under a written no-outcomes protocol (`packs/`). Every
+   campaign was then audited by a fresh-context adversarial AI agent with the charter "prove
+   this wrong." All three audits are published **unedited** — `AUDIT.md`, `triso/AUDIT.md`,
+   `httr/AUDIT.md` — and all corrections were applied. The HTTR audit retracted a headline
+   claim; the retraction is in the article and scorecard.
+5. **Error structure.** The misses are systematic, self-flagged, and physically traceable
+   (a supplied duty input, a missing degradation mechanism, an absent xenon term) — the
+   signature of derivation, not retrieval. Memorized answers don't produce self-consistent,
+   explainable mistakes.
+
+## What's here (NSTF, this directory)
 
 | Path | What it is |
 |---|---|
-| `TASK.md` | The engineering ask, exactly as the agent received it |
-| `CLAUDE.md` | The agent's 4-line standing brief (incl. the no-lookup rule) |
-| `GOAL.txt` | The frozen completion condition used to launch every run |
-| `run.sh` | The launcher (headless Claude Code, `/goal`, tool whitelist) |
-| `inputs/` | Everything the agent was given: facility geometry, materials, sensor locations, boundary conditions. **Facts only — no measured results.** |
-| `runs/` | Each run's full output: the agent's calculation note, its Python models, results.json — plus per-run metadata (model, wall-clock, cost) |
-| `scoring/` | Predicted-vs-measured tables. Measured values from the public Argonne reports (ANL-ART-47 and companions), with page/table citations |
-| `probes/` | The training-data contamination probes (prompts + responses): can models *recall* the measured values? (No.) |
-| `transcripts/` | The complete stream-json transcript of every surviving run — every command, every tool call. Grep them: `grep -c '"name":"WebSearch"' transcripts/*.log` → 0 everywhere |
-| `packs/` | The de-identified input pack and blind-scenario file actually used |
-| `AUDIT.md` | An independent adversarial AI audit of every claim in this repo, published unedited (verdict: supported with corrections — all applied) |
+| `TASK.md` / `CLAUDE.md` / `GOAL.txt` / `run.sh` | The engineering ask, the 4-line standing brief (incl. the no-lookup rule), the frozen completion condition, and the launcher — exactly as the agents received them |
+| `inputs/` | Everything the agent was given: geometry, materials, sensor locations, boundary conditions. **Facts only — no measured results** |
+| `runs/` | Each run's full output: calculation note, Python models, results, figures, plus `META.md` (model, machine, cost, wall-clock, evidence grade) |
+| `scoring/` | Predicted-vs-measured tables; measured values cited to report page/table |
+| `probes/` | Contamination probes: prompts + responses, forced-choice analysis |
+| `transcripts/` | Full transcripts of every surviving run (17 logs across the three campaigns) |
+| `packs/` | The de-identified pack, the independent-curator protocol and pack, blind-scenario file |
+| `AUDIT.md` | The NSTF adversarial audit, unedited |
+| `triso/`, `httr/` | The other two campaigns: pack, held-out refs, scorecard, audit each |
 
 ## Reproduce it
 
 ```bash
 # on a Linux box with Claude Code installed and authenticated
-git clone <this repo> && cd <repo>
-bash run.sh          # launches the autonomous run; ~20–60 min
-# then compare output/calculation_note.md to scoring/measured_values.md
+git clone https://github.com/charles-azam/ai-eng-bench && cd ai-eng-bench
+bash run.sh          # NSTF baseline; ~10–30 min, ~$2–6 of API
+# or: cd triso/pack && bash run.sh        (TRISO, fully offline)
+# then compare output/calculation_note.md to scoring/measured_values.md (or triso/refs/)
 ```
 
-The prompt is fully open — the agent chooses its own methods. Your run will differ in details;
-that's the point. Score it against the measured values and see where it lands.
+`run.sh` uses Claude Code's `/goal` command (built in since v2.x) to loop until the deliverable
+exists; on a setup without it, pass the contents of `GOAL.txt` as the prompt directly. The
+prompts are fully open — the agent picks its own methods. Your run will differ in its choices;
+that's the point. Score it against the held-out values and see where it lands.
 
-## Integrity model (read this before objecting)
+## Headline results
 
-1. **The measured data is public** (Argonne technical reports). Secrecy is impossible and not
-   claimed. What we claim: the agent **derived** its numbers rather than retrieved them.
-2. **Recall probes** (`probes/`): Opus, Sonnet, and Haiku, asked directly, all decline to state
-   the measured values from memory ("any numbers I produced would be fabricated"). The models
-   recognize the facility; they cannot recall its data.
-3. **No lookups**: the agent's full transcripts log every command and web access; there is no
-   fetch of any facility report. A de-identified rerun (facility name scrubbed) is included.
-4. **Error structure**: the predictions miss in exactly the directions the agent's own stated
-   assumptions push (e.g. its heat-loss assumption ⇒ its ΔT overshoot). Memorized answers
-   don't produce self-consistent errors.
-
-## Headline result (ensemble of 7 fully-archived Opus baseline runs)
+**NSTF (ensemble of 7 fully-archived Opus baseline runs):**
 
 | Quantity | Measured (Argonne, Run011) | Agent predictions (range) | Verdict |
 |---|---|---|---|
-| System mass flow | 0.574 kg/s | 0.55–0.65 kg/s | within ±4% in 6 of 7 (incl. +0.3% on independently-curated inputs); +13% in the run that overrode the given duty |
-| Heated-plate temperature | 390.7 °C | 359–420 °C | −8…+7.5% |
-| Riser wall (front, mid-plane) | 163.1 °C | 110–195 °C | −32…+20% (widest spread — location-sensitive) |
+| System mass flow | 0.574 kg/s | 0.55–0.65 kg/s | within ~4% in 6 of 7 (median +1%); +13% in the run that overrode the given duty |
+| Heated-plate temperature | 390.7 °C | 359–420 °C | −8…+7.5% (median −4%) |
+| Riser wall (front, mid-plane) | 163.1 °C | 110–195 °C | −32…+20% (widest spread — hotspot-modeling-sensitive) |
 | Riser air ΔT | 84.1 °C | 96–110 °C | **+14…+31% high, every run** (see scorecard for why) |
-| Radiation dominant? | yes (~0.80) | yes (0.90–0.96) | right regime, **fraction over-predicted every run** |
-| Accident: bounded turn-over below limit | yes, peak 408.7 °C | yes, peak 359–391 °C | correct call, every run |
-| Weather: colder ⇒ more flow | yes (~25% swing) | yes (9–21% swing) | sign right, magnitude low |
-| Blind argon ingress: stall + self-recovery | stall in ~90 s, gas peak 126 °C, recovery ~30 min | stall in s–tens of s, threshold 131 °C, recovery 5–15 min | mechanism + numbers ~right |
+| Radiation dominant? | yes (~0.80) | yes (0.87–0.93) | right regime, **fraction over-predicted every run** |
+| Accident: bounded turn-over below limit | yes, peak 408.7 °C | yes, peak 359–391 °C (Opus); 321–497 °C across all models | correct call, every run of every model |
+| Blind argon ingress | stall ~90 s, gas peak 126 °C, self-recovery ~30 min | stall s–tens s, threshold 131 °C, recovery 5–15 min | mechanism + threshold ✓; recovery time ~2–6× fast |
 | Blind blockage (50% ducts): plate rise | +13 °C | +104 °C | **wrong ×8** — cause pre-flagged in the agent's own caveat |
 
-Full per-run detail, disclosures, and the misses: `scoring/scorecard.md`. Independent adversarial
-audit of all of it: `AUDIT.md`.
+**TRISO:** every zero-failure case called correctly (10/10 verdicts across 5 runs); the
+1800 °C sister sphere under-predicted ÷8…÷450 (the annex contains pressure-vessel physics
+only — the real killer, SiC thermal degradation, wasn't in it); the community's own Cs-137
+prediction biases reproduced from the community's own correlations. → `triso/SCORECARD.md`
 
-*Measured values © the cited public Argonne reports. Everything else: MIT license.*
+**HTTR:** feedback coefficients computed from scratch (α ≈ −7 pcm/K, β_eff = 0.0073 ± 0.0009,
+audit-reproduced from the raw Monte Carlo outputs); self-shutdown and bounded outcome correct;
+recriticality clock missed ×7 for causes now fully named (half pre-registered by the agent,
+half — xenon — found by the audit). → `httr/SCORECARD.md` and `httr/AUDIT.md`
+
+Full per-run detail, disclosures, and the misses: `scoring/scorecard.md`, `triso/SCORECARD.md`,
+`httr/SCORECARD.md`. The audits: `AUDIT.md`, `triso/AUDIT.md`, `httr/AUDIT.md`.
+
+## Costs
+
+NSTF: ~$61 (12 runs incl. 2 CFD-bearing + curator + probes + audit). TRISO: $15.8 metered
+(6 runs). HTTR: $16.08 (+ ~3.3 h background Monte Carlo on the box). VPS: €30/month Hetzner,
+~€2 of actual usage. Everything ran on an 8-core / 30 GB box.
+
+*Measured values © the cited public reports (ANL, IAEA, JAEA, INL). Everything else: MIT
+(see LICENSE).*
