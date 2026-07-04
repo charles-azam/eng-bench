@@ -1,8 +1,8 @@
 # Project constitution
 
-**FRESH SESSION? Read `handoff/00_INDEX.md` first** — it is the complete project memory
-(history, the finished NSTF campaign record, infrastructure runbook, follow-up benchmark
-briefs, and the ACTIVE TRISO campaign brief).
+**Maintainer note:** the full project memory (history, campaign records, infrastructure
+runbook, roadmap) is kept **locally in `handoff/`**, which is git-ignored and deliberately not
+published in this repo.
 
 The objective is to showcase how an AI can — or cannot — do real engineering work.
 
@@ -28,6 +28,6 @@ compute / smart small models. Everything lives in `rccs/`. Rationale is in `rccs
 
 - Keep the separation of powers: inputs and the held-out answers must never mix.
 - The run target is a ~16-core / 32 GB Linux box; the reduced model runs anywhere.
-- Earlier research on other benchmarks (TRISO, MSFR, fuel-cycle) is in `archive/` — kept for
-  reference, not the current target.
+- Earlier pre-pivot research (TRISO, MSFR, fuel-cycle) is kept locally in `archive/`
+  (git-ignored, not published).
 - Deliberately minimal for now; additional builder/checker instructions come later.

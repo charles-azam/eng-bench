@@ -1,3 +1,8 @@
 .DS_Store
 packs/
 *.tgz
+
+# internal — kept locally, never published
+handoff/
+archive/
+.claude/
