@@ -60,7 +60,7 @@ interactive calculator).
 
 ```bash
 # on a Linux box with Claude Code installed and authenticated
-git clone https://github.com/charles-azam/ai-eng-bench && cd ai-eng-bench
+git clone https://github.com/charles-azam/eng-bench && cd eng-bench
 bash run.sh          # NSTF baseline; ~10–30 min, ~$2–6 of API
 # or: cd triso/pack && bash run.sh        (TRISO, fully offline)
 # then compare output/calculation_note.md to scoring/measured_values.md (or triso/refs/)

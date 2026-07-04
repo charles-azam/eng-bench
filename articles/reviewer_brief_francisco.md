@@ -1,7 +1,7 @@
 # Reviewer brief — Francisco (domain review before publication)
 
 Salut Francisco — before this goes on HN I need your nuclear-engineer eyes on three specific
-things. Time budget: ~45 min. Everything is in the repo (github.com/charles-azam/ai-eng-bench)
+things. Time budget: ~45 min. Everything is in the repo (github.com/charles-azam/eng-bench)
 and the articles.
 
 ## What happened (30 s)

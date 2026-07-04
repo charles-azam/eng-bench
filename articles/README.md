@@ -30,7 +30,7 @@ Evidence trail behind every claim (also in this repo):
   (recriticality 1 h → 12.5 h, band contains the measured 7–8 h).
 - `../repro/transcripts/` — full tool-call logs of every run (21 files).
 - `../repro/` — the complete pack that becomes the public repo
-  (`github.com/charles-azam/ai-eng-bench`, staged at `~/eng-bench-public`).
+  (`github.com/charles-azam/eng-bench`, staged at `~/eng-bench-public`).
 
 ## What `blog_ready/` is
 

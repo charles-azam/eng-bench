@@ -17,7 +17,7 @@ own documented prediction biases with unsettling fidelity. An adversarial AI aud
 me overselling several findings; its corrections are applied here and its report is published.
 Everything is in the repo below.
 
-Original repository: [ai-eng-bench](https://github.com/charles-azam/ai-eng-bench)
+Original repository: [eng-bench](https://github.com/charles-azam/eng-bench)
 
 ---
 
@@ -145,8 +145,8 @@ Six runs in the end: **$15.8 across the five metered ones** (the original Fable 
 as an unmetered local subagent; its VPS rerun cost $5.44), 8–23 minutes each, on a €30/month
 VPS, fully offline.
 
-*Part of a series: [the passive cooling rig a national lab measured for 33 months](https://charles-azam.github.io/blog/ai-predicts-nuclear-experiment),
-[the physics of reactors that cool themselves](https://charles-azam.github.io/blog/reactor-cools-itself),
+*Part of a series: [the passive cooling rig a national lab measured for 33 months](https://charlesazam.com/blog/ai-predicts-nuclear-experiment/),
+[the physics of reactors that cool themselves](https://charlesazam.com/blog/reactor-cools-itself/),
 and [the whole week — including a real reactor's self-rescue, predicted from computed
-neutronics](https://charles-azam.github.io/blog/ai-engineering-department). Everything public:
-https://github.com/charles-azam/ai-eng-bench.*
+neutronics](https://charlesazam.com/blog/ai-engineering-department/). Everything public:
+https://github.com/charles-azam/eng-bench.*

@@ -12,7 +12,7 @@ invented missing physics when the spec sheet was incomplete — and the biggest 
 campaign traced to a nameable cause, most of them flagged by an agent in advance. Three
 adversarial AI audits of my own claims caught me overselling, repeatedly; their unedited
 reports and my corrections are published. Everything — transcripts, models, scoring — is
-public: https://github.com/charles-azam/ai-eng-bench.
+public: https://github.com/charles-azam/eng-bench.
 
 ## The setup, once
 
@@ -30,7 +30,7 @@ had to retract entirely. All three unedited reports and my corrections are in th
 
 ## Problem 1: the reactor cooling system with no moving parts
 
-*(Covered in depth in [the deep-dive article](https://charles-azam.github.io/blog/ai-predicts-nuclear-experiment) — summary here.)*
+*(Covered in depth in [the deep-dive article](https://charlesazam.com/blog/ai-predicts-nuclear-experiment/) — summary here.)*
 
 Argonne built a half-scale mock-up of a passive reactor cooling system: a 220 kW heated wall
 radiating across an air gap to steel ducts, air rising by buoyancy alone up a 20-metre chimney.
@@ -205,5 +205,5 @@ a number" into something an engineer can defend. The models will keep improving 
 The trust machinery is the part you have to build.
 
 *Everything is public: inputs, prompts, the transcripts, the agents' models, the measured
-values with citations, all three adversarial audits. https://github.com/charles-azam/ai-eng-bench. The deep-dives: [the cooling rig](https://charles-azam.github.io/blog/ai-predicts-nuclear-experiment), [the physics of the chimney, with an interactive calculator](https://charles-azam.github.io/blog/reactor-cools-itself),
-[a billion tiny pressure vessels](https://charles-azam.github.io/blog/billion-tiny-pressure-vessels).*
+values with citations, all three adversarial audits. https://github.com/charles-azam/eng-bench. The deep-dives: [the cooling rig](https://charlesazam.com/blog/ai-predicts-nuclear-experiment/), [the physics of the chimney, with an interactive calculator](https://charlesazam.com/blog/reactor-cools-itself/),
+[a billion tiny pressure vessels](https://charlesazam.com/blog/billion-tiny-pressure-vessels/).*

@@ -15,7 +15,7 @@ things wrong in instructive ways, and an independent adversarial AI audit of my 
 real issues — all published. Everything is in the repo, transcripts included. The twelve-run
 campaign cost ~$61 (four later Fable 5 runs, graded separately, added ~$27).
 
-Original repository: [ai-eng-bench](https://github.com/charles-azam/ai-eng-bench)
+Original repository: [eng-bench](https://github.com/charles-azam/eng-bench)
 
 ---
 
@@ -28,7 +28,7 @@ claim, Argonne National Laboratory built NSTF — a half-scale, 26-metre-tall ri
 heated steel wall standing in for the vessel (up to 220 kW), twelve steel riser ducts, two
 chimneys, ~400 sensors, nuclear-grade QA, 33 months of testing. If you want the physics of *why*
 this works (and how the weather gets a vote), that's
-[a companion post](https://charles-azam.github.io/blog/reactor-cools-itself).
+[a companion post](https://charlesazam.com/blog/reactor-cools-itself/).
 
 The point here: this produced years of public, measured truth about a system doing pure physics.
 Which makes it a perfect exam for a different question — **can an AI, given only what a design
@@ -234,4 +234,4 @@ Hard-tech engineering is labor-bound, not physics-bound. The physics didn't chan
 just did.
 
 *Repo with everything — inputs, prompts, every surviving run's full transcript, the agents'
-models, the scoring against the public Argonne reports, and the adversarial audit: https://github.com/charles-azam/ai-eng-bench.*
+models, the scoring against the public Argonne reports, and the adversarial audit: https://github.com/charles-azam/eng-bench.*

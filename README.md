@@ -33,7 +33,7 @@ audits are published unedited (one forced a full retraction — see `httr/AUDIT.
 eng-bench/
 ├── articles/        # the four articles + figures + interactive calculator + HN FAQ  ← REVIEW
 ├── repro/           # the publishable pack (all 3 campaigns): inputs, runs, transcripts,
-│                    # scoring, probes, audits — mirrors the public repo ai-eng-bench
+│                    # scoring, probes, audits — mirrors the public repo eng-bench
 ├── triso/, httr/    # campaign working dirs: pack, held-out refs, scorecard, audit
 ├── rccs/            # original NSTF benchmark curation (TASK, inputs, held-out refs, sources)
 ├── runs/            # raw harvested run outputs (incl. the new Fable-VPS and xenon runs)
@@ -51,5 +51,5 @@ Inputs were independently re-curated by a separate agent from the raw report; pr
 models cannot recall the measured values; fresh-context adversarial audits reviewed every
 claim, and every correction — including one retraction — was applied and disclosed.
 
-*Public artifact repo (same content as `repro/`): `github.com/charles-azam/ai-eng-bench` —
+*Public artifact repo (same content as `repro/`): `github.com/charles-azam/eng-bench` —
 staged locally at `~/eng-bench-public`, published by the repo owner.*
