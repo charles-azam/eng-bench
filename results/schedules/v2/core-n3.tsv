@@ -1,0 +1,13 @@
+sequence	task	system	replicate	stage
+1	nstf_blind_derive_duty	codex	1	core-n3
+2	nstf_blind_derive_duty	codex	3	core-n3
+3	triso_corrected_bounded_annex	claude	3	core-n3
+4	triso_corrected_bounded_annex	claude	1	core-n3
+5	nstf_blind_derive_duty	claude	2	core-n3
+6	nstf_blind_derive_duty	claude	3	core-n3
+7	nstf_blind_derive_duty	claude	1	core-n3
+8	triso_corrected_bounded_annex	codex	2	core-n3
+9	nstf_blind_derive_duty	codex	2	core-n3
+10	triso_corrected_bounded_annex	codex	3	core-n3
+11	triso_corrected_bounded_annex	codex	1	core-n3
+12	triso_corrected_bounded_annex	claude	2	core-n3
