@@ -1,0 +1,16 @@
+[project]
+name = "eng-bench-native-runner"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+  "pydantic>=2.12,<3",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.4,<9",
+]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]

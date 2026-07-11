@@ -16,7 +16,7 @@ Outdoor air spanned −18.1 °C → +23.7 °C across these 8 runs. Thermal power
 | **Thermal power removed** | kWt | **56.12** | 51.7 | 48.6 | 56.1 |
 | **Heated plate, front** | °C | **390.66** | 390.5 | 382.5 | 397.5 |
 | Ceramic heaters | °C | 568.41 | 565.8 | 554.5 | 578.8 |
-| **Riser duct wall** (mid-plane) | °C | **163.11** | 167.5 | 152.5 | 183.3 |
+| **Riser duct wall** (Table 32 aggregate; local channel not identified) | °C | **163.11** | 167.5 | 152.5 | 183.3 |
 | Cold (west) wall | °C | 138.89 | 144.0 | 131.8 | 156.1 |
 | Riser inlet gas | °C | 19.74 | 23.5 | 19.7 | 30.0 |
 | **Riser outlet gas** | °C | **103.85** | 108.8 | 96.9 | 124.2 |
@@ -48,8 +48,10 @@ Radiation is the **dominant** heat-transfer mode across the cavity.
   accident: hot **3.81**, cold **0.89 kW/m²**.
 
 **Scoring intent:** a correct model must report that radiation carries the **majority** of the
-heat (the report's narrative: radiation dominates; convective h ≈ 3–6 W/m²·K is small). A
-defensible radiative fraction is roughly **70–90%** of cavity heat transfer.
+heat (the report's narrative: radiation dominates; convective h ≈ 3–6 W/m²·K is small). The
+report does **not** provide a defensible whole-system numeric radiative fraction: the paired
+matte/reflective gauges required recalibration, and the reported 40/50/10% values divide heat among
+duct faces rather than between radiation and convection. Score only the dominant mode.
 
 ---
 
@@ -66,11 +68,12 @@ Steady (normal, 26 kWt-class) vs peak (decay-heat peak, 56 kWt-class):
 | **Front heated plate** | °C | 275.32 | **408.72** |
 | Ceramic heaters | °C | 404.13 | 591.26 |
 
-**Outcome (the money shot):** the mock vessel followed the decay-heat curve and **peaked near
-≈409 °C at the decay-heat peak (t ≈ 92 h), then turned over and cooled as decay heat fell** — a
-**bounded, self-limiting trajectory, not a runaway**. Passive RCCS removal tracked the source
-power. (Wind gusts to ~22 m/s during the test caused transient chimney-flow asymmetry needing
-damper action — a real-world robustness note.)
+**Observed outcome:** the mock vessel followed the rising decay-heat curve and the reported peak
+window averaged ≈409 °C. The test was concluded after reaching the peak condition; it did **not**
+observe the post-peak decay portion. The supported claim is therefore a **bounded response through
+the tested peak**, not an observed turnover and cooldown. Passive RCCS removal tracked the source
+power over that interval. (Wind gusts to ~22 m/s during a test caused transient chimney-flow
+asymmetry needing damper action — a real-world robustness note.)
 
 ---
 

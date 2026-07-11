@@ -1,0 +1,22 @@
+{
+  "benchmark_version": "2026-07-11-v1",
+  "prompt_sha256": "sha256:94bfff14534b9d741a472ee42b3ef9e54d5d72b65fb580a8df5a800788c02172",
+  "runner_image_sha256": "sha256:c287d18fe80033950d97b97fa8ca06f06eb9011fb60e98d1f02f686995d69879",
+  "systems": {
+    "claude": {
+      "cli_version": "2.1.201 (Claude Code)",
+      "effort": "max",
+      "requested_model": "claude-fable-5"
+    },
+    "codex": {
+      "cli_version": "codex-cli 0.144.1",
+      "effort": "max",
+      "requested_model": "gpt-5.6-sol"
+    }
+  },
+  "task_pack_sha256": {
+    "nstf_blind_derive_duty": "sha256:505e446c2aab398fa78bca00c400c7b85e849ba2a8b8b3cb7005cf7a7455bc37",
+    "nstf_supplied_duty": "sha256:066da7206b38d3d3f43bfbd992226de0e72e072e64bd50886cc9c91e9515f65c",
+    "triso_corrected_bounded_annex": "sha256:b289430390cc2bdc6b2d176d3ac0d78a0281d634cd68211c5e83ac2ce54642e4"
+  }
+}

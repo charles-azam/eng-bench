@@ -1,6 +1,11 @@
 .DS_Store
 packs/
 *.tgz
+.venv/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+/tmp/
 
 # internal — kept locally, never published
 handoff/
