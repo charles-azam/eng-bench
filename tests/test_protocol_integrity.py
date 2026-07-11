@@ -4,8 +4,9 @@ import re
 import subprocess
 from pathlib import Path
 
+from eng_bench.integrity import render_evaluator_manifest, validate_evaluator_manifest
 from eng_bench.io import load_jsonl
-from eng_bench.models import Measurement
+from eng_bench.models import FrozenLedger, Measurement
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -65,3 +66,19 @@ def test_frozen_task_contracts_match_held_out_records_and_pass_leakage_checks() 
     assert measurement_ids["nstf_blind_derive_duty"] == blind_ids
     assert measurement_ids["nstf_supplied_duty"] == supplied_ids
     assert measurement_ids["triso_corrected_bounded_annex"] == triso_ids
+
+
+def test_frozen_evaluator_manifest_covers_exact_sources_and_matches_ledger() -> None:
+    manifest_path = REPO_ROOT / "protocol/evaluator_manifest.sha256"
+    ledger = FrozenLedger.model_validate_json(
+        (REPO_ROOT / "protocol/evaluation_ledger.json").read_text(encoding="utf-8")
+    )
+
+    validate_evaluator_manifest(
+        root=REPO_ROOT,
+        manifest_path=manifest_path,
+        expected_manifest_sha256=ledger.evaluator_manifest_sha256,
+    )
+    assert manifest_path.read_text(encoding="utf-8") == render_evaluator_manifest(
+        root=REPO_ROOT
+    )

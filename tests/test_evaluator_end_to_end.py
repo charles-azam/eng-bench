@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 
+from eng_bench.integrity import evaluator_manifest_sha256
 from eng_bench.io import write_json, write_jsonl
 from eng_bench.models import (
     EvidenceClass,
@@ -31,6 +32,8 @@ SHA_A = f"sha256:{'a' * 64}"
 SHA_B = f"sha256:{'b' * 64}"
 SHA_C = f"sha256:{'c' * 64}"
 STARTED_AT = datetime(2026, 7, 12, 0, 0, tzinfo=UTC)
+REPO_ROOT = Path(__file__).resolve().parents[1]
+EVALUATOR_MANIFEST_PATH = REPO_ROOT / "protocol/evaluator_manifest.sha256"
 
 
 def make_manifest(
@@ -75,6 +78,9 @@ def make_ledger(*, manifests: list[RunManifest]) -> FrozenLedger:
         benchmark_version=first.benchmark_version,
         prompt_sha256=first.prompt_sha256,
         runner_image_sha256=first.runner_image_sha256,
+        evaluator_manifest_sha256=evaluator_manifest_sha256(
+            manifest_path=EVALUATOR_MANIFEST_PATH
+        ),
         task_pack_sha256={
             manifest.task_variant: manifest.pack_sha256 for manifest in manifests
         },
@@ -122,6 +128,10 @@ def run_cli(
             str(measurements_path),
             "--ledger",
             str(ledger_path),
+            "--evaluator-manifest",
+            str(EVALUATOR_MANIFEST_PATH),
+            "--evaluator-root",
+            str(REPO_ROOT),
             "--artifact-root",
             str(artifact_root),
             "--output-dir",
@@ -434,6 +444,22 @@ def test_cli_pipeline_scores_units_zero_counts_and_failures_deterministically(
         second_output / "summary.json"
     ).read_bytes()
 
+    frozen_ledger = make_ledger(manifests=manifests)
+    write_json(
+        path=ledger_path,
+        model=frozen_ledger.model_copy(update={"evaluator_manifest_sha256": SHA_A}),
+    )
+    with pytest.raises(subprocess.CalledProcessError):
+        run_cli(
+            manifests_path=manifests_path,
+            predictions_path=predictions_path,
+            measurements_path=measurements_path,
+            ledger_path=ledger_path,
+            artifact_root=artifact_root,
+            output_dir=tmp_path / "evaluator-manifest-drifted",
+        )
+
+    write_json(path=ledger_path, model=frozen_ledger)
     drifted_manifests = [
         manifests[0].model_copy(update={"runner_image_sha256": SHA_A}),
         *manifests[1:],
@@ -598,6 +624,28 @@ def test_pipeline_keeps_unverifiable_and_noncompliant_predictions_visible(
         category="exceeded",
         source_artifact="codex-edge-01/units.md",
     )
+    release_prediction = Prediction(
+        run_id=manifest.run_id,
+        metric_id="fractional_release",
+        point=0.1,
+        p10=0.01,
+        p50=0.1,
+        p90=0.2,
+        units="fraction",
+        confidence=0.5,
+        source_artifact="codex-edge-01/units.md",
+    )
+    temperature_prediction = Prediction(
+        run_id=manifest.run_id,
+        metric_id="plate_temperature",
+        point=400.0,
+        p10=380.0,
+        p50=400.0,
+        p90=420.0,
+        units="degC",
+        confidence=0.7,
+        source_artifact="codex-edge-01/units.md",
+    )
     measurements = [
         Measurement(
             task_variant="edge-cases",
@@ -628,6 +676,24 @@ def test_pipeline_keeps_unverifiable_and_noncompliant_predictions_visible(
             evidence_class=EvidenceClass.QUALITATIVE_STATEMENT,
             provenance="held-out transient classification",
         ),
+        Measurement(
+            task_variant="edge-cases",
+            metric_id="fractional_release",
+            kind=MeasurementKind.POSITIVE,
+            value=0.05,
+            units="fraction",
+            evidence_class=EvidenceClass.DIRECT_MEASUREMENT,
+            provenance="held-out fractional release",
+        ),
+        Measurement(
+            task_variant="edge-cases",
+            metric_id="plate_temperature",
+            kind=MeasurementKind.ABSOLUTE_TEMPERATURE,
+            value=390.0,
+            units="degC",
+            evidence_class=EvidenceClass.DIRECT_MEASUREMENT,
+            provenance="held-out plate temperature",
+        ),
     ]
 
     manifests_path = tmp_path / "manifests.jsonl"
@@ -641,6 +707,8 @@ def test_pipeline_keeps_unverifiable_and_noncompliant_predictions_visible(
             missing_artifact_prediction,
             incompatible_prediction,
             wrong_category_prediction,
+            release_prediction,
+            temperature_prediction,
         ],
     )
     write_jsonl(path=measurements_path, models=measurements)
@@ -676,6 +744,21 @@ def test_pipeline_keeps_unverifiable_and_noncompliant_predictions_visible(
     assert category_score.compliance_passed is True
     assert category_score.scorable is True
     assert category_score.categorical_passed is False
+
+    release_score = next(
+        score for score in scores if score.metric_id == "fractional_release"
+    )
+    assert release_score.weighted_interval_score == pytest.approx(
+        0.4307645450908127
+    )
+
+    temperature_score = next(
+        score for score in scores if score.metric_id == "plate_temperature"
+    )
+    assert temperature_score.absolute_error == 10.0
+    assert temperature_score.signed_error == 10.0
+    assert temperature_score.absolute_log_error is None
+    assert temperature_score.signed_relative_error is None
 
     summary = json.loads((output_dir / "summary.json").read_text(encoding="utf-8"))
     task_summary = summary["task_results"][0]

@@ -1,7 +1,7 @@
 # Held-out evaluation records
 
 `held_out.jsonl` is the human-owned scoring set for protocol version
-`2026-07-11-candidate-1`. It is never mounted into an agent run.
+`2026-07-11-v2`. It is never mounted into an agent run.
 
 Every record labels its evidence class and dependency group. Metrics in the same dependency group
 must not be described as independent confirmations. Records with `kind: "unscored"` exist only to

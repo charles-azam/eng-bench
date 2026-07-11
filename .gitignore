@@ -7,6 +7,9 @@ __pycache__/
 *.py[cod]
 /tmp/
 
+# Excluded partial payload is retained locally/VPS; publish only its checksum ledger and note.
+results/excluded/v1-finalizer-bug/core-n3-nstf_blind_derive_duty-codex-r01-a01/
+
 # internal — kept locally, never published
 handoff/
 archive/

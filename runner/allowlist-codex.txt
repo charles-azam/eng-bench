@@ -1,0 +1,2 @@
+# Exact HTTPS CONNECT hostname for the Codex treatment.
+chatgpt.com

@@ -25,8 +25,8 @@ while IFS=$'\t' read -r sequence task system replicate stage; do
     --stage "${stage}" \
     --attempt 1
   status_file="/root/bench-v2/runs/${stage}-${task}-${system}-r$(printf '%02d' "${replicate}")-a01/status.json"
-  classification=$(jq -r .classification "${status_file}")
-  if [[ "${classification}" == infrastructure_failure ]]; then
+  canonical_status=$(jq -r .canonical_status "${status_file}")
+  if [[ "${canonical_status}" == provider_failure || "${canonical_status}" == runner_failure ]]; then
     retry_rows+=("${sequence}"$'\t'"${task}"$'\t'"${system}"$'\t'"${replicate}"$'\t'"${stage}")
   fi
 done < "${schedule}"

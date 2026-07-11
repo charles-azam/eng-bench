@@ -11,11 +11,6 @@ case "${run_dir}" in
   *) echo "run directory must be under /root/bench-v2/runs" >&2; exit 64 ;;
 esac
 
-if [[ "${served_models}" == "[]" && ( "${canonical_status}" == completed || "${canonical_status}" == agent_failure || "${canonical_status}" == fallback_contaminated ) ]]; then
-  canonical_status=runner_failure
-  normalization=no_served_model
-fi
-
 root=/root/bench-v2
 metadata="${run_dir}/metadata.json"
 events="${run_dir}/events.jsonl"
@@ -29,9 +24,13 @@ task_definition="${root}/protocol/tasks/${task}/TASK.md"
 classification=$(jq -r .classification "${raw_status}")
 normalized="${run_dir}/predictions.jsonl"
 : > "${normalized}"
+: > "${run_dir}/normalization.stderr"
 
+served_models='[]'
 if [[ "${system}" == claude ]]; then
-  served_models=$(jq -sc '[.[] | select(.type == "assistant" and .message.model != null and .message.model != "<synthetic>") | .message.model] | unique' "${events}")
+  if parsed_models=$(jq -sc '[.[] | select(.type == "assistant" and .message.model != null and .message.model != "<synthetic>") | .message.model] | unique' "${events}" 2>/dev/null); then
+    served_models="${parsed_models}"
+  fi
   if [[ "${served_models}" == "[]" ]] && jq -e 'select(.type == "system" and .subtype == "model_refusal_no_fallback")' "${events}" >/dev/null; then
     served_models=$(jq -cn --arg model "${requested_model}" '[ $model ]')
   fi
@@ -100,6 +99,11 @@ case "${classification}" in
     exit 65
     ;;
 esac
+
+if [[ "${served_models}" == "[]" && ( "${canonical_status}" == completed || "${canonical_status}" == agent_failure || "${canonical_status}" == fallback_contaminated ) ]]; then
+  canonical_status=runner_failure
+  normalization=no_served_model
+fi
 
 artifact_paths=$(find "${workspace}" -type f -printf '%P\n' | LC_ALL=C sort | jq -Rsc --arg run_id "${run_id}" 'split("\n")[:-1] | map($run_id + "/workspace/" + .)')
 benchmark_version=$(tr -d '\n' < "${root}/protocol/VERSION")

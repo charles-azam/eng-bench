@@ -1,0 +1,2 @@
+# Exact HTTPS CONNECT hostname for the Claude Code treatment.
+api.anthropic.com

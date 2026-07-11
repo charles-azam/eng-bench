@@ -107,7 +107,11 @@ def prediction_compliance_issues(
 
     point, p10, _, _ = normalized_prediction(prediction=prediction, measurement=measurement)
     issues: list[str] = []
-    if measurement.kind in {MeasurementKind.POSITIVE, MeasurementKind.COUNT} and point is None:
+    if measurement.kind in {
+        MeasurementKind.POSITIVE,
+        MeasurementKind.ABSOLUTE_TEMPERATURE,
+        MeasurementKind.COUNT,
+    } and point is None:
         issues.append("missing_numeric_point")
     if measurement.kind is MeasurementKind.POSITIVE:
         positive_values = [
@@ -194,6 +198,8 @@ def score_prediction(
     normalized_p10: float | None = None
     normalized_p50: float | None = None
     normalized_p90: float | None = None
+    absolute_error: float | None = None
+    signed_error: float | None = None
     absolute_log_error: float | None = None
     signed_relative_error: float | None = None
     wis: float | None = None
@@ -221,6 +227,20 @@ def score_prediction(
                     lower=measurement.lower,
                     upper=measurement.upper,
                     transform=math.log,
+                )
+                point_in_measurement_interval = (
+                    measurement.lower <= normalized_point <= measurement.upper
+                )
+        if measurement.kind is MeasurementKind.ABSOLUTE_TEMPERATURE:
+            if measurement.value is not None:
+                signed_error = normalized_point - measurement.value
+                absolute_error = abs(signed_error)
+            if measurement.lower is not None and measurement.upper is not None:
+                absolute_error = interval_distance(
+                    value=normalized_point,
+                    lower=measurement.lower,
+                    upper=measurement.upper,
+                    transform=lambda value: value,
                 )
                 point_in_measurement_interval = (
                     measurement.lower <= normalized_point <= measurement.upper
@@ -256,12 +276,20 @@ def score_prediction(
 
     if compliance_passed and measurement.value is not None:
         if normalized_p10 is not None and normalized_p50 is not None and normalized_p90 is not None:
-            wis = weighted_interval_score(
-                observed=measurement.value,
-                p10=normalized_p10,
-                p50=normalized_p50,
-                p90=normalized_p90,
-            )
+            if measurement.kind is MeasurementKind.POSITIVE and measurement.units == "fraction":
+                wis = weighted_interval_score(
+                    observed=math.log(measurement.value),
+                    p10=math.log(normalized_p10),
+                    p50=math.log(normalized_p50),
+                    p90=math.log(normalized_p90),
+                )
+            else:
+                wis = weighted_interval_score(
+                    observed=measurement.value,
+                    p10=normalized_p10,
+                    p50=normalized_p50,
+                    p90=normalized_p90,
+                )
             prediction_interval_covered = normalized_p10 <= measurement.value <= normalized_p90
 
     if measurement.kind is MeasurementKind.RADIATION and prediction.qualitative is not None:
@@ -292,6 +320,8 @@ def score_prediction(
         normalized_p10=normalized_p10,
         normalized_p50=normalized_p50,
         normalized_p90=normalized_p90,
+        absolute_error=absolute_error,
+        signed_error=signed_error,
         absolute_log_error=absolute_log_error,
         signed_relative_error=signed_relative_error,
         weighted_interval_score=wis,
@@ -332,6 +362,12 @@ def aggregate_metric(*, scores: list[Score]) -> MetricAggregate:
             sum(score.artifact_valid for score in artifact_scores) / len(artifact_scores)
             if artifact_scores
             else None
+        ),
+        mean_absolute_error=optional_mean(
+            values=(score.absolute_error for score in scorable_scores)
+        ),
+        mean_signed_error=optional_mean(
+            values=(score.signed_error for score in scorable_scores)
         ),
         mean_absolute_log_error=optional_mean(
             values=(score.absolute_log_error for score in scorable_scores)

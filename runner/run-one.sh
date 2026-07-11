@@ -51,9 +51,11 @@ start_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 if [[ "${system}" == codex ]]; then
   cli_version=$(codex --version)
   requested_model=gpt-5.6-sol
+  allowlist="${root}/runner/allowlist-codex.txt"
 else
   cli_version=$(claude --version)
   requested_model=claude-fable-5
+  allowlist="${root}/runner/allowlist-claude.txt"
 fi
 prompt_hash=$(sha256sum "${run_dir}/input/PROMPT.md" | cut -d ' ' -f1)
 protocol_hash=$(sha256sum "${protocol}/manifest.sha256" | cut -d ' ' -f1)
@@ -75,7 +77,7 @@ jq -n \
 
 python3 "${root}/runner/connect_proxy.py" \
   --socket "${run_dir}/runtime/proxy.sock" \
-  --allowlist "${root}/runner/allowlist.txt" \
+  --allowlist "${allowlist}" \
   --log "${run_dir}/proxy.jsonl" \
   > "${run_dir}/runtime/proxy.stdout" \
   2> "${run_dir}/runtime/proxy.stderr" &
@@ -94,6 +96,7 @@ done
 set +e
 timeout --signal=INT --kill-after=900 3600 \
   "${root}/runner/isolate.sh" \
+  --system "${system}" \
   --workspace "${run_dir}/workspace" \
   --runtime "${run_dir}/runtime" \
   -- /runner/invoke-system.sh --system "${system}" \
@@ -112,6 +115,18 @@ jq --arg end_time "${end_time}" '. + {end_time: $end_time}' "${run_dir}/metadata
 mv "${run_dir}/metadata.tmp" "${run_dir}/metadata.json"
 (cd "${run_dir}/workspace" && find . -type f -print0 | sort -z | xargs -0 sha256sum) > "${run_dir}/workspace.sha256"
 "${root}/runner/finalize-run.sh" --run-dir "${run_dir}"
-sha256sum "${run_dir}/metadata.json" "${run_dir}/events.jsonl" "${run_dir}/stderr.log" "${run_dir}/proxy.jsonl" "${run_dir}/status.json" "${run_dir}/manifest.jsonl" "${run_dir}/predictions.jsonl" > "${run_dir}/artifact.sha256"
+sha256sum \
+  "${run_dir}/metadata.json" \
+  "${run_dir}/events.jsonl" \
+  "${run_dir}/stderr.log" \
+  "${run_dir}/proxy.jsonl" \
+  "${run_dir}/status.json" \
+  "${run_dir}/manifest.jsonl" \
+  "${run_dir}/predictions.jsonl" \
+  "${run_dir}/input.sha256" \
+  "${run_dir}/workspace.sha256" \
+  "${run_dir}/normalization.stderr" \
+  "${run_dir}/runtime/environment.json" \
+  > "${run_dir}/artifact.sha256"
 chmod -R go-rwx "${run_dir}/runtime"
 cat "${run_dir}/status.json"

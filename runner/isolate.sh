@@ -2,13 +2,18 @@
 set -euo pipefail
 
 usage() {
-  echo "usage: isolate.sh --workspace DIR --runtime DIR -- COMMAND [ARG ...]" >&2
+  echo "usage: isolate.sh --system codex|claude --workspace DIR --runtime DIR -- COMMAND [ARG ...]" >&2
 }
 
+system=""
 workspace=""
 runtime=""
 while (($#)); do
   case "$1" in
+    --system)
+      system="$2"
+      shift 2
+      ;;
     --workspace)
       workspace="$2"
       shift 2
@@ -28,6 +33,7 @@ while (($#)); do
   esac
 done
 
+[[ "${system}" == codex || "${system}" == claude ]] || { usage; exit 64; }
 [[ -n "${workspace}" && -n "${runtime}" && $# -gt 0 ]] || { usage; exit 64; }
 workspace=$(realpath "${workspace}")
 runtime=$(realpath "${runtime}")
@@ -47,10 +53,17 @@ install -d -m 700 "${home_dir}/.codex" "${home_dir}/.claude"
 : > "${home_dir}/.codex/auth.json"
 : > "${home_dir}/.claude/.credentials.json"
 : > "${home_dir}/.claude/settings.json"
+credential_bind=()
+if [[ "${system}" == codex ]]; then
+  credential_bind=(--ro-bind /root/.codex/auth.json /home/bench/.codex/auth.json)
+else
+  credential_bind=(--ro-bind /root/.claude/.credentials.json /home/bench/.claude/.credentials.json)
+fi
 
 exec "${bwrap}" \
   --die-with-parent \
   --new-session \
+  --clearenv \
   --unshare-pid \
   --unshare-uts \
   --unshare-ipc \
@@ -66,8 +79,7 @@ exec "${bwrap}" \
   --tmpfs /tmp \
   --dir /home \
   --bind "${home_dir}" /home/bench \
-  --ro-bind /root/.codex/auth.json /home/bench/.codex/auth.json \
-  --ro-bind /root/.claude/.credentials.json /home/bench/.claude/.credentials.json \
+  "${credential_bind[@]}" \
   --ro-bind "${runner_root}/claude-settings.json" /home/bench/.claude/settings.json \
   --ro-bind "${runner_root}" /runner \
   --bind "${workspace}" /workspace \
@@ -75,6 +87,9 @@ exec "${bwrap}" \
   --chdir /workspace \
   --setenv HOME /home/bench \
   --setenv CODEX_HOME /home/bench/.codex \
+  --setenv USER bench \
+  --setenv LOGNAME bench \
+  --setenv LANG C.UTF-8 \
   --setenv PATH /usr/local/bin:/usr/bin:/bin \
   --setenv DISABLE_AUTOUPDATER 1 \
   --setenv CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC 1 \
@@ -85,4 +100,3 @@ exec "${bwrap}" \
   --setenv NO_PROXY "" \
   --setenv no_proxy "" \
   /runner/namespace-entry.sh -- "$@"
-

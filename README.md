@@ -3,13 +3,13 @@
 Can a native coding agent make useful engineering predictions from a bounded evidence pack, before
 it sees the experimental outcome?
 
-This repository contains the frozen `2026-07-11-v1` comparison of:
+This repository contains the frozen `2026-07-11-v2` comparison of:
 
 - Codex with requested model GPT-5.6 Sol;
 - Claude Code with served model Claude Fable 5.
 
 The two primary tasks are deliberately unlike one another. NSTF asks the systems to predict heat
-removal by a half-scale, air-cooled natural-circulation loop from electrical heater input. TRISO asks
+removal by a half-axial-scale, 19.03°-sector air-cooled natural-circulation loop from electrical heater input. TRISO asks
 them to predict coated-particle failures and fission-product release across five furnace histories,
 while deciding which conclusions the supplied material annex can actually support.
 
@@ -43,13 +43,13 @@ invalidate a simple model-versus-model headline:
 - several TRISO counts, onset times, and Kr-85 releases were treated as independent measurements
   although the source describes them as one dependent inference chain.
 
-Version 1 corrects those errors, registers evidence classes and dependency groups, removes unsupported
+Version 2 corrects those errors, registers evidence classes and dependency groups, removes unsupported
 targets, and adds an NSTF supplied-duty ablation so the value of the leaked input is measured rather
 than hand-waved.
 
 ## Reproduce the evaluator
 
-Python 3.13 or later and UV are required.
+Python 3.13 or later, UV, and ripgrep (`rg`) are required.
 
 ```bash
 uv sync --dev
@@ -79,7 +79,7 @@ uv run eng-bench evaluate \
 
 ## Integrity boundary
 
-Each attempt receives a fresh writable copy of one frozen pack; an immutable hash-checked snapshot
+Each attempt receives a fresh writable copy of one frozen pack; a hash-recorded host copy
 is retained outside the agent namespace. Held-out measurements, old runs, evaluator code, protocol
 files, and host paths are absent. Direct network
 egress is denied; a fail-closed CONNECT proxy permits only the provider endpoint required by the

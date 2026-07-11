@@ -1,4 +1,0 @@
-# One exact HTTPS CONNECT hostname per line. Keep this list fail-closed.
-# The preflight probes verify the minimum provider endpoints before protocol freeze.
-api.anthropic.com
-chatgpt.com

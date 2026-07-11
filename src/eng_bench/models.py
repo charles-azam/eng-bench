@@ -39,6 +39,7 @@ class RunStatus(StrEnum):
 
 class MeasurementKind(StrEnum):
     POSITIVE = "positive"
+    ABSOLUTE_TEMPERATURE = "absolute_temperature"
     COUNT = "count"
     RADIATION = "radiation"
     CATEGORICAL = "categorical"
@@ -139,6 +140,7 @@ class FrozenLedger(StrictModel):
     benchmark_version: NonEmptyString
     prompt_sha256: Sha256
     runner_image_sha256: Sha256
+    evaluator_manifest_sha256: Sha256
     task_pack_sha256: dict[NonEmptyString, Sha256]
     systems: dict[NonEmptyString, FrozenSystem]
 
@@ -225,6 +227,12 @@ class Measurement(StrictModel):
             ]
             if any(value <= 0.0 for value in references):
                 raise ValueError("positive measurements must be greater than zero")
+        if self.kind is MeasurementKind.ABSOLUTE_TEMPERATURE and self.units not in {
+            "K",
+            "degC",
+            "°C",
+        }:
+            raise ValueError("absolute temperature measurements need temperature units")
         if self.kind is MeasurementKind.COUNT:
             references = [
                 value for value in (self.value, self.lower, self.upper) if value is not None
@@ -285,6 +293,8 @@ class Score(StrictModel):
     normalized_p10: float | None = None
     normalized_p50: float | None = None
     normalized_p90: float | None = None
+    absolute_error: float | None = None
+    signed_error: float | None = None
     absolute_log_error: float | None = None
     signed_relative_error: float | None = None
     weighted_interval_score: float | None = None
@@ -305,6 +315,8 @@ class MetricAggregate(StrictModel):
     scorable_predictions: int
     completion_rate: float | None
     artifact_validity_rate: float | None
+    mean_absolute_error: float | None
+    mean_signed_error: float | None
     mean_absolute_log_error: float | None
     mean_signed_relative_error: float | None
     mean_weighted_interval_score: float | None

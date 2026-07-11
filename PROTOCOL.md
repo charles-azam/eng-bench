@@ -1,6 +1,6 @@
 # Preregistered native-agent engineering benchmark
 
-Protocol version: `2026-07-11-v1`
+Protocol version: `2026-07-11-v2`
 
 Status: **frozen protocol**. No scored run may start until the freeze procedure in this document
 has produced its manifest and tag. Changes after that tag require a new protocol version and make
@@ -60,12 +60,12 @@ fewer than three infrastructure-valid launches prevents publication of the head-
 
 For every launch:
 
-- use the same VPS, frozen run image, preinstalled scientific packages, 60-minute model-working
+- use the same VPS, hash-checked host/toolchain environment, preinstalled scientific packages, 60-minute model-working
   budget, and 75-minute hard process timeout;
 - use the highest reasoning setting advertised by each frozen CLI (`max` at protocol drafting);
 - provide a plain task prompt, with no `/goal`, subagents, repository agent instructions, web tools,
   package installation, or task-specific coaching;
-- create an immutable, hash-checked host snapshot of the task pack, then give the agent a fresh
+- create a hash-recorded host copy of the task pack, then give the agent a fresh
   writable working copy whose before/after file hashes are retained;
 - keep measurements, evaluator code, protocol files, old runs, and source reports outside the
   agent-visible namespace;
@@ -75,15 +75,17 @@ For every launch:
   manifest, timestamps, exit status, usage, and served model identity.
 
 Freeze exact CLI versions, model identifiers, reasoning settings, allowed tools, proxy allowlist,
-container digest, task prompt, and task-pack hashes. Run a non-scored isolation preflight proving
+environment-snapshot digest, task prompt, and task-pack hashes. Run a non-scored isolation preflight proving
 that inference succeeds while arbitrary HTTP requests and reads of a hidden canary path fail.
 
 ### Served-model rule
 
-Attribute output only to the model that actually served it. For Claude Code, capture per-turn
-`usage.iterations`, the served model, and `model_refusal_fallback` from the event stream. A Fable 5
-refusal is an agent-system completion failure even if Claude Code automatically obtains an answer
-from Opus 4.8:
+Attribute output only to the model that actually served it. For Claude Code, capture the assistant
+message model, fallback system events, and final usage object from the event stream. The current CLI
+emits `usage.iterations: []` for both the genuine-Fable smoke and a preserved Opus fallback, so that
+field is retained but cannot be the identity oracle. Per-assistant model identity and explicit
+fallback events therefore fail closed. A Fable 5 refusal is an agent-system completion failure even
+if Claude Code automatically obtains an answer from Opus 4.8:
 
 - preserve the refusal and fallback transcript;
 - never attribute fallback text or numbers to Fable 5;
@@ -147,8 +149,10 @@ The evaluator is human-owned and frozen before scoring. It reports:
 
 1. **Contract and completion:** required metrics present, units valid, artifacts executable or
    inspectable, and failures retained.
-2. **Point accuracy:** absolute log error `abs(log(prediction / observation))` for positive
-   quantities, with signed relative error shown for interpretation.
+2. **Point accuracy:** absolute log error `abs(log(prediction / observation))` for ratio-scale
+   positive quantities, with signed relative error shown for interpretation. Absolute plate
+   temperatures use signed and absolute error in degrees Celsius; ratios of Celsius temperatures
+   are meaningless because the zero is arbitrary.
 3. **Uncertainty calibration:** weighted interval score from P10/P50/P90.
 4. **Counts and zero events:** an interval-aware count score and `log10(count + 1)` error; never a
    relative error with a zero denominator.
@@ -166,7 +170,9 @@ fraction: its matte/reflective gauges required recalibration and the reported fa
 not a radiation-versus-convection percentage. A model may estimate a fraction in its note, but that
 number is not a registered metric. The supplied-duty ablation's duty value is an input and is excluded
 from prediction-quality scoring. TRISO Kr-85 and Cs-137 are assessed on a log scale; Sr and Ag are
-not scored. Release predictions must be strictly greater than zero and at most one. A model that
+not scored. Their point errors and weighted interval scores are computed after the natural-log
+transform, so multiplicative miss and calibration have the same geometry. Release predictions must
+be strictly greater than zero and at most one. A model that
 would otherwise report exact zero must state a positive numerical or detection floor and use it in
 all four numeric fields; exact zero is schema-noncompliant because logarithmic error is undefined.
 
@@ -241,9 +247,9 @@ After all preflight tests pass and before the first scored run:
 3. compute SHA-256 for every pack file, the task prompt, evaluator files, CLI binaries/version
    output, proxy policy, and run-image digest;
 4. write the sorted manifest without timestamps in hash-covered content;
-5. commit and tag `benchmark-2026-07-11-v1`;
+5. commit and tag `benchmark-2026-07-11-v2`;
 6. record the commit, tag, manifest hash, schedule, and preflight artifacts in the run ledger.
 
-Any scientific, scoring, prompt, or runner-policy change after the tag requires `v2` and a complete
+Any scientific, scoring, prompt, or runner-policy change after the tag requires a new protocol version and a complete
 rerun of affected cells. Editorial changes that do not affect evidence may be made later and must be
 identified separately.

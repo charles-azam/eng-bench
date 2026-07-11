@@ -4,6 +4,11 @@ import argparse
 from pathlib import Path
 from typing import Sequence
 
+from eng_bench.integrity import (
+    evaluator_manifest_sha256,
+    render_evaluator_manifest,
+    validate_evaluator_manifest,
+)
 from eng_bench.io import load_jsonl, write_json, write_jsonl
 from eng_bench.models import FrozenLedger, Measurement, Prediction, RunManifest
 from eng_bench.scoring import evaluate
@@ -24,6 +29,16 @@ def build_parser() -> argparse.ArgumentParser:
     evaluate_parser.add_argument("--predictions", type=Path, required=True)
     evaluate_parser.add_argument("--measurements", type=Path, required=True)
     evaluate_parser.add_argument("--ledger", type=Path, required=True)
+    evaluate_parser.add_argument(
+        "--evaluator-manifest",
+        type=Path,
+        default=Path("protocol/evaluator_manifest.sha256"),
+    )
+    evaluate_parser.add_argument(
+        "--evaluator-root",
+        type=Path,
+        default=Path("."),
+    )
     evaluate_parser.add_argument("--artifact-root", type=Path, required=True)
     evaluate_parser.add_argument("--output-dir", type=Path, required=True)
     normalize_parser = subparsers.add_parser(
@@ -33,6 +48,16 @@ def build_parser() -> argparse.ArgumentParser:
     normalize_parser.add_argument("--run-id", required=True)
     normalize_parser.add_argument("--task-output", type=Path, required=True)
     normalize_parser.add_argument("--output", type=Path, required=True)
+    freeze_parser = subparsers.add_parser(
+        "freeze-evaluator",
+        help="write the deterministic evaluator source manifest",
+    )
+    freeze_parser.add_argument("--root", type=Path, default=Path("."))
+    freeze_parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("protocol/evaluator_manifest.sha256"),
+    )
     return parser
 
 
@@ -42,6 +67,11 @@ def run_evaluate(*, arguments: argparse.Namespace) -> int:
     measurements = load_jsonl(path=arguments.measurements, model_type=Measurement)
     ledger = FrozenLedger.model_validate_json(
         arguments.ledger.read_text(encoding="utf-8")
+    )
+    validate_evaluator_manifest(
+        root=arguments.evaluator_root,
+        manifest_path=arguments.evaluator_manifest,
+        expected_manifest_sha256=ledger.evaluator_manifest_sha256,
     )
     result = evaluate(
         manifests=manifests,
@@ -68,6 +98,14 @@ def run_normalize(*, arguments: argparse.Namespace) -> int:
     return 0
 
 
+def run_freeze_evaluator(*, arguments: argparse.Namespace) -> int:
+    manifest_text = render_evaluator_manifest(root=arguments.root)
+    arguments.output.parent.mkdir(parents=True, exist_ok=True)
+    arguments.output.write_text(manifest_text, encoding="utf-8")
+    print(evaluator_manifest_sha256(manifest_path=arguments.output))
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     arguments = parser.parse_args(argv)
@@ -75,5 +113,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return run_evaluate(arguments=arguments)
     if arguments.command == "normalize":
         return run_normalize(arguments=arguments)
+    if arguments.command == "freeze-evaluator":
+        return run_freeze_evaluator(arguments=arguments)
     parser.error(f"unsupported command: {arguments.command}")
     return 2

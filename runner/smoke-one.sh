@@ -17,6 +17,11 @@ done
 [[ "${kind}" == ready || "${kind}" == engineering ]] || exit 64
 
 root=/root/bench-v2
+if [[ "${system}" == codex ]]; then
+  allowlist="${root}/runner/allowlist-codex.txt"
+else
+  allowlist="${root}/runner/allowlist-claude.txt"
+fi
 probe="${root}/preflight/${name}-${system}"
 [[ ! -e "${probe}" ]] || { echo "probe already exists: ${probe}" >&2; exit 73; }
 install -d -m 700 "${probe}/workspace" "${probe}/runtime"
@@ -28,7 +33,7 @@ fi
 
 python3 "${root}/runner/connect_proxy.py" \
   --socket "${probe}/runtime/proxy.sock" \
-  --allowlist "${root}/runner/allowlist.txt" \
+  --allowlist "${allowlist}" \
   --log "${probe}/proxy.jsonl" &
 proxy_pid=$!
 cleanup() {
@@ -45,6 +50,7 @@ done
 set +e
 timeout --signal=TERM --kill-after=10 180 \
   "${root}/runner/isolate.sh" \
+  --system "${system}" \
   --workspace "${probe}/workspace" \
   --runtime "${probe}/runtime" \
   -- /runner/smoke-invoke.sh --system "${system}" \

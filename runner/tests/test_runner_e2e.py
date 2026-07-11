@@ -1,11 +1,17 @@
 from __future__ import annotations
 
+import hashlib
 import json
+import os
 import subprocess
 import sys
 import tempfile
 import time
 from pathlib import Path
+
+import pytest
+
+from environment_manifest import verify_runner_manifest
 
 
 ROOT = Path("/root/bench-v2")
@@ -49,59 +55,76 @@ def classify(*, system: str, events: Path, exit_code: int) -> dict[str, object]:
 
 
 def test_real_sandbox_hides_measurements_and_denies_arbitrary_network() -> None:
-    with tempfile.TemporaryDirectory(prefix="pytest-isolation-", dir=PREFLIGHT) as temporary:
-        probe = Path(temporary)
-        workspace = probe / "workspace"
-        runtime = probe / "runtime"
-        workspace.mkdir(mode=0o700)
-        runtime.mkdir(mode=0o700)
-        proxy_socket = runtime / "proxy.sock"
-        proxy = subprocess.Popen(
-            args=[
-                "python3",
-                str(RUNNER / "connect_proxy.py"),
-                "--socket",
-                str(proxy_socket),
-                "--allowlist",
-                str(RUNNER / "allowlist.txt"),
-                "--log",
-                str(probe / "proxy.jsonl"),
-            ],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-        try:
-            wait_for_socket(path=proxy_socket, timeout_seconds=5.0)
-            result = run_command(
-                arguments=[
-                    str(RUNNER / "isolate.sh"),
-                    "--workspace",
-                    str(workspace),
-                    "--runtime",
-                    str(runtime),
-                    "--",
-                    "/runner/isolation-probe.sh",
-                ]
+    for system in ("codex", "claude"):
+        with tempfile.TemporaryDirectory(
+            prefix=f"pytest-isolation-{system}-", dir=PREFLIGHT
+        ) as temporary:
+            probe = Path(temporary)
+            workspace = probe / "workspace"
+            runtime = probe / "runtime"
+            workspace.mkdir(mode=0o700)
+            runtime.mkdir(mode=0o700)
+            proxy_socket = runtime / "proxy.sock"
+            proxy = subprocess.Popen(
+                args=[
+                    "python3",
+                    str(RUNNER / "connect_proxy.py"),
+                    "--socket",
+                    str(proxy_socket),
+                    "--allowlist",
+                    str(RUNNER / f"allowlist-{system}.txt"),
+                    "--log",
+                    str(probe / "proxy.jsonl"),
+                ],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                text=True,
             )
-            assert result.returncode == 0, result.stderr
-            assert "filesystem-hidden=true" in result.stdout
-            assert "arbitrary-proxy-blocked=true" in result.stdout
-            assert "direct-network-blocked=true" in result.stdout
-        finally:
-            proxy.terminate()
-            proxy.wait(timeout=5.0)
+            try:
+                wait_for_socket(path=proxy_socket, timeout_seconds=5.0)
+                environment = dict(os.environ)
+                environment["BENCH_HOST_SENTINEL"] = "must-not-cross"
+                result = subprocess.run(
+                    args=[
+                        str(RUNNER / "isolate.sh"),
+                        "--system",
+                        system,
+                        "--workspace",
+                        str(workspace),
+                        "--runtime",
+                        str(runtime),
+                        "--",
+                        "/runner/isolation-probe.sh",
+                        "--system",
+                        system,
+                    ],
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                    env=environment,
+                )
+                assert result.returncode == 0, result.stderr
+                assert "host-environment-cleared=true" in result.stdout
+                assert "filesystem-hidden=true" in result.stdout
+                assert "selected-credential-mounted=true" in result.stdout
+                assert "other-credential-empty=true" in result.stdout
+                assert "opposite-provider-blocked=true" in result.stdout
+                assert "arbitrary-proxy-blocked=true" in result.stdout
+                assert "direct-network-blocked=true" in result.stdout
+            finally:
+                proxy.terminate()
+                proxy.wait(timeout=5.0)
 
 
 def test_actual_event_streams_distinguish_result_refusal_and_fallback() -> None:
     codex = classify(
         system="codex",
-        events=PREFLIGHT / "isolated-ready-v1-codex" / "events.jsonl",
+        events=PREFLIGHT / "isolated-ready-v2-codex" / "events.jsonl",
         exit_code=0,
     )
     fable = classify(
         system="claude",
-        events=PREFLIGHT / "isolated-heat-flow-v1-claude" / "events.jsonl",
+        events=PREFLIGHT / "isolated-heat-flow-v2-claude" / "events.jsonl",
         exit_code=0,
     )
     refusal = classify(
@@ -122,6 +145,25 @@ def test_actual_event_streams_distinguish_result_refusal_and_fallback() -> None:
     assert fable["classification"] == "complete"
     assert refusal["classification"] == "model_refusal"
     assert contamination["classification"] == "model_contamination"
+
+    with tempfile.TemporaryDirectory(
+        prefix="pytest-model-id-", dir=PREFLIGHT
+    ) as temporary:
+        near_miss = Path(temporary) / "events.jsonl"
+        for model_id in ("proxy-claude-fable-5", "claude-fable-5-20260711"):
+            near_miss.write_text(
+                json.dumps(
+                    {
+                        "type": "assistant",
+                        "message": {"model": model_id},
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            assert classify(
+                system="claude", events=near_miss, exit_code=0
+            )["classification"] == "model_contamination"
 
 
 def test_prediction_contract_is_validated_and_run_scoped() -> None:
@@ -327,3 +369,139 @@ def test_protocol_verifier_rejects_unlisted_files() -> None:
         )
         assert invalid.returncode != 0
         assert "unlisted-measurements.txt" in invalid.stdout
+
+
+def test_runner_verifier_rejects_unlisted_source_files(tmp_path: Path) -> None:
+    runner_root = tmp_path / "runner"
+    runner_root.mkdir()
+    source = runner_root / "tool.py"
+    source.write_text("print('frozen')\n", encoding="utf-8")
+    digest = hashlib.sha256(source.read_bytes()).hexdigest()
+    manifest = tmp_path / "runner.sha256"
+    manifest.write_text(f"{digest}  ./tool.py\n", encoding="utf-8")
+
+    verify_runner_manifest(path=manifest, runner_root=runner_root)
+
+    (runner_root / "unlisted.py").write_text("print('drift')\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="unrecorded"):
+        verify_runner_manifest(path=manifest, runner_root=runner_root)
+
+
+def test_finalizer_writes_a_manifest_for_no_model_infrastructure_failure() -> None:
+    runs_root = ROOT / "runs"
+    with tempfile.TemporaryDirectory(prefix="pytest-finalize-", dir=runs_root) as temporary:
+        run_dir = Path(temporary)
+        workspace = run_dir / "workspace"
+        workspace.mkdir(mode=0o700)
+        run_id = run_dir.name
+        (run_dir / "events.jsonl").write_text(
+            '{"type":"error","message":"isolation process failed"}\n',
+            encoding="utf-8",
+        )
+        (run_dir / "stderr.log").write_text("isolation process failed\n", encoding="utf-8")
+        (run_dir / "status.json").write_text(
+            json.dumps(
+                {
+                    "classification": "infrastructure_failure",
+                    "detail": "synthetic runner failure",
+                    "exit_code": 70,
+                }
+            ),
+            encoding="utf-8",
+        )
+        (run_dir / "metadata.json").write_text(
+            json.dumps(
+                {
+                    "run_id": run_id,
+                    "system": "codex",
+                    "requested_model": "gpt-5.6-sol",
+                    "cli_version": "codex-cli 0.144.1",
+                    "effort": "max",
+                    "task": "nstf_blind_derive_duty",
+                    "attempt": 1,
+                    "start_time": "2026-07-11T21:00:00Z",
+                    "end_time": "2026-07-11T21:00:01Z",
+                    "prompt_sha256": "a" * 64,
+                }
+            ),
+            encoding="utf-8",
+        )
+        (run_dir / "input.sha256").write_text("", encoding="utf-8")
+
+        finalized = run_command(
+            arguments=[
+                str(RUNNER / "finalize-run.sh"),
+                "--run-dir",
+                str(run_dir),
+            ]
+        )
+        assert finalized.returncode == 0, finalized.stderr
+        manifest = json.loads((run_dir / "manifest.jsonl").read_text(encoding="utf-8"))
+        assert manifest["run_id"] == run_id
+        assert manifest["status"] == "runner_failure"
+        assert manifest["served_models"] == []
+        status = json.loads((run_dir / "status.json").read_text(encoding="utf-8"))
+        assert status["canonical_status"] == "runner_failure"
+        assert status["prediction_normalization"] == "not_attempted"
+        assert status["served_models"] == []
+
+
+def test_finalizer_writes_a_manifest_for_malformed_claude_trace() -> None:
+    runs_root = ROOT / "runs"
+    with tempfile.TemporaryDirectory(prefix="pytest-finalize-", dir=runs_root) as temporary:
+        run_dir = Path(temporary)
+        workspace = run_dir / "workspace"
+        workspace.mkdir(mode=0o700)
+        run_id = run_dir.name
+        (run_dir / "events.jsonl").write_text(
+            '{"type":"assistant","message":', encoding="utf-8"
+        )
+        (run_dir / "stderr.log").write_text(
+            "event stream ended mid-record\n", encoding="utf-8"
+        )
+        (run_dir / "status.json").write_text(
+            json.dumps(
+                {
+                    "classification": "infrastructure_failure",
+                    "detail": "malformed Claude JSONL",
+                    "exit_code": 70,
+                }
+            ),
+            encoding="utf-8",
+        )
+        (run_dir / "metadata.json").write_text(
+            json.dumps(
+                {
+                    "run_id": run_id,
+                    "system": "claude",
+                    "requested_model": "claude-fable-5",
+                    "cli_version": "claude-code synthetic",
+                    "effort": "max",
+                    "task": "nstf_blind_derive_duty",
+                    "attempt": 1,
+                    "start_time": "2026-07-11T21:00:00Z",
+                    "end_time": "2026-07-11T21:00:01Z",
+                    "prompt_sha256": "b" * 64,
+                }
+            ),
+            encoding="utf-8",
+        )
+        (run_dir / "input.sha256").write_text("", encoding="utf-8")
+
+        finalized = run_command(
+            arguments=[
+                str(RUNNER / "finalize-run.sh"),
+                "--run-dir",
+                str(run_dir),
+            ]
+        )
+        assert finalized.returncode == 0, finalized.stderr
+
+        manifest = json.loads(
+            (run_dir / "manifest.jsonl").read_text(encoding="utf-8")
+        )
+        status = json.loads((run_dir / "status.json").read_text(encoding="utf-8"))
+        assert manifest["status"] == "runner_failure"
+        assert manifest["served_models"] == []
+        assert status["canonical_status"] == "runner_failure"
+        assert status["served_models"] == []
