@@ -1,5 +1,13 @@
 # eng-bench
 
+> **Status — July 2026.** This benchmark produced **no published model comparison.** A line-by-line
+> source audit invalidated the original headline (see "What changed after auditing the benchmark"),
+> and four successive rebuilds each failed for an independent infrastructure reason — the last when
+> an operator-side host change during a live retry exhausted the allowed attempts and the
+> preregistered eligibility gate refused to score a partial result. The corrected task packs,
+> evaluator, protocol, and every failure record are preserved here for reference; the effort is
+> archived rather than actively continued.
+
 Can a native coding agent make useful engineering predictions from a bounded evidence pack, before
 it sees the experimental outcome?
 
