@@ -81,6 +81,30 @@ class RunStatusRow(StrictPublicationModel):
     wall_time_seconds: Annotated[float, Field(ge=0.0)]
 
 
+class CampaignRunStatusRow(StrictPublicationModel):
+    selected_dataset: DatasetName
+    run_id: NonEmptyString
+    benchmark_version: NonEmptyString
+    stage: NonEmptyString
+    task_variant: NonEmptyString
+    system: SystemName
+    scheduled_replicate: PositiveInteger
+    physical_attempt: PositiveInteger
+    is_retry: bool
+    is_final_attempt_for_scheduled_replicate: bool
+    requested_model: NonEmptyString
+    served_models: list[NonEmptyString]
+    status: RunStatus
+    infrastructure_valid: bool
+    started_at: datetime
+    ended_at: datetime
+    wall_time_seconds: Annotated[float, Field(ge=0.0)]
+    included_n3: bool
+    included_n5: bool
+    included_ablation: bool
+    included_selected_dataset: bool
+
+
 class StatusCounts(StrictPublicationModel):
     completed: NonNegativeInteger
     agent_failure: NonNegativeInteger
@@ -300,6 +324,9 @@ class HashRecord(StrictPublicationModel):
 
 class PublicationBundleCounts(StrictPublicationModel):
     raw_physical_attempts: PositiveInteger
+    campaign_attempt_rows: PositiveInteger
+    campaign_run_status_rows: PositiveInteger
+    campaign_eligibility_datasets: PositiveInteger
     selected_physical_attempts: PositiveInteger
     selected_scheduled_replicates: PositiveInteger
     selected_predictions: NonNegativeInteger

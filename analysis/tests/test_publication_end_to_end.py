@@ -231,6 +231,70 @@ def prepare_fixture(*, root: Path) -> FixturePaths:
     )
 
 
+def add_ineligible_n5_extension(*, fixture: FixturePaths) -> str:
+    ledger = FrozenLedger.model_validate_json(fixture.ledger.read_bytes())
+    extension_rows = write_stage_schedule(
+        schedules_root=fixture.schedules,
+        stage="core-extend-n5",
+        include_vps_sidecar=True,
+    )
+    failed_identity = extension_rows[0]
+    failed_final_run_id = ""
+    for sequence, (task, system, replicate, stage) in enumerate(
+        extension_rows, start=1
+    ):
+        started_at = BASE_TIME + timedelta(hours=1, minutes=sequence)
+        is_failed_replicate = (task, system, replicate, stage) == failed_identity
+        write_synthetic_run(
+            runs_root=fixture.raw,
+            ledger=ledger,
+            stage=stage,
+            task=task,
+            system=system,
+            replicate=replicate,
+            attempt=1,
+            status=(
+                RunStatus.PROVIDER_FAILURE
+                if is_failed_replicate
+                else RunStatus.COMPLETED
+            ),
+            start_time_override=iso_z(value=started_at),
+            end_time_override=iso_z(value=started_at + timedelta(seconds=20)),
+        )
+        if is_failed_replicate:
+            retry_directory = write_synthetic_run(
+                runs_root=fixture.raw,
+                ledger=ledger,
+                stage=stage,
+                task=task,
+                system=system,
+                replicate=replicate,
+                attempt=2,
+                status=RunStatus.PROVIDER_FAILURE,
+                start_time_override=iso_z(
+                    value=started_at + timedelta(seconds=21)
+                ),
+                end_time_override=iso_z(
+                    value=started_at + timedelta(seconds=40)
+                ),
+            )
+            failed_final_run_id = retry_directory.name
+
+    replace_completed_predictions(runs_root=fixture.raw)
+    report = harvest(
+        runs_root=fixture.raw,
+        matrix_path=fixture.matrix,
+        ledger_path=fixture.ledger,
+        output_directory=fixture.harvest,
+        schedules_root=fixture.schedules,
+    )
+    eligibility_by_dataset = {item.dataset: item for item in report.datasets}
+    assert eligibility_by_dataset[DatasetName.N3].eligible
+    assert not eligibility_by_dataset[DatasetName.N5].eligible
+    assert failed_final_run_id
+    return failed_final_run_id
+
+
 def generate(
     *,
     fixture: FixturePaths,
@@ -283,6 +347,9 @@ def test_full_n3_publication_is_deterministic_bound_and_replicate_complete(
     generate(fixture=relocated_fixture, output=second)
     assert output_snapshot(root=first) == output_snapshot(root=second)
     assert set(output_snapshot(root=first)) == {
+        "campaign_attempts.csv",
+        "campaign_eligibility.json",
+        "campaign_run_status.csv",
         "cell_status.csv",
         "chart_data.json",
         "claims.json",
@@ -295,6 +362,13 @@ def test_full_n3_publication_is_deterministic_bound_and_replicate_complete(
 
     run_rows = read_csv(path=first / "run_status.csv")
     assert len(run_rows) == 13
+    campaign_attempt_rows = read_csv(path=first / "campaign_attempts.csv")
+    campaign_run_rows = read_csv(path=first / "campaign_run_status.csv")
+    assert len(campaign_attempt_rows) == len(campaign_run_rows) == 13
+    assert all(row["included_selected_dataset"] == "true" for row in campaign_run_rows)
+    assert [row["started_at"] for row in campaign_run_rows] == sorted(
+        row["started_at"] for row in campaign_run_rows
+    )
     retry_rows = [
         row
         for row in run_rows
@@ -354,6 +428,9 @@ def test_full_n3_publication_is_deterministic_bound_and_replicate_complete(
     provenance = json.loads(
         (first / "provenance.json").read_text(encoding="utf-8")
     )
+    assert provenance["counts"]["campaign_attempt_rows"] == 13
+    assert provenance["counts"]["campaign_run_status_rows"] == 13
+    assert provenance["counts"]["campaign_eligibility_datasets"] == 3
     assert provenance["dataset_gate"] == {
         "actual_cells": 4,
         "actual_scheduled_replicates": 12,
@@ -402,6 +479,112 @@ def test_full_n3_publication_is_deterministic_bound_and_replicate_complete(
         assert record["sha256"] == sha256_bytes(
             value=(first / record["path"]).read_bytes()
         )
+    output_hashes = {
+        record["path"]: record for record in hash_manifest["output_hashes"]
+    }
+    assert output_hashes["campaign_attempts.csv"]["record_count"] == 13
+    assert output_hashes["campaign_run_status.csv"]["record_count"] == 13
+    assert output_hashes["campaign_eligibility.json"]["record_count"] == 3
+
+
+def test_campaign_outputs_preserve_ineligible_n5_attempts_outside_selected_n3(
+    tmp_path: Path,
+) -> None:
+    fixture = prepare_fixture(root=tmp_path / "fixture-with-extension")
+    failed_final_run_id = add_ineligible_n5_extension(fixture=fixture)
+    output = tmp_path / "publication-with-extension"
+    generate(fixture=fixture, output=output)
+
+    selected_rows = read_csv(path=output / "run_status.csv")
+    campaign_attempt_rows = read_csv(path=output / "campaign_attempts.csv")
+    campaign_run_rows = read_csv(path=output / "campaign_run_status.csv")
+    assert len(selected_rows) == 13
+    assert len(campaign_attempt_rows) == len(campaign_run_rows) == 22
+    assert {row["stage"] for row in selected_rows} == {"core-n3"}
+    assert {row["stage"] for row in campaign_run_rows} == {
+        "core-n3",
+        "core-extend-n5",
+    }
+    assert [row["started_at"] for row in campaign_run_rows] == sorted(
+        row["started_at"] for row in campaign_run_rows
+    )
+
+    core_rows = [
+        row for row in campaign_run_rows if row["stage"] == "core-n3"
+    ]
+    extension_rows = [
+        row
+        for row in campaign_run_rows
+        if row["stage"] == "core-extend-n5"
+    ]
+    assert len(core_rows) == 13
+    assert len(extension_rows) == 9
+    assert all(row["included_n3"] == "true" for row in core_rows)
+    assert all(row["included_selected_dataset"] == "true" for row in core_rows)
+    assert all(row["included_n3"] == "false" for row in extension_rows)
+    assert all(row["included_n5"] == "false" for row in extension_rows)
+    assert all(row["included_ablation"] == "false" for row in extension_rows)
+    assert all(
+        row["included_selected_dataset"] == "false" for row in extension_rows
+    )
+    failed_retry = next(
+        row for row in campaign_run_rows if row["run_id"] == failed_final_run_id
+    )
+    assert failed_retry["physical_attempt"] == "2"
+    assert failed_retry["is_retry"] == "true"
+    assert failed_retry["is_final_attempt_for_scheduled_replicate"] == "true"
+    assert failed_retry["status"] == "provider_failure"
+    assert failed_retry["served_models"] == "[]"
+    assert failed_retry["requested_model"]
+
+    assert (output / "campaign_attempts.csv").read_bytes() == (
+        fixture.harvest / "attempts.csv"
+    ).read_bytes()
+    assert (output / "campaign_eligibility.json").read_bytes() == (
+        fixture.harvest / "eligibility.json"
+    ).read_bytes()
+    eligibility = json.loads(
+        (output / "campaign_eligibility.json").read_text(encoding="utf-8")
+    )
+    eligibility_by_dataset = {
+        item["dataset"]: item for item in eligibility["datasets"]
+    }
+    assert eligibility_by_dataset["n3"]["eligible"] is True
+    assert eligibility_by_dataset["n5"]["eligible"] is False
+    assert eligibility_by_dataset["n5"]["reasons"]
+
+    claims = json.loads((output / "claims.json").read_text(encoding="utf-8"))
+    assert claims["dataset"] == "n3"
+    assert claims["physical_attempts"] == 13
+    provenance = json.loads(
+        (output / "provenance.json").read_text(encoding="utf-8")
+    )
+    assert provenance["counts"]["raw_physical_attempts"] == 22
+    assert provenance["counts"]["campaign_attempt_rows"] == 22
+    assert provenance["counts"]["campaign_run_status_rows"] == 22
+    assert provenance["counts"]["campaign_eligibility_datasets"] == 3
+    assert provenance["counts"]["selected_physical_attempts"] == 13
+    data_hashes = {
+        item["path"]: item for item in provenance["data_output_hashes"]
+    }
+    assert data_hashes["campaign_attempts.csv"]["record_count"] == 22
+    assert data_hashes["campaign_run_status.csv"]["record_count"] == 22
+    assert data_hashes["campaign_eligibility.json"]["record_count"] == 3
+
+    tampered = prepare_fixture(root=tmp_path / "tampered-campaign-source")
+    add_ineligible_n5_extension(fixture=tampered)
+    attempts_path = tampered.harvest / "attempts.csv"
+    attempts_contents = attempts_path.read_text(encoding="utf-8")
+    changed_contents = attempts_contents.replace(
+        ",true,false,false\n",
+        ",true,true,false\n",
+        1,
+    )
+    assert changed_contents != attempts_contents
+    attempts_path.write_text(changed_contents, encoding="utf-8")
+    with pytest.raises(ValueError, match="attempts CSV does not exactly match"):
+        generate(fixture=tampered, output=tmp_path / "tampered-campaign-output")
+    assert not (tmp_path / "tampered-campaign-output").exists()
 
 
 def recompute_summary_from_scores(

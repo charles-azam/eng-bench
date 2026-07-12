@@ -34,6 +34,7 @@ from analysis.models import (
 )
 from analysis.publication_models import (
     AttemptRecord,
+    CampaignRunStatusRow,
     CellClaim,
     CellStatusRow,
     ChartData,
@@ -679,6 +680,75 @@ def build_run_status_rows(
         )
         for attempt in selected_attempts
     )
+
+
+def build_campaign_run_status_rows(
+    *,
+    selected_dataset: DatasetName,
+    attempts: tuple[AttemptRecord, ...],
+    raw_attempts: tuple[HarvestedAttempt, ...],
+) -> tuple[CampaignRunStatusRow, ...]:
+    attempt_by_run = index_unique(
+        values=attempts,
+        key=lambda item: item.run_id,
+        label="campaign attempt run_id",
+    )
+    raw_by_run = index_unique(
+        values=raw_attempts,
+        key=lambda item: item.metadata.run_id,
+        label="raw campaign attempt run_id",
+    )
+    if set(attempt_by_run) != set(raw_by_run):
+        raise ValueError(
+            "campaign attempts and verified raw attempts have different run IDs: "
+            f"attempt_only={sorted(set(attempt_by_run) - set(raw_by_run))!r}, "
+            f"raw_only={sorted(set(raw_by_run) - set(attempt_by_run))!r}"
+        )
+
+    ordered_raw_attempts = sorted(
+        raw_attempts,
+        key=lambda item: (
+            item.metadata.start_time,
+            item.metadata.end_time,
+            item.metadata.run_id,
+        ),
+    )
+    rows: list[CampaignRunStatusRow] = []
+    for raw_attempt in ordered_raw_attempts:
+        attempt = attempt_by_run[raw_attempt.metadata.run_id]
+        manifest = raw_attempt.manifest
+        rows.append(
+            CampaignRunStatusRow(
+                selected_dataset=selected_dataset,
+                run_id=attempt.run_id,
+                benchmark_version=manifest.benchmark_version,
+                stage=attempt.stage,
+                task_variant=attempt.task_variant,
+                system=attempt.system,
+                scheduled_replicate=attempt.scheduled_replicate,
+                physical_attempt=attempt.physical_attempt,
+                is_retry=attempt.is_retry,
+                is_final_attempt_for_scheduled_replicate=(
+                    attempt.is_final_attempt_for_scheduled_replicate
+                ),
+                requested_model=manifest.requested_model,
+                served_models=manifest.served_models,
+                status=attempt.status,
+                infrastructure_valid=attempt.infrastructure_valid,
+                started_at=manifest.started_at,
+                ended_at=manifest.ended_at,
+                wall_time_seconds=(
+                    manifest.ended_at - manifest.started_at
+                ).total_seconds(),
+                included_n3=attempt.included_n3,
+                included_n5=attempt.included_n5,
+                included_ablation=attempt.included_ablation,
+                included_selected_dataset=attempt.included_in(
+                    dataset=selected_dataset
+                ),
+            )
+        )
+    return tuple(rows)
 
 
 def group_attempts_by_cell(
@@ -1483,6 +1553,11 @@ def generate_publication_tables(
         selected_attempts=selected_attempts,
         manifest_by_run=manifest_by_run,
     )
+    campaign_run_rows = build_campaign_run_status_rows(
+        selected_dataset=dataset,
+        attempts=recomputed_attempt_records,
+        raw_attempts=raw_attempts,
+    )
     cell_rows = build_cell_status_rows(
         dataset=dataset,
         selected_attempts=selected_attempts,
@@ -1590,6 +1665,17 @@ def generate_publication_tables(
     )
 
     data_files: dict[str, bytes] = {}
+    data_files["campaign_attempts.csv"] = render_csv(
+        model_type=AttemptRecord,
+        rows=recomputed_attempt_records,
+    )
+    data_files["campaign_run_status.csv"] = render_csv(
+        model_type=CampaignRunStatusRow,
+        rows=campaign_run_rows,
+    )
+    data_files["campaign_eligibility.json"] = render_model_json(
+        model=recomputed_eligibility
+    )
     data_files["run_status.csv"] = render_csv(
         model_type=RunStatusRow,
         rows=run_rows,
@@ -1608,11 +1694,25 @@ def generate_publication_tables(
     )
     data_files["claims.json"] = render_model_json(model=claims)
     data_files["chart_data.json"] = render_model_json(model=chart_data)
+    data_output_record_counts: dict[str, int] = {
+        "campaign_attempts.csv": len(recomputed_attempt_records),
+        "campaign_run_status.csv": len(campaign_run_rows),
+        "campaign_eligibility.json": len(recomputed_eligibility.datasets),
+        "run_status.csv": len(run_rows),
+        "cell_status.csv": len(cell_rows),
+        "replicate_metrics.csv": len(replicate_rows),
+        "task_metric_summary.csv": len(summary_rows),
+        "claims.json": 1,
+        "chart_data.json": len(chart_data.records),
+    }
+    if set(data_output_record_counts) != set(data_files):
+        raise ValueError("publication data output counts do not cover every data file")
     data_output_hashes = [
         make_hash_record(
             role=f"data_output:{relative_path}",
             path=relative_path,
             contents=contents,
+            record_count=data_output_record_counts[relative_path],
         )
         for relative_path, contents in sorted(data_files.items())
     ]
@@ -1632,6 +1732,9 @@ def generate_publication_tables(
         dataset_gate=gate_provenance,
         counts=PublicationBundleCounts(
             raw_physical_attempts=len(raw_attempts),
+            campaign_attempt_rows=len(recomputed_attempt_records),
+            campaign_run_status_rows=len(campaign_run_rows),
+            campaign_eligibility_datasets=len(recomputed_eligibility.datasets),
             selected_physical_attempts=len(manifests),
             selected_scheduled_replicates=len(chosen_schedule_keys),
             selected_predictions=len(predictions),
@@ -1655,6 +1758,11 @@ def generate_publication_tables(
             role=f"output:{relative_path}",
             path=relative_path,
             contents=contents,
+            record_count=(
+                data_output_record_counts[relative_path]
+                if relative_path in data_output_record_counts
+                else 1
+            ),
         )
         for relative_path, contents in sorted(files_with_provenance.items())
     ]
