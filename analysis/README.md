@@ -101,6 +101,26 @@ requires both the reconstructed Pydantic model and its canonical UTF-8 bytes (in
 newline) to equal the committed file exactly. The JSON report printed to stdout contains hashes of
 the verified attestation and disclosed key, but never prints the key itself.
 
+### Commitments around the blinded review
+
+The final campaign has two additional ordering commitments. After the gate-selected datasets have
+been evaluated, hash the exact `scores.jsonl` and `summary.json` bytes and commit that checksum
+ledger **before** preparing or opening the identity-blind review packets. Do not commit or inspect
+the scores yet. This establishes that automatic scoring was frozen before substantive artifact
+judgments.
+
+After every neutral row in `review.csv` has been completed, hash and commit those exact CSV bytes
+**before** opening the sealed label mapping or running `blind_review finalize`. The finalized public
+bundle must contain a byte-identical `completed-review.csv`, so its public provenance can be checked
+against the earlier pre-unsealing commitment. Preserve LF line endings throughout.
+
+These checksum commits reveal neither automatic scores nor system identities. They establish an
+auditable sequence:
+
+```text
+closed campaign -> frozen evaluator bytes -> blinded judgments -> unsealed mapping -> publication
+```
+
 ## Identity-blind artifact review
 
 After automatic scoring has been frozen, prepare the preregistered qualitative review directly from
