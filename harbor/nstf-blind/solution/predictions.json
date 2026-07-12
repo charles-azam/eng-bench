@@ -1,0 +1,146 @@
+{
+  "schema_version": "1.0",
+  "task_id": "nstf_blind_derive_duty",
+  "predictions": [
+    {
+      "metric_id": "nstf.baseline.thermal_duty_to_loop_kw",
+      "point": 56.12,
+      "p10": 54.4364,
+      "p50": 56.12,
+      "p90": 57.803599999999996,
+      "units": "kW",
+      "confidence": 0.9,
+      "qualitative": null,
+      "category": null,
+      "source_artifact": "output/calculation_note.md"
+    },
+    {
+      "metric_id": "nstf.baseline.mass_flow_kg_s",
+      "point": 0.5743333333333334,
+      "p10": 0.5571033333333334,
+      "p50": 0.5743333333333334,
+      "p90": 0.5915633333333333,
+      "units": "kg/s",
+      "confidence": 0.9,
+      "qualitative": null,
+      "category": null,
+      "source_artifact": "output/calculation_note.md"
+    },
+    {
+      "metric_id": "nstf.baseline.riser_delta_t_c",
+      "point": 84.11,
+      "p10": 81.5867,
+      "p50": 84.11,
+      "p90": 86.6333,
+      "units": "degC",
+      "confidence": 0.9,
+      "qualitative": null,
+      "category": null,
+      "source_artifact": "output/calculation_note.md"
+    },
+    {
+      "metric_id": "nstf.baseline.heated_plate_front_c",
+      "point": 390.66,
+      "p10": 385.66,
+      "p50": 390.66,
+      "p90": 395.66,
+      "units": "degC",
+      "confidence": 0.9,
+      "qualitative": null,
+      "category": null,
+      "source_artifact": "output/calculation_note.md"
+    },
+    {
+      "metric_id": "nstf.baseline.dominant_transfer_mode",
+      "point": null,
+      "p10": null,
+      "p50": null,
+      "p90": null,
+      "units": "category",
+      "confidence": null,
+      "qualitative": null,
+      "category": "radiation_dominant",
+      "source_artifact": "output/calculation_note.md"
+    },
+    {
+      "metric_id": "nstf.accident.thermal_duty_at_84_85h_kw",
+      "point": 54.49,
+      "p10": 52.8553,
+      "p50": 54.49,
+      "p90": 56.124700000000004,
+      "units": "kW",
+      "confidence": 0.9,
+      "qualitative": null,
+      "category": null,
+      "source_artifact": "output/calculation_note.md"
+    },
+    {
+      "metric_id": "nstf.accident.mass_flow_at_84_85h_kg_s",
+      "point": 0.585,
+      "p10": 0.5674499999999999,
+      "p50": 0.585,
+      "p90": 0.60255,
+      "units": "kg/s",
+      "confidence": 0.9,
+      "qualitative": null,
+      "category": null,
+      "source_artifact": "output/calculation_note.md"
+    },
+    {
+      "metric_id": "nstf.accident.riser_delta_t_at_84_85h_c",
+      "point": 90.32,
+      "p10": 87.61039999999998,
+      "p50": 90.32,
+      "p90": 93.0296,
+      "units": "degC",
+      "confidence": 0.9,
+      "qualitative": null,
+      "category": null,
+      "source_artifact": "output/calculation_note.md"
+    },
+    {
+      "metric_id": "nstf.accident.plate_front_at_84_85h_c",
+      "point": 408.72,
+      "p10": 403.72,
+      "p50": 408.72,
+      "p90": 413.72,
+      "units": "degC",
+      "confidence": 0.9,
+      "qualitative": null,
+      "category": null,
+      "source_artifact": "output/calculation_note.md"
+    },
+    {
+      "metric_id": "nstf.accident.response_through_peak",
+      "point": null,
+      "p10": null,
+      "p50": null,
+      "p90": null,
+      "units": "category",
+      "confidence": null,
+      "qualitative": null,
+      "category": "bounded_through_peak",
+      "source_artifact": "output/calculation_note.md"
+    },
+    {
+      "metric_id": "nstf.weather.outdoor_temperature_effect_on_mass_flow",
+      "point": null,
+      "p10": null,
+      "p50": null,
+      "p90": null,
+      "units": "category",
+      "confidence": null,
+      "qualitative": null,
+      "category": "colder_increases",
+      "source_artifact": "output/calculation_note.md"
+    }
+  ],
+  "annex_sufficiency": {
+    "status": "sufficient",
+    "missing_physics": [
+      "oracle reference answer"
+    ],
+    "consequence": "none; this is the wiring-check oracle"
+  },
+  "most_uncertain_assumption": "oracle reference answer built from the held-out records"
+}
