@@ -106,3 +106,16 @@ fails closed. Current Codex JSONL records the requested model and session but do
 equivalent per-message server-model identifier. Results therefore describe GPT-5.6 Sol as requested
 and runner-assumed served, with exact CLI and native-binary hashes, rather than independently
 verified service identity.
+
+---
+
+## Post-freeze restructure addendum (2026-07-12, NSTF-Bench v5)
+
+The repository was restructured into NSTF-Bench after the v4 campaign terminated unscored. The
+NSTF task-pack bytes, `protocol/PROMPT.md`, and the NSTF held-out records above are unchanged.
+The TRISO task and the 28 TRISO held-out records were removed from HEAD (preserved at tag
+`benchmark-2026-07-12-v4`), and the evaluator package was renamed `eng_bench` → `nstf_bench`,
+so the evaluator manifest was regenerated; the current hash lives in
+`protocol/evaluation_ledger.json` (`benchmark_version: 2026-07-nstf-bench-v5`) and is verified
+by `tests/test_protocol_integrity.py`. Nothing in this addendum alters the frozen v4 record
+above.

@@ -1,3 +1,8 @@
+> **Archived (July 2026).** This is the preregistered v4 campaign protocol, kept verbatim as a
+> historical record. The campaign it governed was never scored (see [HISTORY.md](HISTORY.md)).
+> NSTF-Bench supersedes its runner/eligibility machinery with the Harbor tasks in `harbor/`;
+> the scientific bytes (task packs, prompt, held-out records, scorer semantics) are unchanged.
+
 # Preregistered native-agent engineering benchmark
 
 Protocol version: `2026-07-12-v4`

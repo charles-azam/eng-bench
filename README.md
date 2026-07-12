@@ -1,81 +1,38 @@
-# eng-bench
+# NSTF-Bench
 
-> **Status — July 2026.** This benchmark produced **no published model comparison.** A line-by-line
-> source audit invalidated the original headline (see "What changed after auditing the benchmark"),
-> and four successive rebuilds each failed for an independent infrastructure reason — the last when
-> an operator-side host change during a live retry exhausted the allowed attempts and the
-> preregistered eligibility gate refused to score a partial result. The corrected task packs,
-> evaluator, protocol, and every failure record are preserved here for reference; the effort is
-> archived rather than actively continued.
+Can a coding agent do engineering analysis? NSTF-Bench asks one hard question instead of many
+easy ones: given a bounded evidence pack about **Argonne's NSTF** — a half-scale, 26-metre
+passive reactor-cavity cooling facility that a US national lab instrumented and measured for 33
+months — predict what the lab measured, blind, with calibrated uncertainty.
 
-Can a native coding agent make useful engineering predictions from a bounded evidence pack, before
-it sees the experimental outcome?
+The agent receives geometry, materials, instrument locations, and the electrical heater program.
+It does **not** receive the thermal duty (it must derive it from an energy balance), any measured
+outcome, or network access to the facility's publications. It must leave a calculation note and a
+machine-readable `output/predictions.json` — a point estimate plus P10/P50/P90 for every numeric
+target and a committed category for every qualitative one — which a deterministic scorer compares
+against the held-out measurements.
 
-This repository contains the frozen `2026-07-12-v4` protocol for comparing:
+## Quickstart
 
-- Codex with requested model GPT-5.6 Sol;
-- Claude Code with requested model Claude Fable 5; served identity is verified per attempt.
+Prerequisites: Docker, [uv](https://docs.astral.sh/uv/), and [Harbor](https://github.com/laude-institute/harbor)
+(`uv tool install harbor`).
 
-The two primary tasks are deliberately unlike one another. NSTF asks the systems to predict heat
-removal by a half-axial-scale, 19.03°-sector air-cooled natural-circulation loop from electrical heater input. TRISO asks
-them to predict coated-particle failures and fission-product release across five furnace histories,
-while deciding which conclusions the supplied material annex can actually support.
+```bash
+git clone https://github.com/charles-azam/nstf-bench.git
+cd nstf-bench
 
-The comparison is between native agent systems—not bare model APIs. CLI behavior, tool use,
-reasoning effort, isolation, and model fallback are part of the treatment and are disclosed.
+# 1. Wiring check: the oracle replays the held-out answers (expect reward ~1.0)
+harbor run --path harbor/nstf-blind --agent oracle
 
-## Start here
+# 2. A real agent run (requires the provider credential for your agent)
+harbor run --path harbor/nstf-blind --agent claude-code --model claude-opus-4-8 -n 1
+```
 
-- [`PROTOCOL.md`](PROTOCOL.md): preregistered design, failure rules, and scoring dimensions.
-- [`protocol/FREEZE_RECORD.md`](protocol/FREEZE_RECORD.md): immutable hashes and isolation claims.
-- [`tasks/`](tasks): human-readable source packs; only assembled task files are visible to agents.
-- [`measurements/held_out.jsonl`](measurements/held_out.jsonl): outcomes opened only by the evaluator.
-- [`src/eng_bench/`](src/eng_bench): typed deterministic evaluator.
-- [`runner/`](runner): VPS isolation, capture, fallback detection, normalization, and scheduling.
-- [`tests/`](tests): end-to-end evaluator and protocol-integrity tests.
+Each trial directory contains the agent trajectory, the workspace, and the verifier outputs:
+`reward.json` (headline scalar), `summary.json` (the full score vector and audit flags), and
+`scores.jsonl` (per-metric records).
 
-After the runs, raw attempt directories and machine-readable scores are published under `results/`.
-There is intentionally no overall leaderboard scalar: unlike evidence classes and unlike physical
-tasks are kept separate.
-
-## What changed after auditing the benchmark
-
-The earlier repository state is preserved by Git history and the tag `capstone-v1-2026-07-03`; its
-runs are not scores in this version. A line-by-line source audit found defects important enough to
-invalidate a simple model-versus-model headline:
-
-- a TRISO cesium-diffusion equation was transcribed incorrectly;
-- the NSTF pack leaked the thermal-duty values it later claimed to predict;
-- an accident table was described as maxima although it reported a peak-window average;
-- a post-peak cooldown and a numeric radiation fraction were claimed without source support;
-- several TRISO counts, onset times, and Kr-85 releases were treated as independent measurements
-  although the source describes them as one dependent inference chain.
-
-Version 2 corrected those scientific errors, registered evidence classes and dependency groups,
-removed unsupported targets, and added an NSTF supplied-duty ablation so the value of the leaked
-input could be measured rather than hand-waved. Its campaign was nevertheless excluded before
-scoring for two independent runner-integrity failures: Claude's scored command exited before a
-model event because the external sandbox retained effective UID 0 without setting the CLI's
-deliberate-sandbox marker, and locale-dependent ledger ordering disagreed with the frozen bytewise
-task-pack hashes. The complete diagnosis and inspection boundary are preserved in
-[`results/excluded/v2-ineligible-campaign/EXCLUSION.md`](results/excluded/v2-ineligible-campaign/EXCLUSION.md).
-
-Version 3 kept those scientific bytes unchanged and fixed the v2 runner defects. It is nevertheless
-excluded in full because an unattended curl/libcurl update changed the live, bind-mounted host
-environment during a completed scored attempt. The next row then failed closed before model
-invocation. The campaign was preserved without opening predictions or submitted artifacts; the
-timeline and hashes are in
-[`results/excluded/v3-environment-drift/EXCLUSION.md`](results/excluded/v3-environment-drift/EXCLUSION.md).
-
-Version 4 again keeps the corrected task, prompt, held-out measurement, and evaluator bytes
-unchanged. It freezes the patched host with automatic APT transaction units masked, records their
-state in the environment manifest, compares that manifest before and after every inference, creates
-no attempt directory on a failed precondition, and safely resumes only checksum-valid prefixes of
-the original frozen schedule. Every primary cell restarts from replicate 1; no v3 attempt is reused.
-
-## Reproduce the evaluator
-
-Python 3.13 or later, UV, and ripgrep (`rg`) are required.
+To validate the repo itself:
 
 ```bash
 uv sync --dev
@@ -83,43 +40,88 @@ uv run pytest
 bash protocol/validate_task_packs.sh
 ```
 
-To assemble the exact agent-visible protocol tree in a new directory:
+## The two tasks
 
-```bash
-bash protocol/assemble_frozen_packs.sh /tmp/eng-bench-protocol
-cd /tmp/eng-bench-protocol
-sha256sum --check manifest.sha256
+| Task | What the agent gets | What it measures |
+|---|---|---|
+| `harbor/nstf-blind` | Evidence pack **without** the thermal duty | The primary benchmark: derive the duty from a heater/structure energy balance, propagate its uncertainty into flow, temperatures, and transient behavior |
+| `harbor/nstf-supplied-duty` | Same pack **plus** the duty curve | The ablation: quantifies how much of the score the withheld input is worth |
+
+Eleven metrics per task across three tiers: baseline steady state (duty, mass flow, gas
+temperature rise, plate temperature, dominant heat-transfer mode), the accident transient at its
+tested peak window, and weather sensitivity. The full output contract is in each task's
+`TASK.md`; the task bytes are frozen and hash-guarded by `protocol/validate_task_packs.sh`.
+
+## Scoring
+
+Numeric scoring is deterministic Python (`src/nstf_bench/`) — no LLM judge:
+
+- ratio-scale quantities: `|ln(prediction / observation)|`;
+- absolute temperatures: absolute error in °C (a Celsius ratio would depend on an arbitrary zero);
+- P10/P50/P90 bands: the standard `α = 0.2` weighted interval score, so honest-but-sharp bands
+  beat both confident misses and useless "I don't know" spans;
+- categorical calls: exact match against the measured behavior;
+- correlated quantities (duty, flow, ΔT share one energy balance) carry a `dependency_group`
+  label so three faces of one insight are never counted as three wins.
+
+The headline `reward` is the **median per-metric normalized score** in `[0, 1]` (per-metric
+formulas in `src/nstf_bench/harbor_scoring.py`). The rest of the vector — completion, schema
+compliance, artifact validity, categorical pass rate, interval coverage — is reported in
+`summary.json` and is deliberately not folded into one number.
+
+## Contamination, stated plainly
+
+The NSTF reports are public (ANL-ART-47, OSTI 1350591), and this repository publishes the
+held-out records (`measurements/held_out.jsonl`) so anyone can verify the scoring. The benchmark
+is therefore honest-participant plus audit-trail, not secrecy:
+
+- the task environment allows only the agent provider's endpoints and package indexes
+  (`network_mode = "allowlist"`; enforced by Harbor's egress-control sidecar on Linux hosts —
+  on macOS the policy is recorded but not enforced, so score seed runs on Linux);
+- the verifier scans the agent trajectory for web-access patterns and reports a
+  `network_activity_flag` in `summary.json`;
+- transcripts are the ultimate control: publish them with any result you report;
+- memorized answers would show up as suspiciously perfect points with arbitrary bands across
+  eleven correlated quantities — the interval score punishes exactly that signature.
+
+None of this removes knowledge already inside model weights. Treat single-run results as
+anecdotes; report ensembles.
+
+## What changed after auditing the benchmark
+
+This benchmark is the corrected successor of a July 2026 experiment whose first published
+results were retracted by their own source audit: a TRISO material-annex equation had been
+mistranscribed (one prefactor off by ~13 orders of magnitude), the NSTF pack disclosed a
+thermal-duty value close to the quantity agents were asked to infer, a peak-window average had
+been described as a maximum, and several dependent records were treated as independent evidence.
+Four preregistered rebuild campaigns (v1–v4) then each failed for an independent infrastructure
+reason before producing a score. The corrected task packs, evaluator, and every failure record
+are preserved: see [`docs/HISTORY.md`](docs/HISTORY.md),
+[`docs/TRISO_CORRECTIONS.md`](docs/TRISO_CORRECTIONS.md), and the tag
+[`benchmark-2026-07-12-v4`](https://github.com/charles-azam/nstf-bench/tree/benchmark-2026-07-12-v4)
+(excluded-campaign records under `results/excluded/`, the retired TRISO task under `tasks/`).
+NSTF-Bench keeps the audited task bytes unchanged and replaces the frozen-host campaign
+machinery with a community-runnable Harbor harness.
+
+## Repository layout
+
+```
+harbor/nstf-blind/           the primary Harbor task (frozen pack, verifier, oracle)
+harbor/nstf-supplied-duty/   the ablation task
+tasks/                       canonical frozen pack sources (byte-guarded)
+measurements/held_out.jsonl  the scoring records, with evidence classes and provenance
+src/nstf_bench/              deterministic evaluator + score-task CLI
+protocol/                    pack validator, assembly script, frozen prompt, freeze records
+scripts/                     sync_harbor_assets.py, seed_runs.sh
+docs/                        history and correction records
 ```
 
-The evaluator accepts JSONL manifests and predictions produced by the runner:
+Derived copies inside `harbor/` are regenerated by `scripts/sync_harbor_assets.py` and guarded
+by `tests/test_harbor_wiring.py`.
 
-```bash
-uv run eng-bench evaluate \
-  --manifests results/manifests.jsonl \
-  --predictions results/predictions.jsonl \
-  --measurements measurements/held_out.jsonl \
-  --ledger protocol/evaluation_ledger.json \
-  --artifact-root results/raw \
-  --output-dir results/evaluation
-```
+## Seed runs
 
-## Integrity boundary
-
-Each attempt receives a fresh writable copy of one frozen pack; a hash-recorded host copy
-is retained outside the agent namespace. Held-out measurements, old runs, evaluator code, protocol
-files, and host paths are absent. Direct network
-egress is denied; a fail-closed CONNECT proxy permits only the provider endpoint required by the
-selected CLI. Raw JSONL events, stderr, proxy decisions, workspace files, requested/served model
-identity where exposed, toolchain hashes, and timestamps are retained.
-
-Claude events expose the actual assistant model and fallback events. Fable refusals and Opus fallback
-answers are preserved but cannot contribute to Fable quality metrics. Current Codex JSONL does not
-expose an equivalent per-message server-model field, so GPT-5.6 Sol is disclosed as the requested and
-assumed served model, with exact CLI/native hashes.
-
-The frozen environment record is a hash-covered VPS/toolchain snapshot, not an OCI image. It is
-checked before and after each physical attempt, and the final capture is retained in the fixed
-artifact ledger. Native
-agent credentials must be readable by their CLI process and are therefore technically readable by a
-shell child inside the same sandbox; they are never copied into artifacts. This limitation does not
-expose held-out measurements, but it is part of the threat model.
+`scripts/seed_runs.sh` runs the two tasks across the installed agents (`-n 3` each) and collects
+the verifier outputs. Results are reported descriptively — score vectors and transcripts, no
+leaderboard scalar across unlike quantities. Publish the full trial trees with any numbers you
+cite.
