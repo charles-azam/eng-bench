@@ -10,6 +10,10 @@ __pycache__/
 # Excluded partial payload is retained locally/VPS; publish only its checksum ledger and note.
 results/excluded/v1-finalizer-bug/core-n3-nstf_blind_derive_duty-codex-r01-a01/
 
+# Complete v2 payload is preserved privately until the replacement campaign no longer depends on
+# blindness. Publish only its checksum ledger and exclusion note before then.
+results/excluded/v2-ineligible-campaign/raw/
+
 # internal — kept locally, never published
 handoff/
 archive/
