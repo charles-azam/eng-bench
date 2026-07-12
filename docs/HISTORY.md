@@ -16,7 +16,7 @@ important enough to invalidate the headline claims:
 
 - a caesium-in-SiC diffusion equation (IAEA-TECDOC-1674 Eq. 10.9) had been transcribed with
   three errors, one prefactor off by ~13 orders of magnitude — net diffusivity ~5.6× too low at
-  the report's 1600 °C checksum ([TRISO_CORRECTIONS.md](TRISO_CORRECTIONS.md));
+  the report's 1600 °C checksum ([TRISO_CORRECTIONS.md at the v4 tag](https://github.com/charles-azam/nstf-bench/blob/benchmark-2026-07-12-v4/protocol/TRISO_CORRECTIONS.md));
 - the NSTF pack disclosed a design duty mapping (56.07 kWt) close to the held-out quantity
   agents were asked to infer (54.49 kWt at the tested endpoint), undercutting the blind-prediction
   framing;
@@ -56,7 +56,7 @@ valuable part all along.
 
 ## What NSTF-Bench keeps, changes, and drops
 
-**Keeps (byte-identical):** the corrected NSTF task packs (`tasks/`), the frozen agent prompt
+**Keeps (byte-identical):** the corrected NSTF task packs (`inputs/`), the frozen agent prompt
 (`protocol/PROMPT.md`), the NSTF held-out records, and the deterministic evaluator semantics.
 
 **Changes:** the harness is now [Harbor](https://github.com/laude-institute/harbor) — anyone can

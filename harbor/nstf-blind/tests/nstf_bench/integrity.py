@@ -8,7 +8,7 @@ from nstf_bench.models import Sha256
 
 
 EVALUATOR_ROOT_FILES: tuple[str, ...] = (
-    "measurements/held_out.jsonl",
+    "expected_output/held_out.jsonl",
     "pyproject.toml",
     "uv.lock",
 )

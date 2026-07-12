@@ -8,7 +8,7 @@ import pytest
 from nstf_bench.harbor_scoring import score_task
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-MEASUREMENTS = REPO_ROOT / "measurements/held_out.jsonl"
+MEASUREMENTS = REPO_ROOT / "expected_output/held_out.jsonl"
 ORACLE = REPO_ROOT / "harbor/nstf-blind/solution/predictions.json"
 VARIANT = "nstf_blind_derive_duty"
 

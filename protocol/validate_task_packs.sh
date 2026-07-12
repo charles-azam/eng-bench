@@ -2,20 +2,14 @@
 
 set -euo pipefail
 
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [[ -d "${script_dir}/tasks/nstf_blind_derive_duty" ]]; then
-  repo_root="${script_dir}"
-  nstf_blind_input_root="tasks/nstf_blind_derive_duty/inputs"
-else
-  repo_root="$(cd "${script_dir}/.." && pwd)"
-  nstf_blind_input_root="tasks/nstf_common/inputs"
-fi
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+nstf_blind_input_root="inputs/nstf_common/inputs"
 cd "$repo_root"
 
 command -v rg >/dev/null
 
 blind_files=(
-  tasks/nstf_blind_derive_duty/TASK.md
+  inputs/nstf_blind_derive_duty/TASK.md
   "${nstf_blind_input_root}/01_geometry.md"
   "${nstf_blind_input_root}/02_materials.md"
   "${nstf_blind_input_root}/03_measurement_locations.md"
@@ -92,6 +86,6 @@ awk -F, '
     exit failed
   }
 ' "${nstf_blind_input_root}/accident_electric_power.csv" \
-  tasks/nstf_supplied_duty/inputs/05_supplied_thermal_duty.csv
+  inputs/nstf_supplied_duty/inputs/05_supplied_thermal_duty.csv
 
 echo "task-pack static validation passed"

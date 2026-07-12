@@ -27,14 +27,14 @@ def test_pack_copies_match_frozen_sources() -> None:
     for task_name, variant in TASKS.items():
         pack = REPO_ROOT / "harbor" / task_name / "environment/pack"
         assert_same_bytes(
-            canonical=REPO_ROOT / f"tasks/{variant}/TASK.md",
+            canonical=REPO_ROOT / f"inputs/{variant}/TASK.md",
             copy=pack / "TASK.md",
         )
-        for source in sorted((REPO_ROOT / "tasks/nstf_common/inputs").iterdir()):
+        for source in sorted((REPO_ROOT / "inputs/nstf_common/inputs").iterdir()):
             assert_same_bytes(canonical=source, copy=pack / "inputs" / source.name)
     assert_same_bytes(
         canonical=REPO_ROOT
-        / "tasks/nstf_supplied_duty/inputs/05_supplied_thermal_duty.csv",
+        / "inputs/nstf_supplied_duty/inputs/05_supplied_thermal_duty.csv",
         copy=REPO_ROOT
         / "harbor/nstf-supplied-duty/environment/pack/inputs/05_supplied_thermal_duty.csv",
     )
@@ -51,7 +51,7 @@ def test_held_out_and_scorer_copies_match() -> None:
     for task_name in TASKS:
         tests_dir = REPO_ROOT / "harbor" / task_name / "tests"
         assert_same_bytes(
-            canonical=REPO_ROOT / "measurements/held_out.jsonl",
+            canonical=REPO_ROOT / "expected_output/held_out.jsonl",
             copy=tests_dir / "held_out.jsonl",
         )
         canonical_modules = sorted(

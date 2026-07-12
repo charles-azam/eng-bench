@@ -26,7 +26,7 @@ def test_frozen_task_contracts_match_held_out_records_and_pass_leakage_checks() 
         text=True,
     )
     measurements = load_jsonl(
-        path=REPO_ROOT / "measurements/held_out.jsonl",
+        path=REPO_ROOT / "expected_output/held_out.jsonl",
         model_type=Measurement,
     )
     measurement_ids = {
@@ -41,10 +41,10 @@ def test_frozen_task_contracts_match_held_out_records_and_pass_leakage_checks() 
     }
 
     blind_ids = nstf_metric_ids(
-        task_path=REPO_ROOT / "tasks/nstf_blind_derive_duty/TASK.md"
+        task_path=REPO_ROOT / "inputs/nstf_blind_derive_duty/TASK.md"
     )
     supplied_ids = nstf_metric_ids(
-        task_path=REPO_ROOT / "tasks/nstf_supplied_duty/TASK.md"
+        task_path=REPO_ROOT / "inputs/nstf_supplied_duty/TASK.md"
     )
 
     assert set(measurement_ids) == {"nstf_blind_derive_duty", "nstf_supplied_duty"}

@@ -33,12 +33,12 @@ def sync_pack(*, task_dir: Path, variant: str) -> None:
     if pack.exists():
         shutil.rmtree(pack)
     (pack / "inputs").mkdir(parents=True)
-    shutil.copy2(REPO_ROOT / f"tasks/{variant}/TASK.md", pack / "TASK.md")
-    for source in sorted((REPO_ROOT / "tasks/nstf_common/inputs").iterdir()):
+    shutil.copy2(REPO_ROOT / f"inputs/{variant}/TASK.md", pack / "TASK.md")
+    for source in sorted((REPO_ROOT / "inputs/nstf_common/inputs").iterdir()):
         shutil.copy2(source, pack / "inputs" / source.name)
     if variant == "nstf_supplied_duty":
         shutil.copy2(
-            REPO_ROOT / "tasks/nstf_supplied_duty/inputs/05_supplied_thermal_duty.csv",
+            REPO_ROOT / "inputs/nstf_supplied_duty/inputs/05_supplied_thermal_duty.csv",
             pack / "inputs/05_supplied_thermal_duty.csv",
         )
 
@@ -47,7 +47,7 @@ def sync_tests(*, task_dir: Path) -> None:
     tests = task_dir / "tests"
     tests.mkdir(exist_ok=True)
     shutil.copy2(
-        REPO_ROOT / "measurements/held_out.jsonl", tests / "held_out.jsonl"
+        REPO_ROOT / "expected_output/held_out.jsonl", tests / "held_out.jsonl"
     )
     vendored = tests / "nstf_bench"
     if vendored.exists():
@@ -67,7 +67,7 @@ def sync_instruction(*, task_dir: Path) -> None:
 def oracle_predictions(*, variant: str) -> dict:
     predictions = []
     for line in (
-        (REPO_ROOT / "measurements/held_out.jsonl")
+        (REPO_ROOT / "expected_output/held_out.jsonl")
         .read_text(encoding="utf-8")
         .splitlines()
     ):
