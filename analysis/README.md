@@ -56,6 +56,51 @@ uv run python -m analysis.gate_eligibility \
   --output results/gates/core-n3.json
 ```
 
+### Verifying disclosed gate keys after the campaign
+
+After every registered stage has closed, publish the previously private gate keys in one strict
+JSON document. Each attestation path is a canonical POSIX path relative to the public repository
+root; each key is exactly 32 bytes encoded as 64 lowercase hexadecimal characters. Unknown fields,
+duplicate paths, absolute paths, traversal components, non-JSON attestation paths, uppercase hex,
+and keys of any other length are rejected.
+
+```json
+{
+  "schema_version": "1.0",
+  "gates": [
+    {
+      "attestation_path": "results/gates/core-n3.json",
+      "commitment_key_hex": "<replace with exactly 64 lowercase hex characters>"
+    },
+    {
+      "attestation_path": "results/gates/core-extend-n5.json",
+      "commitment_key_hex": "<replace with exactly 64 lowercase hex characters>"
+    }
+  ]
+}
+```
+
+Verify the disclosure against the final public raw tree and final schedule directory:
+
+```bash
+uv run python -m analysis.verify_gate_disclosure \
+  --repository-root . \
+  --disclosure results/gates/disclosed-keys.json \
+  --runs-root results/raw \
+  --matrix protocol/matrix.tsv \
+  --ledger protocol/evaluation_ledger.json \
+  --schedules-root results/schedules/v3 \
+  --frozen-manifest protocol/frozen_manifest.sha256
+```
+
+For each disclosure entry, the verifier reads the committed attestation's `closed_stages`, checks
+that they are a registered protocol prefix, and creates an isolated temporary snapshot containing
+only those stages' raw attempts and frozen schedule artifacts. It then calls the same
+`analysis.gate_eligibility.build_attestation` implementation used to make the commitment. Success
+requires both the reconstructed Pydantic model and its canonical UTF-8 bytes (including the final
+newline) to equal the committed file exactly. The JSON report printed to stdout contains hashes of
+the verified attestation and disclosed key, but never prints the key itself.
+
 ## Identity-blind artifact review
 
 After automatic scoring has been frozen, prepare the preregistered qualitative review directly from
