@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import json
 import shutil
+import socket
 import stat
 import sys
 import tarfile
@@ -19,6 +20,7 @@ from operations.v4_stage_archive import (
     parse_systemctl_state,
     rename_directory_exclusive,
     sha256_file,
+    verify_imported_stage,
 )
 
 
@@ -280,6 +282,25 @@ def test_stage_archive_round_trip_preserves_exact_bytes_and_registered_retry(
     )
     assert ledger.read_bytes() == archive_ledger.read_bytes()
 
+    verified = verify_imported_stage(
+        stage=SYNTHETIC_STAGE,
+        archive_directory=archive_directory,
+        repository_root=import_repository,
+        recorded_runs_root=runs_root,
+    )
+    assert [path.name for path in verified] == [path.name for path in imported]
+
+    changed_mode = imported[0] / "workspace" / "output" / "raw.txt"
+    changed_mode.chmod(mode=0o644)
+    with pytest.raises(ValueError, match="imported stage path is writable"):
+        verify_imported_stage(
+            stage=SYNTHETIC_STAGE,
+            archive_directory=archive_directory,
+            repository_root=import_repository,
+            recorded_runs_root=runs_root,
+        )
+    changed_mode.chmod(mode=0o444)
+
     with pytest.raises(FileExistsError, match="raw stage ledger already exists"):
         import_stage_archive(
             stage=SYNTHETIC_STAGE,
@@ -291,6 +312,7 @@ def test_stage_archive_round_trip_preserves_exact_bytes_and_registered_retry(
 
 def test_archive_and_import_fail_closed_on_symlink_or_changed_tar(
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     source_root = tmp_path / "source"
     source_root.mkdir()
@@ -336,6 +358,27 @@ def test_archive_and_import_fail_closed_on_symlink_or_changed_tar(
     assert not (tmp_path / "rejected-archives" / f"v4-{SYNTHETIC_STAGE.stage}").exists()
 
     (first_run / "workspace" / "forbidden-link").unlink()
+    proxy_socket = first_run / "runtime" / "proxy.sock"
+    monkeypatch.chdir(first_run)
+    expected_socket = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
+    expected_socket.bind("runtime/proxy.sock")
+    expected_socket.close()
+    unexpected_socket_path = first_run / "workspace" / "unexpected.sock"
+    unexpected_socket = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM)
+    unexpected_socket.bind("workspace/unexpected.sock")
+    unexpected_socket.close()
+    with pytest.raises(ValueError, match="regular non-symlink"):
+        create_stage_archive(
+            stage=SYNTHETIC_STAGE,
+            runs_root=runs_root,
+            schedule_path=schedule_path,
+            schedule_checksum_path=schedule_checksum,
+            planner_script=PLANNER_SCRIPT,
+            planner_python=Path(sys.executable),
+            archive_root=tmp_path / "unexpected-socket-archives",
+            recorded_runs_root=runs_root,
+        )
+    unexpected_socket_path.unlink()
     archive_directory = create_stage_archive(
         stage=SYNTHETIC_STAGE,
         runs_root=runs_root,
@@ -346,6 +389,10 @@ def test_archive_and_import_fail_closed_on_symlink_or_changed_tar(
         archive_root=tmp_path / "accepted-archives",
         recorded_runs_root=runs_root,
     )
+    tree_ledger = (
+        archive_directory / f"v4-{SYNTHETIC_STAGE.stage}.tree.sha256"
+    ).read_bytes()
+    assert b"runtime/proxy.sock" not in tree_ledger
     unsafe_archive = tmp_path / "unsafe-archive"
     shutil.copytree(src=archive_directory, dst=unsafe_archive)
     unsafe_archive.chmod(mode=0o700)

@@ -520,6 +520,14 @@ def reject_symlinks_and_non_regular_entries(*, root: Path) -> None:
             require_regular_directory(path=candidate, label="run tree directory")
         for name in file_names:
             candidate = directory / name
+            relative_path = candidate.relative_to(root).as_posix()
+            candidate_stat = os.lstat(candidate)
+            # The frozen runner kills and waits for the proxy but leaves this stale
+            # socket inode behind. It is registered runtime plumbing, not evidence.
+            if relative_path == "runtime/proxy.sock" and stat.S_ISSOCK(
+                candidate_stat.st_mode
+            ):
+                continue
             require_regular_file(path=candidate, label="run tree file")
 
 
@@ -1089,9 +1097,102 @@ def import_stage_archive(
     return tuple(installed)
 
 
+def verify_imported_stage(
+    *,
+    stage: StageDefinition,
+    archive_directory: Path,
+    repository_root: Path,
+    recorded_runs_root: Path,
+) -> tuple[Path, ...]:
+    paths = archive_file_set(directory=archive_directory, stage=stage)
+    tar_digest, _ = parse_single_checksum(
+        path=paths.tar_checksum,
+        permitted_paths=frozenset({paths.tar.name}),
+    )
+    if sha256_file(path=paths.tar) != tar_digest:
+        raise ValueError("stage tar checksum mismatch")
+    tree_ledger_contents = paths.tree_ledger.read_bytes()
+    records = parse_tree_ledger_contents(contents=tree_ledger_contents)
+    files0_paths = parse_files0(path=paths.files0)
+    if files0_paths != tuple(relative_path for relative_path, _ in records):
+        raise ValueError("NUL path ledger and tree checksum ledger disagree")
+    verify_tar(tar_path=paths.tar, records=records)
+
+    schedule_path = (
+        repository_root
+        / "results"
+        / "schedules"
+        / "v4"
+        / f"{stage.stage}.tsv"
+    )
+    portable_checksum = schedule_path.with_suffix(".tsv.sha256")
+    schedule_digest, _ = parse_single_checksum(
+        path=portable_checksum,
+        permitted_paths=frozenset({schedule_path.name, f"./{schedule_path.name}"}),
+    )
+    if sha256_file(path=schedule_path) != schedule_digest:
+        raise ValueError("portable stage schedule checksum mismatch")
+    rows = load_schedule(path=schedule_path, stage=stage)
+
+    raw_root = repository_root / "results" / "raw"
+    ledger_destination = (
+        repository_root
+        / "results"
+        / "raw-ledgers"
+        / f"v4-{stage.stage}.tree.sha256"
+    )
+    require_regular_file(path=ledger_destination, label="imported raw stage ledger")
+    if ledger_destination.read_bytes() != tree_ledger_contents:
+        raise ValueError("imported raw stage ledger differs from verified archive")
+    if stat.S_IMODE(ledger_destination.stat().st_mode) & 0o222:
+        raise ValueError("imported raw stage ledger must be read-only")
+
+    run_directories = stage_run_directories(
+        runs_root=raw_root,
+        rows=rows,
+        stage=stage,
+    )
+    require_registered_retry_set(run_directories=run_directories, rows=rows)
+    for run_directory in run_directories:
+        reject_symlinks_and_non_regular_entries(root=run_directory)
+        verify_artifact_ledger(
+            run_directory=run_directory,
+            recorded_runs_root=recorded_runs_root,
+        )
+        for path in (run_directory, *run_directory.rglob(pattern="*")):
+            if stat.S_IMODE(path.stat(follow_symlinks=False).st_mode) & 0o222:
+                raise ValueError(f"imported stage path is writable: {path}")
+
+    actual_paths = tuple(
+        sorted(
+            (
+                f"./{path.relative_to(raw_root).as_posix()}"
+                for run_directory in run_directories
+                for path in run_directory.rglob(pattern="*")
+                if path.is_file() and not path.is_symlink()
+            ),
+            key=os.fsencode,
+        )
+    )
+    expected_paths = tuple(relative_path for relative_path, _ in records)
+    if actual_paths != expected_paths:
+        raise ValueError("imported stage path set differs from verified archive")
+    for relative_path, expected_digest in records:
+        imported_path = raw_root / relative_path.removeprefix("./")
+        require_regular_file(path=imported_path, label="imported stage file")
+        if sha256_file(path=imported_path) != expected_digest:
+            raise ValueError(f"imported stage checksum mismatch: {relative_path}")
+    return run_directories
+
+
 def parse_arguments(
     *, arguments: Sequence[str] | None = None
-) -> tuple[Literal["create", "import"], StageDefinition, Path | None, Path | None]:
+) -> tuple[
+    Literal["create", "import", "verify-import"],
+    StageDefinition,
+    Path | None,
+    Path | None,
+]:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
     create_parser = subparsers.add_parser("create")
@@ -1100,6 +1201,10 @@ def parse_arguments(
     import_parser.add_argument("--stage", choices=tuple(STAGE_DEFINITIONS), required=True)
     import_parser.add_argument("--archive-directory", type=Path, required=True)
     import_parser.add_argument("--repository-root", type=Path, required=True)
+    verify_parser = subparsers.add_parser("verify-import")
+    verify_parser.add_argument("--stage", choices=tuple(STAGE_DEFINITIONS), required=True)
+    verify_parser.add_argument("--archive-directory", type=Path, required=True)
+    verify_parser.add_argument("--repository-root", type=Path, required=True)
     parsed = parser.parse_args(args=arguments)
     stage_name: StageName = parsed.stage
     return (
@@ -1120,13 +1225,22 @@ def main(*, arguments: Sequence[str] | None = None) -> int:
         return 0
     if archive_directory is None or repository_root is None:
         raise ValueError("import requires archive and repository paths")
-    imported = import_stage_archive(
+    if command == "import":
+        imported = import_stage_archive(
+            stage=stage,
+            archive_directory=archive_directory,
+            repository_root=repository_root,
+            recorded_runs_root=Path("/root/bench-v2/runs"),
+        )
+        print(f"imported_stage={stage.stage} physical_attempts={len(imported)}")
+        return 0
+    verified = verify_imported_stage(
         stage=stage,
         archive_directory=archive_directory,
         repository_root=repository_root,
         recorded_runs_root=Path("/root/bench-v2/runs"),
     )
-    print(f"imported_stage={stage.stage} physical_attempts={len(imported)}")
+    print(f"verified_stage={stage.stage} physical_attempts={len(verified)}")
     return 0
 
 

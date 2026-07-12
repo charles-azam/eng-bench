@@ -63,7 +63,7 @@ esac
 
 SCHEDULE_REMOTE="/root/bench-v2/schedules/$STAGE.tsv"
 TRANSITION_LOCK="$PRIVATE/transition.lock"
-TOOL_SHA256=039e3b149b4181fdb498f112fd558a73d560dc7a56c11a3a639a990f8191f697
+TOOL_SHA256=779a8f401385664f2210c4b2d01f209828b8387598880a2a1dfe308744b4f024
 TOOL_ROOT_REMOTE=/root/eng-bench-v4-operations
 TOOL_REMOTE="$TOOL_ROOT_REMOTE/v4_stage_archive-$TOOL_SHA256.py"
 
@@ -552,7 +552,8 @@ ssh -o BatchMode=yes "root@$VPS" systemctl stop "$RETENTION_SERVICE"
 
 At core closure the gate accepts only the core schedule. At extension closure it accepts only core
 plus extension. Any present but unclosed stage fails closed. For `nstf-duty-ablation-n3`, stop here:
-there is no third interstage gate or later schedule; continue only with final blinded harvesting.
+there is no third interstage gate or later schedule. The archive/import does not unlock payload
+inspection; continue with the three-phase procedure in `operations/V4_FINALIZATION_RUNBOOK.md`.
 
 ## 4. Create and reproduce a fresh-key gate
 
@@ -871,5 +872,8 @@ a completed launch and proceeds to archival. If it is exactly failed/failed, cal
 `recover_exact_failed_stage "$NEXT_STAGE" "$SCHEDULE_COMMIT"`. The recovery helper remaps the new
 stage internally, so it cannot reuse the just-closed stage's service or schedule by mistake.
 
-Keep both gate keys private until the final ablation archive is closed and imported. Final blinded
-harvesting—not an interstage gate—determines ablation eligibility and unlocks payload inspection.
+Keep both gate keys private until the final ablation archive is closed and imported. Final
+content-blind harvesting determines ablation eligibility, but neither harvesting nor archival
+unlocks payload inspection. Follow `operations/V4_FINALIZATION_RUNBOOK.md`: publish the evaluation-
+byte commitment before neutral packet preparation, and publish the completed-review commitment
+before unsealing identities or inspecting results.
