@@ -88,8 +88,21 @@ do
     "$(id -un):$(id -gn):700"
 done
 
-mkdir -m 700 "$TRANSITION_LOCK"
-trap 'rmdir -- "$TRANSITION_LOCK"' EXIT
+case "${V4_TRANSITION_LOCK_ALREADY_HELD:-0}" in
+  0)
+    mkdir -m 700 "$TRANSITION_LOCK"
+    trap 'rmdir -- "$TRANSITION_LOCK"' EXIT
+    ;;
+  1)
+    test -d "$TRANSITION_LOCK"
+    test ! -L "$TRANSITION_LOCK"
+    test -z "$(find "$TRANSITION_LOCK" -mindepth 1 -print -quit)"
+    ;;
+  *)
+    printf 'invalid V4_TRANSITION_LOCK_ALREADY_HELD value\n' >&2
+    exit 64
+    ;;
+esac
 
 cd "$REPO"
 test "$(git branch --show-current)" = main
