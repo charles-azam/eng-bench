@@ -15,7 +15,9 @@ from operations.v4_stage_archive import (
     STAGE_DEFINITIONS,
     create_stage_archive,
     import_stage_archive,
+    parse_retention_state,
     parse_systemctl_state,
+    rename_directory_exclusive,
     sha256_file,
 )
 
@@ -272,6 +274,11 @@ def test_stage_archive_round_trip_preserves_exact_bytes_and_registered_retry(
     )
     assert ledger.is_file()
     assert stat.S_IMODE(ledger.stat().st_mode) == 0o444
+    archive_ledger = (
+        archive_directory
+        / f"v4-{SYNTHETIC_STAGE.stage}.tree.sha256"
+    )
+    assert ledger.read_bytes() == archive_ledger.read_bytes()
 
     with pytest.raises(FileExistsError, match="raw stage ledger already exists"):
         import_stage_archive(
@@ -402,6 +409,7 @@ def test_archive_and_import_fail_closed_on_symlink_or_changed_tar(
 def test_terminal_service_state_parser_is_strict() -> None:
     state = parse_systemctl_state(
         output=(
+            b"LoadState=loaded\n"
             b"ActiveState=inactive\n"
             b"SubState=dead\n"
             b"Result=success\n"
@@ -413,6 +421,7 @@ def test_terminal_service_state_parser_is_strict() -> None:
     with pytest.raises(ValueError):
         parse_systemctl_state(
             output=(
+                b"LoadState=loaded\n"
                 b"ActiveState=active\n"
                 b"SubState=running\n"
                 b"Result=success\n"
@@ -420,3 +429,61 @@ def test_terminal_service_state_parser_is_strict() -> None:
                 b"MainPID=42\n"
             )
         )
+    with pytest.raises(ValueError):
+        parse_systemctl_state(
+            output=(
+                b"LoadState=not-found\n"
+                b"ActiveState=inactive\n"
+                b"SubState=dead\n"
+                b"Result=success\n"
+                b"ExecMainStatus=0\n"
+                b"MainPID=0\n"
+            )
+        )
+
+    retention = parse_retention_state(
+        output=(
+            b"LoadState=loaded\n"
+            b"ActiveState=active\n"
+            b"SubState=running\n"
+            b"Result=success\n"
+            b"ExecMainStatus=0\n"
+            b"MainPID=42\n"
+            b"Wants=eng-bench-core-n3-v4.service\n"
+        ),
+        expected_service="eng-bench-core-n3-v4.service",
+    )
+    assert retention.main_pid == 42
+    with pytest.raises(ValueError, match="wrong Wants dependency"):
+        parse_retention_state(
+            output=(
+                b"LoadState=loaded\n"
+                b"ActiveState=active\n"
+                b"SubState=running\n"
+                b"Result=success\n"
+                b"ExecMainStatus=0\n"
+                b"MainPID=42\n"
+                b"Wants=eng-bench-core-extend-n5-v4.service\n"
+            ),
+            expected_service="eng-bench-core-n3-v4.service",
+        )
+
+
+def test_directory_publication_uses_atomic_no_replace(tmp_path: Path) -> None:
+    source = tmp_path / "source"
+    source.mkdir()
+    (source / "source-marker").write_text("source\n", encoding="utf-8")
+    occupied = tmp_path / "occupied"
+    occupied.mkdir()
+    (occupied / "destination-marker").write_text("destination\n", encoding="utf-8")
+
+    with pytest.raises(FileExistsError):
+        rename_directory_exclusive(source=source, destination=occupied)
+
+    assert (source / "source-marker").read_text(encoding="utf-8") == "source\n"
+    assert (occupied / "destination-marker").read_text(encoding="utf-8") == "destination\n"
+
+    destination = tmp_path / "destination"
+    rename_directory_exclusive(source=source, destination=destination)
+    assert not source.exists()
+    assert (destination / "source-marker").read_text(encoding="utf-8") == "source\n"

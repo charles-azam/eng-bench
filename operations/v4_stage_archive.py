@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import argparse
 import csv
+import ctypes
+import errno
 import fcntl
 import hashlib
 import os
@@ -12,6 +14,7 @@ import re
 import shutil
 import stat
 import subprocess
+import sys
 import tarfile
 import tempfile
 from collections.abc import Sequence
@@ -76,6 +79,8 @@ ARCHIVE_SUFFIXES: tuple[str, ...] = (
     "tar",
     "tar.sha256",
 )
+DARWIN_RENAME_EXCL: int = 0x00000004
+LINUX_RENAME_NOREPLACE: int = 1
 
 
 class StrictModel(BaseModel):
@@ -92,15 +97,27 @@ class StageDefinition(StrictModel):
     stage: StageName
     expected_first_attempts: PositiveInteger
     service: ServiceName
+    retention_service: ServiceName
     next_stage: StageName | None
 
 
 class ServiceState(StrictModel):
+    load_state: Literal["loaded"]
     active_state: Literal["inactive"]
     sub_state: Literal["dead"]
     result: Literal["success"]
     exec_main_status: Literal[0]
     main_pid: Literal[0]
+
+
+class RetentionState(StrictModel):
+    load_state: Literal["loaded"]
+    active_state: Literal["active"]
+    sub_state: Literal["running"]
+    result: Literal["success"]
+    exec_main_status: Literal[0]
+    main_pid: PositiveInteger
+    wants: frozenset[ServiceName]
 
 
 class ScheduleRow(StrictModel):
@@ -167,18 +184,21 @@ STAGE_DEFINITIONS: dict[StageName, StageDefinition] = {
         stage="core-n3",
         expected_first_attempts=12,
         service="eng-bench-core-n3-v4.service",
+        retention_service="eng-bench-core-n3-v4-retention.service",
         next_stage="core-extend-n5",
     ),
     "core-extend-n5": StageDefinition(
         stage="core-extend-n5",
         expected_first_attempts=8,
         service="eng-bench-core-extend-n5-v4.service",
+        retention_service="eng-bench-core-extend-n5-v4-retention.service",
         next_stage="nstf-duty-ablation-n3",
     ),
     "nstf-duty-ablation-n3": StageDefinition(
         stage="nstf-duty-ablation-n3",
         expected_first_attempts=6,
         service="eng-bench-nstf-duty-ablation-n3-v4.service",
+        retention_service="eng-bench-nstf-duty-ablation-n3-v4-retention.service",
         next_stage=None,
     ),
 }
@@ -239,13 +259,12 @@ def parse_single_checksum(
     return match.group("digest"), recorded_path
 
 
-def parse_tree_ledger(*, path: Path) -> tuple[tuple[str, str], ...]:
-    require_regular_file(path=path, label="tree checksum ledger")
-    contents = path.read_text(encoding="utf-8")
-    if not contents or not contents.endswith("\n"):
+def parse_tree_ledger_contents(*, contents: bytes) -> tuple[tuple[str, str], ...]:
+    text = contents.decode(encoding="utf-8")
+    if not text or not text.endswith("\n"):
         raise ValueError("tree checksum ledger must be non-empty and terminated")
     records: list[tuple[str, str]] = []
-    for line_number, line in enumerate(contents.splitlines(), start=1):
+    for line_number, line in enumerate(text.splitlines(), start=1):
         match = CHECKSUM_LINE.fullmatch(string=line)
         if match is None:
             raise ValueError(f"malformed tree checksum line {line_number}")
@@ -258,6 +277,76 @@ def parse_tree_ledger(*, path: Path) -> tuple[tuple[str, str], ...]:
     if paths != sorted(paths, key=lambda value: os.fsencode(value)):
         raise ValueError("tree checksum ledger paths are not bytewise sorted")
     return tuple(records)
+
+
+def rename_directory_exclusive(*, source: Path, destination: Path) -> None:
+    if source.name in {"", ".", ".."} or destination.name in {"", ".", ".."}:
+        raise ValueError("exclusive rename requires named directory entries")
+    directory_flags: int = (
+        os.O_RDONLY | os.O_DIRECTORY | os.O_CLOEXEC | os.O_NOFOLLOW
+    )
+    result: int
+    error_number: int
+    source_parent_descriptor: int = os.open(source.parent, directory_flags)
+    try:
+        destination_parent_descriptor: int = os.open(
+            destination.parent,
+            directory_flags,
+        )
+        try:
+            library = ctypes.CDLL(name=None, use_errno=True)
+            source_name = os.fsencode(source.name)
+            destination_name = os.fsencode(destination.name)
+            ctypes.set_errno(0)
+            if sys.platform == "darwin":
+                rename_function = library.renameatx_np
+                rename_function.argtypes = [
+                    ctypes.c_int,
+                    ctypes.c_char_p,
+                    ctypes.c_int,
+                    ctypes.c_char_p,
+                    ctypes.c_uint,
+                ]
+                rename_function.restype = ctypes.c_int
+                result = rename_function(
+                    source_parent_descriptor,
+                    source_name,
+                    destination_parent_descriptor,
+                    destination_name,
+                    DARWIN_RENAME_EXCL,
+                )
+            elif sys.platform.startswith("linux"):
+                rename_function = library.renameat2
+                rename_function.argtypes = [
+                    ctypes.c_int,
+                    ctypes.c_char_p,
+                    ctypes.c_int,
+                    ctypes.c_char_p,
+                    ctypes.c_uint,
+                ]
+                rename_function.restype = ctypes.c_int
+                result = rename_function(
+                    source_parent_descriptor,
+                    source_name,
+                    destination_parent_descriptor,
+                    destination_name,
+                    LINUX_RENAME_NOREPLACE,
+                )
+            else:
+                raise RuntimeError(
+                    "atomic no-replace directory rename is unsupported on "
+                    f"{sys.platform!r}"
+                )
+            error_number = ctypes.get_errno()
+        finally:
+            os.close(destination_parent_descriptor)
+    finally:
+        os.close(source_parent_descriptor)
+    if result == 0:
+        return
+    if error_number in {errno.EEXIST, errno.ENOTEMPTY}:
+        raise FileExistsError(error_number, os.strerror(error_number), destination)
+    raise OSError(error_number, os.strerror(error_number), destination)
 
 
 def validate_archive_relative_path(*, relative_path: str) -> None:
@@ -643,7 +732,10 @@ def create_stage_archive(
         ):
             path.chmod(mode=stat.S_IMODE(path.stat().st_mode) & ~0o222)
         temporary_directory.chmod(mode=0o500)
-        temporary_directory.replace(final_directory)
+        rename_directory_exclusive(
+            source=temporary_directory,
+            destination=final_directory,
+        )
         published = True
     finally:
         if not published and temporary_directory.exists():
@@ -652,15 +744,10 @@ def create_stage_archive(
     return final_directory
 
 
-def parse_systemctl_state(*, output: bytes) -> ServiceState:
+def parse_systemctl_properties(
+    *, output: bytes, expected: frozenset[str]
+) -> dict[str, str]:
     properties: dict[str, str] = {}
-    expected = {
-        "ActiveState",
-        "SubState",
-        "Result",
-        "ExecMainStatus",
-        "MainPID",
-    }
     for line in output.decode(encoding="utf-8").splitlines():
         name, separator, value = line.partition("=")
         if separator != "=" or name not in expected or not value or name in properties:
@@ -668,8 +755,26 @@ def parse_systemctl_state(*, output: bytes) -> ServiceState:
         properties[name] = value
     if properties.keys() != expected:
         raise ValueError("systemd service state omits required properties")
+    return properties
+
+
+def parse_systemctl_state(*, output: bytes) -> ServiceState:
+    properties = parse_systemctl_properties(
+        output=output,
+        expected=frozenset(
+            {
+                "LoadState",
+                "ActiveState",
+                "SubState",
+                "Result",
+                "ExecMainStatus",
+                "MainPID",
+            }
+        ),
+    )
     return ServiceState.model_validate(
         obj={
+            "load_state": properties["LoadState"],
             "active_state": properties["ActiveState"],
             "sub_state": properties["SubState"],
             "result": properties["Result"],
@@ -680,12 +785,66 @@ def parse_systemctl_state(*, output: bytes) -> ServiceState:
     )
 
 
+def parse_retention_state(
+    *, output: bytes, expected_service: ServiceName
+) -> RetentionState:
+    properties = parse_systemctl_properties(
+        output=output,
+        expected=frozenset(
+            {
+                "LoadState",
+                "ActiveState",
+                "SubState",
+                "Result",
+                "ExecMainStatus",
+                "MainPID",
+                "Wants",
+            }
+        ),
+    )
+    state = RetentionState.model_validate(
+        obj={
+            "load_state": properties["LoadState"],
+            "active_state": properties["ActiveState"],
+            "sub_state": properties["SubState"],
+            "result": properties["Result"],
+            "exec_main_status": int(properties["ExecMainStatus"]),
+            "main_pid": int(properties["MainPID"]),
+            "wants": frozenset(properties["Wants"].split()),
+        },
+        strict=True,
+    )
+    if state.wants != frozenset({expected_service}):
+        raise ValueError("retention service has the wrong Wants dependency")
+    return state
+
+
 def verify_host_closure(*, bench_root: Path, stage: StageDefinition) -> None:
+    retention = run_command(
+        arguments=[
+            "systemctl",
+            "show",
+            stage.retention_service,
+            "--property=LoadState",
+            "--property=ActiveState",
+            "--property=SubState",
+            "--property=Result",
+            "--property=ExecMainStatus",
+            "--property=MainPID",
+            "--property=Wants",
+            "--no-pager",
+        ]
+    )
+    parse_retention_state(
+        output=retention.stdout,
+        expected_service=stage.service,
+    )
     systemctl = run_command(
         arguments=[
             "systemctl",
             "show",
             stage.service,
+            "--property=LoadState",
             "--property=ActiveState",
             "--property=SubState",
             "--property=Result",
@@ -844,7 +1003,8 @@ def import_stage_archive(
     )
     if sha256_file(path=paths.tar) != tar_digest:
         raise ValueError("stage tar checksum mismatch")
-    records = parse_tree_ledger(path=paths.tree_ledger)
+    tree_ledger_contents = paths.tree_ledger.read_bytes()
+    records = parse_tree_ledger_contents(contents=tree_ledger_contents)
     files0_paths = parse_files0(path=paths.files0)
     if files0_paths != tuple(relative_path for relative_path, _ in records):
         raise ValueError("NUL path ledger and tree checksum ledger disagree")
@@ -903,16 +1063,21 @@ def import_stage_archive(
             raise FileExistsError(f"raw stage destinations already exist: {existing!r}")
         raw_root.mkdir(mode=0o755, exist_ok=True)
         ledger_root.mkdir(mode=0o755, exist_ok=True)
+        require_regular_directory(path=raw_root, label="raw results root")
+        require_regular_directory(path=ledger_root, label="raw ledger root")
         for run_directory, destination in zip(
             run_directories,
             destinations,
             strict=True,
         ):
-            run_directory.replace(destination)
+            rename_directory_exclusive(
+                source=run_directory,
+                destination=destination,
+            )
             make_tree_read_only(root=destination)
             installed.append(destination)
         with ledger_destination.open(mode="xb") as output:
-            output.write(paths.tree_ledger.read_bytes())
+            output.write(tree_ledger_contents)
         ledger_destination.chmod(mode=0o444)
         for relative_path, expected_digest in records:
             installed_path = raw_root / relative_path.removeprefix("./")
