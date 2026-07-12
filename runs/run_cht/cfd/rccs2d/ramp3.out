@@ -1,9 +1,0 @@
-q=3300 -> t=3000     areaAverage(plate) of T = 559.9734     areaAverage(riser) of T = 377.2234 neg=0
-q=3800 -> t=3500     areaAverage(plate) of T = 575.77     areaAverage(riser) of T = 381.1496 neg=0
-q=4300 -> t=3500     areaAverage(plate) of T = 589.4498     areaAverage(riser) of T = 385.1058 neg=0
-bash: line 1:   231 Aborted                 (core dumped) buoyantSimpleFoam > log.r3_4800 2>&1
-q=4800 -> t=3500   neg=1
-bash: line 1:   231 Aborted                 (core dumped) buoyantSimpleFoam > log.r3_5200 2>&1
-q=5200 -> t=3500   neg=1
-bash: line 1:   231 Aborted                 (core dumped) buoyantSimpleFoam > log.r3_5501 2>&1
-q=5501 -> t=3500   neg=1

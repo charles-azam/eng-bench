@@ -1,7 +1,0 @@
-q=4050 t=3000->3300 Tplate=583.2437K Triser=382.7785K neg=0
-q=4300 t=3300->3600 Tplate=590.9483K Triser=384.7497K neg=0
-q=4550 t=3600->3900 Tplate=597.5339K Triser=386.7635K neg=0
-q=4800 t=3900->4200 Tplate=602.8407K Triser=388.8101K neg=0
-q=5050 t=4200->4500 Tplate=606.9598K Triser=390.9098K neg=0
-q=5300 t=4500->4800 Tplate=610.4699K Triser=393.0338K neg=0
-q=5501 t=4800->5100 Tplate=612.6284K Triser=394.784K neg=0
