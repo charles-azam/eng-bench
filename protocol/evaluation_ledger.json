@@ -1,6 +1,6 @@
 {
   "benchmark_version": "2026-07-12-v4",
-  "evaluator_manifest_sha256": "sha256:9fafb9f4e87e354c77533736af0ad70f509638ca49882c2db428c4ce87dc98c2",
+  "evaluator_manifest_sha256": "sha256:3b51d5fad3bf11a88122d31bec997af0e41de25b5404ba0d3d8c885dd3522702",
   "prompt_sha256": "sha256:94bfff14534b9d741a472ee42b3ef9e54d5d72b65fb580a8df5a800788c02172",
   "runner_image_sha256": "sha256:15559315a5072682de5ce4b0fc636c59ffdd101f5b048cac1137bd4c6f7e4bc7",
   "systems": {
@@ -17,7 +17,6 @@
   },
   "task_pack_sha256": {
     "nstf_blind_derive_duty": "sha256:505e446c2aab398fa78bca00c400c7b85e849ba2a8b8b3cb7005cf7a7455bc37",
-    "nstf_supplied_duty": "sha256:066da7206b38d3d3f43bfbd992226de0e72e072e64bd50886cc9c91e9515f65c",
-    "triso_corrected_bounded_annex": "sha256:b289430390cc2bdc6b2d176d3ac0d78a0281d634cd68211c5e83ac2ce54642e4"
+    "nstf_supplied_duty": "sha256:066da7206b38d3d3f43bfbd992226de0e72e072e64bd50886cc9c91e9515f65c"
   }
 }

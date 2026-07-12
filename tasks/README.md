@@ -1,7 +1,7 @@
 # Frozen task-pack assembly map
 
-These directories are source material for three isolated agent-visible packs. Do not mount this
-README, `PROTOCOL.md`, `protocol/`, source reports, measurements, evaluator code, or old runs.
+These directories are source material for two isolated agent-visible packs. Do not mount this
+README, `protocol/`, source reports, measurements, evaluator code, or old runs.
 
 ## `nstf_blind_derive_duty`
 
@@ -24,11 +24,6 @@ The last three input files come from the corresponding paths under `tasks/nstf_c
 Use the same common inputs, replace `TASK.md` with
 `tasks/nstf_supplied_duty/TASK.md`, and add
 `tasks/nstf_supplied_duty/inputs/05_supplied_thermal_duty.csv` under `inputs/`.
-
-## `triso_corrected_bounded_annex`
-
-Assemble `tasks/triso_corrected_bounded_annex/TASK.md`, its three `inputs/` files, and an empty
-writable `output/` directory.
 
 Before hashing any assembled pack, run `protocol/validate_task_packs.sh`. The final freeze manifest
 must hash the assembled copies, not only these source paths.

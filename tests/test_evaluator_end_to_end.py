@@ -292,12 +292,12 @@ def test_cli_pipeline_scores_units_zero_counts_and_failures_deterministically(
             artifact_paths=[],
         ),
         make_manifest(
-            run_id="codex-triso-01",
-            task_variant="triso-bounded",
+            run_id="codex-count-01",
+            task_variant="synthetic-count-task",
             system="codex-gpt-5.6-sol",
             status=RunStatus.COMPLETED,
             attempt=1,
-            artifact_paths=["codex-triso-01/calculation.md"],
+            artifact_paths=["codex-count-01/calculation.md"],
         ),
     ]
     materialize_run(artifact_root=artifact_root, manifest=manifests[0])
@@ -336,7 +336,7 @@ def test_cli_pipeline_scores_units_zero_counts_and_failures_deterministically(
             source_artifact="codex-nstf-01/calculation.md",
         ),
         Prediction(
-            run_id="codex-triso-01",
+            run_id="codex-count-01",
             metric_id="failed_particles",
             point=0.0,
             p10=0.0,
@@ -344,7 +344,7 @@ def test_cli_pipeline_scores_units_zero_counts_and_failures_deterministically(
             p90=1.0,
             units="count",
             confidence=0.9,
-            source_artifact="codex-triso-01/calculation.md",
+            source_artifact="codex-count-01/calculation.md",
         ),
         Prediction(
             run_id="claude-nstf-fallback-03",
@@ -398,13 +398,13 @@ def test_cli_pipeline_scores_units_zero_counts_and_failures_deterministically(
             provenance="NSTF transient envelope",
         ),
         Measurement(
-            task_variant="triso-bounded",
+            task_variant="synthetic-count-task",
             metric_id="failed_particles",
             kind=MeasurementKind.COUNT,
             value=0.0,
             units="count",
             evidence_class=EvidenceClass.POSTCALC_ASSUMPTION,
-            dependency_group="triso-kr-trace-a1",
+            dependency_group="synthetic-kr-trace-a1",
             provenance="IAEA furnace result",
         ),
     ]
@@ -510,7 +510,7 @@ def test_cli_pipeline_scores_units_zero_counts_and_failures_deterministically(
     count_score = next(
         score
         for score in scores
-        if score.run_id == "codex-triso-01" and score.metric_id == "failed_particles"
+        if score.run_id == "codex-count-01" and score.metric_id == "failed_particles"
     )
     assert count_score.count_log_error == 0.0
     assert count_score.signed_relative_error is None
