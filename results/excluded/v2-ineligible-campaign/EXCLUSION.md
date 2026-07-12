@@ -14,7 +14,8 @@ before a model event with the same 93-byte diagnostic:
 ```
 
 The preflight smoke had not exercised the scored invocation: it omitted
-`--dangerously-skip-permissions`, enabled tools, hook events, and the JSON-schema output contract.
+`--dangerously-skip-permissions`, the scored allowed-tool list and hooks, and the then-candidate CLI
+final-message schema flag.
 The scored sandbox changed `USER` and `LOGNAME` to `bench` but retained effective UID 0. This is a
 runner/preflight defect, not a Claude Fable 5 engineering result.
 
@@ -44,10 +45,10 @@ The 1,316-file private preservation ledger is published as
 The raw payload remains separately preserved and will be published only after the replacement
 campaign's prospective boundary no longer depends on it.
 
-A replacement protocol must:
+Version 3 (`2026-07-12-v3`) addresses these conditions by:
 
-1. rerun all four primary cells from replicate 1;
-2. set deterministic bytewise collation for every pack/workspace ledger;
-3. exercise the exact scored invocation in a neutral preflight for both systems; and
-4. freeze and publish a new protocol, environment manifest, tag, and randomized schedule before the
-   first replacement launch.
+1. restarting all four primary cells from replicate 1;
+2. setting deterministic bytewise collation for every pack/workspace ledger;
+3. exercising the exact scored invocation in a neutral preflight for both systems; and
+4. freezing and publishing a new protocol, environment manifest, tag, and randomized schedule before its
+   first launch.

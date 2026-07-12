@@ -6,6 +6,7 @@ This directory contains the VPS runner for the corrected benchmark. It is delibe
 
 - Every attempt gets a fresh `/root/bench-v2/runs/<run-id>-aNN` directory with a hash-recorded host input copy, writable workspace, private runtime state, full JSONL events, stderr, provider-egress log, timestamps, hashes, requested model, CLI version and machine-readable status.
 - Bubblewrap clears the host environment before setting a minimal fixed environment. Only the selected system's credential is mounted. The other credential file remains an empty private-home placeholder, and the other provider host is absent from that run's proxy allowlist.
+- The namespace sets `IS_SANDBOX=1`, a deliberate-sandbox marker recognized by the frozen Claude executable. This permits `--dangerously-skip-permissions` despite the host process retaining UID 0; the marker is truthful only because bubblewrap hides the host filesystem, clears the environment, unshares network/PID/UTS/IPC namespaces, and applies the fixed egress proxy described below.
 - Before every attempt, `verify-protocol.sh` checks every recorded digest and exact file-set equality; an extra unlisted file fails closed instead of being copied into a workspace.
 - The same external bubblewrap sandbox is used for Codex and Claude Code. Only `/workspace`, a private runtime home, system binaries, provider credentials and the runner are visible. `/root/bench`, `/root/eng-bench`, `/root/bench-v2/hidden` and other host paths are absent.
 - The network namespace has no direct egress. A namespace-local TCP bridge reaches a host Unix socket, where `connect_proxy.py` permits HTTPS CONNECT only to `chatgpt.com` for Codex or `api.anthropic.com` for Claude Code. Every allowed or rejected hostname is logged without request content or credentials.
@@ -69,14 +70,6 @@ Static checks:
 /root/bench-v2/runner/preflight.sh
 ```
 
-Runner integration tests use the VPS-local UV installation and a project `.venv`:
-
-```bash
-cd /root/bench-v2/runner
-/root/.local/bin/uv sync --dev
-/root/.local/bin/uv run pytest
-```
-
 Filesystem, credential, environment, and network-denial probes for both treatments:
 
 ```bash
@@ -87,12 +80,28 @@ Filesystem, credential, environment, and network-denial probes for both treatmen
 Neutral one-word provider smokes, stored only under `preflight/`:
 
 ```bash
-/root/bench-v2/runner/smoke-one.sh --system codex --name isolated-ready
-/root/bench-v2/runner/smoke-one.sh --system claude --name isolated-ready
-/root/bench-v2/runner/smoke-one.sh --system claude --name isolated-heat-flow --kind engineering
+/root/bench-v2/runner/smoke-one.sh --system codex --name isolated-ready-v3
+/root/bench-v2/runner/smoke-one.sh --system claude --name isolated-heat-flow-v3 --kind engineering
 ```
 
-The engineering variant is a fixed elementary slab-conduction calculation. These smoke commands never read a benchmark task.
+The engineering variant is a fixed elementary slab-conduction calculation. After those baseline checks, both systems must also complete a neutral file-operation probe through the byte-identical scored invocation wrapper:
+
+```bash
+/root/bench-v2/runner/smoke-one.sh --system codex --name scored-parity-v3-final --kind parity
+/root/bench-v2/runner/smoke-one.sh --system claude --name scored-parity-v3-final --kind parity
+```
+
+The parity probe exercises the exact model, effort, tool, permission, persistence, user-configuration, MCP, and sandbox flags used for scored work. It independently checks the file produced by the model against a preregistered SHA-256 value and fails unless the event validator reports a real, uncontaminated assistant turn. This proves CLI-command parity; protocol validation, environment comparison, task copying, finalization, and scored time limits are tested separately. None of these smoke commands read a benchmark task.
+
+An earlier v3 candidate passed `--json-schema` to Claude and `--output-schema` to Codex for the otherwise unused final message. The exact parity probe showed that Claude Code 2.1.201 accepted the option but Fable returned a successful plain-text result with no structured object. Both final-message constraints were removed before freeze. The shared scored contract is instead the strict, Pydantic-validated `workspace/output/predictions.json` described above.
+
+Run the integration suite only after creating those v3 smoke artifacts. The classifier regression also uses preserved neutral v1 refusal/fallback event fixtures; it never reads a scored event stream.
+
+```bash
+cd /root/bench-v2/runner
+/root/.local/bin/uv sync --frozen --dev
+/root/.local/bin/uv run pytest
+```
 
 ## Known model-verification asymmetry
 

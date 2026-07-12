@@ -19,13 +19,10 @@ case "${system}" in
       --ephemeral \
       --ignore-user-config \
       --ignore-rules \
-      --output-schema /runner/final.schema.json \
-      --output-last-message /runtime/final.json \
       --json \
       - < /workspace/PROMPT.md
     ;;
   claude)
-    schema=$(jq -c . /runner/final.schema.json)
     exec claude \
       --print \
       --model claude-fable-5 \
@@ -41,7 +38,6 @@ case "${system}" in
       --settings /runner/claude-settings.json \
       --dangerously-skip-permissions \
       --no-chrome \
-      --json-schema "${schema}" \
       --tools "Bash,Edit,Read,Write,Glob,Grep" \
       < /workspace/PROMPT.md
     ;;
@@ -50,4 +46,3 @@ case "${system}" in
     exit 64
     ;;
 esac
-

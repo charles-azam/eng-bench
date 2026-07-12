@@ -8,7 +8,7 @@ fi
 system=$2
 
 root=/root/bench-v2
-probe="${root}/preflight/isolation-v2-${system}"
+probe="${root}/preflight/isolation-v3-${system}"
 [[ ! -e "${probe}" ]] || { echo "probe already exists: ${probe}" >&2; exit 73; }
 install -d -m 700 "${probe}/workspace" "${probe}/runtime"
 python3 "${root}/runner/connect_proxy.py" \

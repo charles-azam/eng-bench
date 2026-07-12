@@ -45,7 +45,7 @@ python3 "${root}/runner/environment_manifest.py" > "${run_dir}/runtime/environme
 cmp --silent "${protocol}/environment.json" "${run_dir}/runtime/environment.json" || { echo "runtime environment differs from frozen manifest" >&2; exit 65; }
 cp -a "${task_dir}/." "${run_dir}/input/"
 cp -a "${task_dir}/." "${run_dir}/workspace/"
-(cd "${run_dir}/input" && find . -type f -print0 | sort -z | xargs -0 sha256sum) > "${run_dir}/input.sha256"
+(cd "${run_dir}/input" && find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum) > "${run_dir}/input.sha256"
 
 start_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 if [[ "${system}" == codex ]]; then
@@ -113,7 +113,7 @@ end_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)
   > "${run_dir}/status.json"
 jq --arg end_time "${end_time}" '. + {end_time: $end_time}' "${run_dir}/metadata.json" > "${run_dir}/metadata.tmp"
 mv "${run_dir}/metadata.tmp" "${run_dir}/metadata.json"
-(cd "${run_dir}/workspace" && find . -type f -print0 | sort -z | xargs -0 sha256sum) > "${run_dir}/workspace.sha256"
+(cd "${run_dir}/workspace" && find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum) > "${run_dir}/workspace.sha256"
 "${root}/runner/finalize-run.sh" --run-dir "${run_dir}"
 sha256sum \
   "${run_dir}/metadata.json" \

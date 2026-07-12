@@ -4,15 +4,15 @@ The harvester verifies copied raw run directories before producing any evaluator
 the fixed artifact ledger, exact input/workspace file sets and hashes, rejects symlinks, reconciles
 the run ID across directory/metadata/manifest records, and enforces the preregistered one-retry rule.
 
-Run it only on the clean v2 raw-results directory. The excluded v1 partial attempt must remain in a
-separate `excluded/` tree and is explicitly rejected as a harvest root or child.
+Run it only on the clean v3 raw-results directory. The excluded v1 and v2 campaigns must remain in
+separate `excluded/` trees and are explicitly rejected as a harvest root or child.
 
 ```bash
 uv run python -m analysis.harvest \
   --runs-root results/raw \
   --matrix protocol/matrix.tsv \
   --ledger protocol/evaluation_ledger.json \
-  --schedules-root results/schedules/v2 \
+  --schedules-root results/schedules/v3 \
   --output-dir results/harvested
 ```
 
@@ -40,7 +40,7 @@ same command supports a completed n3-only campaign, n3 plus n5, or all three reg
 uv run python -m analysis.blind_review prepare \
   --runs-root results/raw \
   --matrix protocol/matrix.tsv \
-  --schedules-root results/schedules/v2 \
+  --schedules-root results/schedules/v3 \
   --ledger protocol/evaluation_ledger.json \
   --rubric-source protocol/ARTIFACT_REVIEW.md \
   --review-bundle /public-review-area/review-bundle \
@@ -87,7 +87,7 @@ Finalize only after the review is complete:
 uv run python -m analysis.blind_review finalize \
   --runs-root results/raw \
   --matrix protocol/matrix.tsv \
-  --schedules-root results/schedules/v2 \
+  --schedules-root results/schedules/v3 \
   --ledger protocol/evaluation_ledger.json \
   --rubric-source protocol/ARTIFACT_REVIEW.md \
   --review-bundle /public-review-area/review-bundle \

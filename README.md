@@ -3,10 +3,10 @@
 Can a native coding agent make useful engineering predictions from a bounded evidence pack, before
 it sees the experimental outcome?
 
-This repository contains the frozen `2026-07-11-v2` comparison of:
+This repository contains the frozen `2026-07-12-v3` protocol for comparing:
 
 - Codex with requested model GPT-5.6 Sol;
-- Claude Code with served model Claude Fable 5.
+- Claude Code with requested model Claude Fable 5; served identity is verified per attempt.
 
 The two primary tasks are deliberately unlike one another. NSTF asks the systems to predict heat
 removal by a half-axial-scale, 19.03°-sector air-cooled natural-circulation loop from electrical heater input. TRISO asks
@@ -30,7 +30,7 @@ After the runs, raw attempt directories and machine-readable scores are publishe
 There is intentionally no overall leaderboard scalar: unlike evidence classes and unlike physical
 tasks are kept separate.
 
-## What changed after auditing the first benchmark
+## What changed after auditing the benchmark
 
 The earlier repository state is preserved by Git history and the tag `capstone-v1-2026-07-03`; its
 runs are not scores in this version. A line-by-line source audit found defects important enough to
@@ -43,9 +43,19 @@ invalidate a simple model-versus-model headline:
 - several TRISO counts, onset times, and Kr-85 releases were treated as independent measurements
   although the source describes them as one dependent inference chain.
 
-Version 2 corrects those errors, registers evidence classes and dependency groups, removes unsupported
-targets, and adds an NSTF supplied-duty ablation so the value of the leaked input is measured rather
-than hand-waved.
+Version 2 corrected those scientific errors, registered evidence classes and dependency groups,
+removed unsupported targets, and added an NSTF supplied-duty ablation so the value of the leaked
+input could be measured rather than hand-waved. Its campaign was nevertheless excluded before
+scoring for two independent runner-integrity failures: Claude's scored command exited before a
+model event because the external sandbox retained effective UID 0 without setting the CLI's
+deliberate-sandbox marker, and locale-dependent ledger ordering disagreed with the frozen bytewise
+task-pack hashes. The complete diagnosis and inspection boundary are preserved in
+[`results/excluded/v2-ineligible-campaign/EXCLUSION.md`](results/excluded/v2-ineligible-campaign/EXCLUSION.md).
+
+Version 3 keeps the corrected task, prompt, held-out measurement, and evaluator bytes unchanged. It
+sets `IS_SANDBOX=1` inside the real bubblewrap boundary, forces `LC_ALL=C` for pack/workspace
+ledgers, and requires both systems to complete a neutral checksum task through the exact scored CLI
+wrapper before freeze. All four primary cells restart from replicate 1; no v2 attempt is reused.
 
 ## Reproduce the evaluator
 

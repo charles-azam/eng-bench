@@ -13,6 +13,9 @@ if [[ -n "${BENCH_HOST_SENTINEL:-}" ]]; then
 fi
 echo "host-environment-cleared=true"
 
+[[ "${IS_SANDBOX:-}" == 1 ]]
+echo "sandbox-marker-set=true"
+
 [[ ! -e /root/bench-v2/hidden ]]
 [[ ! -e /root/bench ]]
 [[ ! -e /root/eng-bench ]]

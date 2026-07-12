@@ -105,6 +105,7 @@ def test_real_sandbox_hides_measurements_and_denies_arbitrary_network() -> None:
                 )
                 assert result.returncode == 0, result.stderr
                 assert "host-environment-cleared=true" in result.stdout
+                assert "sandbox-marker-set=true" in result.stdout
                 assert "filesystem-hidden=true" in result.stdout
                 assert "selected-credential-mounted=true" in result.stdout
                 assert "other-credential-empty=true" in result.stdout
@@ -119,12 +120,12 @@ def test_real_sandbox_hides_measurements_and_denies_arbitrary_network() -> None:
 def test_actual_event_streams_distinguish_result_refusal_and_fallback() -> None:
     codex = classify(
         system="codex",
-        events=PREFLIGHT / "isolated-ready-v2-codex" / "events.jsonl",
+        events=PREFLIGHT / "isolated-ready-v3-codex" / "events.jsonl",
         exit_code=0,
     )
     fable = classify(
         system="claude",
-        events=PREFLIGHT / "isolated-heat-flow-v2-claude" / "events.jsonl",
+        events=PREFLIGHT / "isolated-heat-flow-v3-claude" / "events.jsonl",
         exit_code=0,
     )
     refusal = classify(
@@ -164,6 +165,29 @@ def test_actual_event_streams_distinguish_result_refusal_and_fallback() -> None:
             assert classify(
                 system="claude", events=near_miss, exit_code=0
             )["classification"] == "model_contamination"
+
+
+def test_exact_scored_invocation_parity_smokes_completed() -> None:
+    expected = (
+        "a9f4f551c650380391f5a5f608c15b3b6fc4ddb988b0ed7150cc99526c0e8f4f"
+        "  INPUT.txt\n"
+    )
+    for system in ("codex", "claude"):
+        probe = PREFLIGHT / f"scored-parity-v3-final-{system}"
+        exit_code = int(
+            (probe / "exit-code.txt").read_text(encoding="utf-8").strip()
+        )
+        assert exit_code == 0
+        classified = classify(
+            system=system,
+            events=probe / "events.jsonl",
+            exit_code=exit_code,
+        )
+        assert classified["classification"] == "complete"
+        assert (probe / "parity-check.txt").read_text(encoding="utf-8") == "passed\n"
+        assert (
+            probe / "workspace" / "output" / "parity.txt"
+        ).read_text(encoding="utf-8") == expected
 
 
 def test_prediction_contract_is_validated_and_run_scoped() -> None:

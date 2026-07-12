@@ -89,6 +89,7 @@ exec "${bwrap}" \
   --setenv CODEX_HOME /home/bench/.codex \
   --setenv USER bench \
   --setenv LOGNAME bench \
+  --setenv IS_SANDBOX 1 \
   --setenv LANG C.UTF-8 \
   --setenv PATH /usr/local/bin:/usr/bin:/bin \
   --setenv DISABLE_AUTOUPDATER 1 \

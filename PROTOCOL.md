@@ -1,6 +1,6 @@
 # Preregistered native-agent engineering benchmark
 
-Protocol version: `2026-07-11-v2`
+Protocol version: `2026-07-12-v3`
 
 Status: **frozen protocol**. No scored run may start until the freeze procedure in this document
 has produced its manifest and tag. Changes after that tag require a new protocol version and make
@@ -65,7 +65,8 @@ For every launch:
 - use the highest reasoning setting advertised by each frozen CLI (`max` at protocol drafting);
 - provide a plain task prompt, with no `/goal`, subagents, repository agent instructions, web tools,
   package installation, or task-specific coaching;
-- create a hash-recorded host copy of the task pack, then give the agent a fresh
+- create a hash-recorded host copy of the task pack using bytewise (`LC_ALL=C`) path collation,
+  then give the agent a fresh
   writable working copy whose before/after file hashes are retained;
 - keep measurements, evaluator code, protocol files, old runs, and source reports outside the
   agent-visible namespace;
@@ -77,6 +78,20 @@ For every launch:
 Freeze exact CLI versions, model identifiers, reasoning settings, allowed tools, proxy allowlist,
 environment-snapshot digest, task prompt, and task-pack hashes. Run a non-scored isolation preflight proving
 that inference succeeds while arbitrary HTTP requests and reads of a hidden canary path fail.
+
+Before freeze, also run each system through the exact scored CLI-command wrapper on a neutral
+checksum task. The parity probe must use the frozen model, effort, permissions, tools, persistence,
+configuration, MCP, sandbox, and event-output flags; it must produce the preregistered file hash,
+finish with a provider-specific success event, and pass served-model/fallback validation. This proves
+command parity, not the separate protocol-verification, environment-comparison, copying,
+finalization, or timeout lifecycle, which has its own integration tests. A provider-specific
+baseline prompt may be used because Fable can fail closed on content-free prompts; the registered
+Fable readiness probe is an elementary slab-conduction calculation.
+
+The VPS process retains effective UID 0 inside an external bubblewrap namespace. The namespace
+truthfully sets `IS_SANDBOX=1`, the deliberate-sandbox marker recognized by the frozen Claude
+executable, only after it has cleared the environment, restricted mounts, unshared the
+network/PID/UTS/IPC namespaces, and installed the fail-closed egress bridge.
 
 ### Served-model rule
 
@@ -134,6 +149,9 @@ Each task requires `output/calculation_note.md`, all working files, and
   "most_uncertain_assumption": "plain-language statement"
 }
 ```
+
+This workspace file is the shared structured contract and is validated after execution. Neither
+treatment uses a provider-specific CLI final-message schema flag.
 
 The runner injects `run_id` into each prediction before evaluator ingestion; agents must not invent
 it. All shown keys are required. Numeric metrics use JSON numbers, `point == p50`, ordered
@@ -227,6 +245,14 @@ from the supplied particle counts; they must not be described as observations.
 
 ### Exclusions
 
+- Protocol v1 is excluded because its first scheduled process reached a defective finalizer. Its
+  partial attempt is preserved and no v1 output contributes to a score.
+- Protocol v2 is excluded in full. Its scored Claude command retained effective UID 0 but omitted
+  the truthful sandbox marker, so all Claude first attempts and registered retries exited before a
+  model event. Independently, its task/workspace ledger sort inherited the host locale, producing
+  ledger-byte hashes that disagreed with the bytewise frozen pack hashes even though the task file
+  bytes were identical. These are runner-integrity failures, not model results. No v2 attempt is
+  scored, reviewed, or merged with v3.
 - HTTR is excluded from the leaderboard because its earlier prompt prescribed much of the method
   and leaked the expected qualitative trajectory. Existing artifacts may appear only in a labeled
   post-hoc audit sidebar.
@@ -238,6 +264,10 @@ from the supplied particle counts; they must not be described as observations.
   task therefore asks about bounded response **through peak**, not a supposedly observed post-peak
   cooldown.
 
+Version 3 preserves the v2 scientific task, prompt, held-out measurement, and evaluator bytes. It
+changes only runner integrity and protocol metadata, and all four primary cells restart from
+replicate 1 under a newly frozen environment, tag, and schedule.
+
 ### Freeze
 
 After all preflight tests pass and before the first scored run:
@@ -246,8 +276,9 @@ After all preflight tests pass and before the first scored run:
 2. run `protocol/validate_task_packs.sh` plus the runner's hidden-canary tests;
 3. compute SHA-256 for every pack file, the task prompt, evaluator files, CLI binaries/version
    output, proxy policy, and run-image digest;
-4. write the sorted manifest without timestamps in hash-covered content;
-5. commit and tag `benchmark-2026-07-11-v2`;
+4. write every manifest with deterministic bytewise path collation and without timestamps in
+   hash-covered content;
+5. commit and tag `benchmark-2026-07-12-v3`;
 6. record the commit, tag, manifest hash, schedule, and preflight artifacts in the run ledger.
 
 Any scientific, scoring, prompt, or runner-policy change after the tag requires a new protocol version and a complete

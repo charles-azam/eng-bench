@@ -37,7 +37,7 @@ printf 'protocol_version=%s\n' "$(cat "${repo_root}/protocol/VERSION")" > "${out
 (
   cd "${output}"
   find . -type f ! -name manifest.sha256 -print0 \
-    | sort -z \
+    | LC_ALL=C sort -z \
     | xargs -0 sha256sum \
     > manifest.sha256
 )
