@@ -167,6 +167,15 @@ def status_payload(*, status: RunStatus, requested_model: str) -> dict[str, obje
             "prediction_normalization": "not_attempted",
             "served_models": [],
         }
+    if status is RunStatus.AGENT_FAILURE:
+        return {
+            "classification": "agent_failure",
+            "detail": "model session ended without a valid prediction artifact",
+            "exit_code": 1,
+            "canonical_status": status.value,
+            "prediction_normalization": "not_attempted",
+            "served_models": [requested_model],
+        }
     raise ValueError(f"unsupported synthetic status: {status.value}")
 
 
@@ -261,7 +270,11 @@ def write_synthetic_run(
         for path in workspace_directory.rglob(pattern="*")
         if path.is_file()
     )
-    served_models = [requested_model] if status is RunStatus.COMPLETED else []
+    served_models = (
+        [requested_model]
+        if status in {RunStatus.COMPLETED, RunStatus.AGENT_FAILURE}
+        else []
+    )
     manifest = RunManifest(
         run_id=run_id,
         benchmark_version=ledger.benchmark_version,

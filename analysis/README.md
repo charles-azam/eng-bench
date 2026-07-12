@@ -28,6 +28,34 @@ ineligible dataset is represented by empty JSONL files so a partial comparison c
 accident. Physical infrastructure failures and their retry remain visible in the eligible dataset;
 eligibility counts the final outcome once per scheduled replicate.
 
+Before publishing the next registered schedule, create a content-free gate attestation. The gate
+independently re-harvests the immutable raw tree, authenticates the v3 protocol and evaluation
+ledger, and requires every present stage schedule to be closed. It fails unless the selected dataset
+has every exact registered replicate, no missing final outcome, and no infrastructure-failed final
+outcome. Completed versus non-completed system outcomes are deliberately omitted because completion
+is not an infrastructure gate. The status-bearing harvester artifacts are committed with HMAC-SHA256
+under a fresh 32-byte key so their low-entropy fields cannot be brute-forced between stages. Keep the
+key private until every registered stage is closed, then publish it with the final results.
+After a closed extension the gate selects n5 when it is eligible, and falls back to the still-valid
+n3 primary dataset only if the extension has an infrastructure-ineligible final outcome; Stage 3 is
+ordered after Stage 2 but is not conditionally cancelled by such an extension failure.
+
+```bash
+install -d -m 700 /private/gate-keys
+openssl rand -out /private/gate-keys/core-n3.key 32
+chmod 600 /private/gate-keys/core-n3.key
+
+uv run python -m analysis.gate_eligibility \
+  --runs-root results/raw \
+  --matrix protocol/matrix.tsv \
+  --ledger protocol/evaluation_ledger.json \
+  --schedules-root results/schedules/v3 \
+  --frozen-manifest protocol/frozen_manifest.sha256 \
+  --commitment-key /private/gate-keys/core-n3.key \
+  --dataset n3 \
+  --output results/gates/core-n3.json
+```
+
 ## Identity-blind artifact review
 
 After automatic scoring has been frozen, prepare the preregistered qualitative review directly from
