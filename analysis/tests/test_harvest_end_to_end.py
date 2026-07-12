@@ -11,7 +11,7 @@ from typing import Literal
 import pytest
 
 from analysis.harvest import harvest
-from analysis.integrity import ARTIFACT_PATHS
+from analysis.integrity import ARTIFACT_PATHS, verify_tree_ledger
 from analysis.models import DatasetEligibility, DatasetName, EligibilityReport
 from eng_bench.models import (
     FrozenLedger,
@@ -451,6 +451,42 @@ def dataset_from_report(
     *, report: EligibilityReport, dataset_name: DatasetName
 ) -> DatasetEligibility:
     return next(dataset for dataset in report.datasets if dataset.dataset is dataset_name)
+
+
+def test_tree_ledger_accepts_runner_locale_order_for_mixed_case_paths(
+    tmp_path: Path,
+) -> None:
+    tree_root = tmp_path / "input"
+    write_files(
+        root=tree_root,
+        contents={
+            "inputs/01_geometry.md": "geometry\n",
+            "inputs/02_materials.md": "materials\n",
+            "PROMPT.md": "prompt\n",
+            "TASK.md": "task\n",
+        },
+    )
+    runner_locale_order = (
+        "inputs/01_geometry.md",
+        "inputs/02_materials.md",
+        "PROMPT.md",
+        "TASK.md",
+    )
+    ledger_path = tmp_path / "input.sha256"
+    ledger_path.write_text(
+        "".join(
+            f"{digest_file(path=tree_root / relative_path)}  ./{relative_path}\n"
+            for relative_path in runner_locale_order
+        ),
+        encoding="utf-8",
+    )
+
+    verified_paths = verify_tree_ledger(
+        tree_root=tree_root,
+        ledger_path=ledger_path,
+    )
+
+    assert verified_paths == tuple(sorted(runner_locale_order))
 
 
 def test_valid_n3_harvest_is_gated_and_byte_deterministic(tmp_path: Path) -> None:

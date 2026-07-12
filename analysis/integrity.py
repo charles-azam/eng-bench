@@ -141,9 +141,7 @@ def verify_tree_ledger(*, tree_root: Path, ledger_path: Path) -> tuple[str, ...]
         for raw_path, _ in entries
     )
     actual_paths = regular_tree_files(root=tree_root)
-    if normalized != tuple(sorted(normalized)):
-        raise ValueError(f"tree checksum ledger is not sorted: {ledger_path}")
-    if normalized != actual_paths:
+    if tuple(sorted(normalized)) != actual_paths:
         missing = sorted(set(actual_paths) - set(normalized))
         unexpected = sorted(set(normalized) - set(actual_paths))
         raise ValueError(
