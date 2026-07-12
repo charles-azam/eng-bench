@@ -40,9 +40,26 @@ task_dir="${protocol}/tasks/${task}"
 run_id="${stage}-${task}-${system}-r$(printf '%02d' "${replicate}")-a$(printf '%02d' "${attempt}")"
 run_dir="${root}/runs/${run_id}"
 [[ ! -e "${run_dir}" ]] || { echo "run already exists: ${run_id}" >&2; exit 73; }
-install -d -m 700 "${run_dir}/input" "${run_dir}/workspace" "${run_dir}/runtime"
-python3 "${root}/runner/environment_manifest.py" > "${run_dir}/runtime/environment.json"
-cmp --silent "${protocol}/environment.json" "${run_dir}/runtime/environment.json" || { echo "runtime environment differs from frozen manifest" >&2; exit 65; }
+environment_probe=""
+proxy_pid=""
+cleanup() {
+  if [[ -n "${environment_probe}" ]]; then
+    rm -f -- "${environment_probe}"
+  fi
+  if [[ -n "${proxy_pid}" ]]; then
+    kill "${proxy_pid}" 2>/dev/null || true
+    wait "${proxy_pid}" 2>/dev/null || true
+  fi
+}
+trap cleanup EXIT INT TERM
+
+environment_probe=$(mktemp "${root}/runs/.${run_id}.environment.XXXXXX")
+python3 "${root}/runner/environment_manifest.py" > "${environment_probe}"
+python3 "${root}/runner/prepare_attempt.py" \
+  --run-dir "${run_dir}" \
+  --frozen-environment "${protocol}/environment.json" \
+  --observed-environment "${environment_probe}"
+environment_probe=""
 cp -a "${task_dir}/." "${run_dir}/input/"
 cp -a "${task_dir}/." "${run_dir}/workspace/"
 (cd "${run_dir}/input" && find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum) > "${run_dir}/input.sha256"
@@ -82,11 +99,6 @@ python3 "${root}/runner/connect_proxy.py" \
   > "${run_dir}/runtime/proxy.stdout" \
   2> "${run_dir}/runtime/proxy.stderr" &
 proxy_pid=$!
-cleanup() {
-  kill "${proxy_pid}" 2>/dev/null || true
-  wait "${proxy_pid}" 2>/dev/null || true
-}
-trap cleanup EXIT INT TERM
 for _attempt in $(seq 1 100); do
   [[ -S "${run_dir}/runtime/proxy.sock" ]] && break
   sleep 0.05
@@ -106,6 +118,21 @@ exit_code=$?
 set -e
 end_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
+environment_verification=capture_failed
+observed_environment_sha256=""
+final_environment="${run_dir}/runtime/environment-final.json"
+if python3 "${root}/runner/environment_manifest.py" > "${final_environment}"; then
+  observed_environment_sha256=$(sha256sum "${final_environment}" | cut -d ' ' -f1)
+  if cmp --silent "${protocol}/environment.json" "${final_environment}"; then
+    environment_verification=passed
+  else
+    environment_verification=mismatched
+  fi
+fi
+if [[ -z "${observed_environment_sha256}" ]]; then
+  observed_environment_sha256=$(sha256sum "${final_environment}" | cut -d ' ' -f1)
+fi
+
 "${root}/runner/validate-events.sh" \
   --system "${system}" \
   --events "${run_dir}/events.jsonl" \
@@ -114,7 +141,14 @@ end_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 jq --arg end_time "${end_time}" '. + {end_time: $end_time}' "${run_dir}/metadata.json" > "${run_dir}/metadata.tmp"
 mv "${run_dir}/metadata.tmp" "${run_dir}/metadata.json"
 (cd "${run_dir}/workspace" && find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum) > "${run_dir}/workspace.sha256"
-"${root}/runner/finalize-run.sh" --run-dir "${run_dir}"
+finalizer_arguments=(
+  --run-dir "${run_dir}"
+  --environment-verification "${environment_verification}"
+)
+if [[ -n "${observed_environment_sha256}" ]]; then
+  finalizer_arguments+=(--observed-environment-sha256 "${observed_environment_sha256}")
+fi
+"${root}/runner/finalize-run.sh" "${finalizer_arguments[@]}"
 sha256sum \
   "${run_dir}/metadata.json" \
   "${run_dir}/events.jsonl" \
@@ -127,6 +161,7 @@ sha256sum \
   "${run_dir}/workspace.sha256" \
   "${run_dir}/normalization.stderr" \
   "${run_dir}/runtime/environment.json" \
+  "${run_dir}/runtime/environment-final.json" \
   > "${run_dir}/artifact.sha256"
 chmod -R go-rwx "${run_dir}/runtime"
 cat "${run_dir}/status.json"

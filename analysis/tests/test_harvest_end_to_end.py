@@ -11,7 +11,11 @@ from typing import Literal
 import pytest
 
 from analysis.harvest import harvest
-from analysis.integrity import ARTIFACT_PATHS, verify_tree_ledger
+from analysis.integrity import (
+    ARTIFACT_PATHS,
+    POST_INFERENCE_ENVIRONMENT_MARKERS,
+    verify_tree_ledger,
+)
 from analysis.models import DatasetEligibility, DatasetName, EligibilityReport
 from eng_bench.models import (
     FrozenLedger,
@@ -40,6 +44,7 @@ INPUT_CONTENTS: dict[str, str] = {
     "TASK.md": "# Synthetic frozen task\n",
 }
 ENVIRONMENT_CONTENT = '{"image":"synthetic-v2"}\n'
+EnvironmentVerification = Literal["passed", "mismatched", "capture_failed"]
 
 
 def digest_bytes(*, value: bytes) -> str:
@@ -192,6 +197,9 @@ def write_synthetic_run(
     retry_overlaps_first_attempt: bool = False,
     start_time_override: str | None = None,
     end_time_override: str | None = None,
+    environment_verification: EnvironmentVerification = "passed",
+    initial_environment_content: str = ENVIRONMENT_CONTENT,
+    final_environment_content: str = ENVIRONMENT_CONTENT,
 ) -> Path:
     run_id = run_id_for(
         stage=stage,
@@ -215,7 +223,11 @@ def write_synthetic_run(
             contents={"output/calculation_note.md": "# Synthetic calculation\n"},
         )
     (runtime_directory / "environment.json").write_text(
-        ENVIRONMENT_CONTENT,
+        initial_environment_content,
+        encoding="utf-8",
+    )
+    (runtime_directory / "environment-final.json").write_text(
+        final_environment_content,
         encoding="utf-8",
     )
     (run_directory / "input.sha256").write_text(
@@ -260,6 +272,10 @@ def write_synthetic_run(
         encoding="utf-8",
     )
     status_record = status_payload(status=status, requested_model=requested_model)
+    if environment_verification != "passed":
+        status_record["prediction_normalization"] = (
+            POST_INFERENCE_ENVIRONMENT_MARKERS[environment_verification]
+        )
     (run_directory / "status.json").write_text(
         f"{canonical_json(value=status_record)}\n",
         encoding="utf-8",
@@ -332,8 +348,26 @@ def write_synthetic_run(
         encoding="utf-8",
     )
     (run_directory / "proxy.jsonl").write_text("", encoding="utf-8")
-    (run_directory / "normalization.stderr").write_text("", encoding="utf-8")
+    normalization_stderr = ""
+    if environment_verification != "passed":
+        normalization_stderr = (
+            f"post-inference environment verification={environment_verification}; "
+            f"frozen_sha256={digest_bytes(value=ENVIRONMENT_CONTENT.encode())}; "
+            "observed_sha256="
+            f"{digest_bytes(value=final_environment_content.encode())}; "
+            "raw inference artifacts preserved; predictions not normalized\n"
+        )
+    (run_directory / "normalization.stderr").write_text(
+        normalization_stderr,
+        encoding="utf-8",
+    )
 
+    rewrite_artifact_ledger(run_directory=run_directory)
+    return run_directory
+
+
+def rewrite_artifact_ledger(*, run_directory: Path) -> None:
+    run_id = run_directory.name
     artifact_ledger = "".join(
         f"{digest_file(path=run_directory / relative_path)}  "
         f"/root/bench-v2/runs/{run_id}/{relative_path}\n"
@@ -343,7 +377,6 @@ def write_synthetic_run(
         artifact_ledger,
         encoding="utf-8",
     )
-    return run_directory
 
 
 def prepare_repository(*, root: Path) -> tuple[Path, Path, Path, FrozenLedger]:
@@ -533,6 +566,139 @@ def test_valid_n3_harvest_is_gated_and_byte_deterministic(tmp_path: Path) -> Non
     assert len((first_output / "n3" / "predictions.jsonl").read_text().splitlines()) == 12
     assert (first_output / "n5" / "manifests.jsonl").read_text() == ""
     assert len((first_output / "integrity.jsonl").read_text().splitlines()) == 12
+
+
+@pytest.mark.parametrize(
+    ("environment_verification", "final_environment_content"),
+    [
+        ("mismatched", '{"image":"synthetic-v2-after-inference"}\n'),
+        ("capture_failed", ""),
+    ],
+    ids=["mismatched", "capture-failed"],
+)
+def test_disclosed_post_inference_environment_failure_is_preserved(
+    tmp_path: Path,
+    environment_verification: EnvironmentVerification,
+    final_environment_content: str,
+) -> None:
+    runs_root, matrix_path, ledger_path, ledger = prepare_repository(root=tmp_path)
+    run_directory = write_synthetic_run(
+        runs_root=runs_root,
+        ledger=ledger,
+        stage="core-n3",
+        task="nstf_blind_derive_duty",
+        system="codex",
+        replicate=1,
+        attempt=1,
+        status=RunStatus.RUNNER_FAILURE,
+        environment_verification=environment_verification,
+        final_environment_content=final_environment_content,
+    )
+    write_synthetic_run(
+        runs_root=runs_root,
+        ledger=ledger,
+        stage="core-n3",
+        task="nstf_blind_derive_duty",
+        system="codex",
+        replicate=1,
+        attempt=2,
+        status=RunStatus.COMPLETED,
+    )
+    output_directory = tmp_path / "harvested"
+
+    report = harvest(
+        runs_root=runs_root,
+        matrix_path=matrix_path,
+        ledger_path=ledger_path,
+        output_directory=output_directory,
+    )
+
+    assert not dataset_from_report(
+        report=report,
+        dataset_name=DatasetName.N3,
+    ).eligible
+    with (output_directory / "attempts.csv").open(
+        mode="r",
+        encoding="utf-8",
+        newline="",
+    ) as stream:
+        attempts = list(csv.DictReader(stream))
+    assert len(attempts) == 2
+    assert [attempt["status"] for attempt in attempts] == [
+        "runner_failure",
+        "completed",
+    ]
+    assert [attempt["infrastructure_valid"] for attempt in attempts] == [
+        "false",
+        "true",
+    ]
+    integrity_records = [
+        json.loads(line)
+        for line in (output_directory / "integrity.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+    ]
+    assert all(
+        record["artifact_file_count"] == len(ARTIFACT_PATHS)
+        for record in integrity_records
+    )
+    assert ARTIFACT_PATHS[-1] == "runtime/environment-final.json"
+    assert run_directory.joinpath("predictions.jsonl").read_text(encoding="utf-8") == ""
+
+
+def test_hidden_post_inference_environment_mismatch_fails_closed(
+    tmp_path: Path,
+) -> None:
+    runs_root, matrix_path, ledger_path, ledger = prepare_repository(root=tmp_path)
+    write_synthetic_run(
+        runs_root=runs_root,
+        ledger=ledger,
+        stage="core-n3",
+        task="nstf_blind_derive_duty",
+        system="codex",
+        replicate=1,
+        attempt=1,
+        status=RunStatus.COMPLETED,
+        final_environment_content='{"image":"silently-changed"}\n',
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="differs without a canonical failure disclosure",
+    ):
+        harvest(
+            runs_root=runs_root,
+            matrix_path=matrix_path,
+            ledger_path=ledger_path,
+            output_directory=tmp_path / "harvested",
+        )
+
+
+def test_environment_failure_disclosure_cannot_replace_frozen_pre_run_anchor(
+    tmp_path: Path,
+) -> None:
+    runs_root, matrix_path, ledger_path, ledger = prepare_repository(root=tmp_path)
+    write_synthetic_run(
+        runs_root=runs_root,
+        ledger=ledger,
+        stage="core-n3",
+        task="nstf_blind_derive_duty",
+        system="codex",
+        replicate=1,
+        attempt=1,
+        status=RunStatus.RUNNER_FAILURE,
+        environment_verification="mismatched",
+        initial_environment_content='{"image":"changed-before-inference"}\n',
+        final_environment_content='{"image":"changed-after-inference"}\n',
+    )
+
+    with pytest.raises(ValueError, match="runtime environment hash mismatch"):
+        harvest(
+            runs_root=runs_root,
+            matrix_path=matrix_path,
+            ledger_path=ledger_path,
+            output_directory=tmp_path / "harvested",
+        )
 
 
 def test_schedule_checksum_rows_prefix_and_first_attempt_chronology(

@@ -26,11 +26,11 @@ from analysis.models import (
 )
 
 
-V3_PROTOCOL_MANIFEST_SHA256 = (
-    "29429843b248aa75c45cd47befa9029d2d94024144e6fcb02cc0ffe7f8bab5c3"
+V4_PROTOCOL_MANIFEST_SHA256 = (
+    "a055cf5b17b64861ba393dcda607e5f4b9908ad8e044bcc182ad6cf8df080520"
 )
-V3_EVALUATION_LEDGER_SHA256 = (
-    "78999d11e9584dd7d3e938574ac1aecd68bd1e960a9b1a1d36066ea67a2bc799"
+V4_EVALUATION_LEDGER_SHA256 = (
+    "9962c3f87bee50f8a32b90b41c56954d0e89d545216d4bb02c2dede121824bd7"
 )
 PROTOCOL_STAGE_PREFIXES: tuple[tuple[str, ...], ...] = (
     ("core-n3",),
@@ -252,7 +252,7 @@ def require_protocol_bound_metadata(
             raise ValueError("raw metadata run ID differs from harvested integrity")
         if metadata.protocol_manifest_sha256 != registered_protocol_manifest_sha256:
             raise ValueError(
-                f"raw attempt is not bound to the registered v3 protocol: {record.run_id!r}"
+                f"raw attempt is not bound to the registered v4 protocol: {record.run_id!r}"
             )
 
 
@@ -317,9 +317,9 @@ def build_attestation(
     frozen_manifest_path: Path,
     commitment_key_path: Path,
     dataset: DatasetName,
-    registered_frozen_manifest_sha256: str = V3_PROTOCOL_MANIFEST_SHA256,
-    registered_attempt_protocol_manifest_sha256: str = V3_PROTOCOL_MANIFEST_SHA256,
-    registered_evaluation_ledger_sha256: str = V3_EVALUATION_LEDGER_SHA256,
+    registered_frozen_manifest_sha256: str = V4_PROTOCOL_MANIFEST_SHA256,
+    registered_attempt_protocol_manifest_sha256: str = V4_PROTOCOL_MANIFEST_SHA256,
+    registered_evaluation_ledger_sha256: str = V4_EVALUATION_LEDGER_SHA256,
 ) -> GateAttestation:
     matrix_contents = matrix_path.read_bytes()
     ledger_contents = ledger_path.read_bytes()
@@ -327,10 +327,10 @@ def build_attestation(
     commitment_key = load_commitment_key(path=commitment_key_path)
     actual_frozen_manifest_sha256 = sha256_bytes(contents=frozen_manifest_contents)
     if actual_frozen_manifest_sha256 != registered_frozen_manifest_sha256:
-        raise ValueError("frozen protocol manifest digest is not the registered v3 digest")
+        raise ValueError("frozen protocol manifest digest is not the registered v4 digest")
     actual_ledger_sha256 = sha256_bytes(contents=ledger_contents)
     if actual_ledger_sha256 != registered_evaluation_ledger_sha256:
-        raise ValueError("evaluation ledger digest is not the registered v3 digest")
+        raise ValueError("evaluation ledger digest is not the registered v4 digest")
     expected_matrix_sha256 = frozen_matrix_sha256(
         manifest_contents=frozen_manifest_contents
     )
@@ -462,9 +462,9 @@ def build_parser() -> argparse.ArgumentParser:
 def main(
     *,
     arguments: Sequence[str] | None = None,
-    registered_frozen_manifest_sha256: str = V3_PROTOCOL_MANIFEST_SHA256,
-    registered_attempt_protocol_manifest_sha256: str = V3_PROTOCOL_MANIFEST_SHA256,
-    registered_evaluation_ledger_sha256: str = V3_EVALUATION_LEDGER_SHA256,
+    registered_frozen_manifest_sha256: str = V4_PROTOCOL_MANIFEST_SHA256,
+    registered_attempt_protocol_manifest_sha256: str = V4_PROTOCOL_MANIFEST_SHA256,
+    registered_evaluation_ledger_sha256: str = V4_EVALUATION_LEDGER_SHA256,
 ) -> int:
     parsed = build_parser().parse_args(args=arguments)
     attestation = build_attestation(

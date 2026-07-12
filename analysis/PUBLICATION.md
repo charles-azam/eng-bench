@@ -20,7 +20,7 @@ uv run python -m analysis.publication \
   --schedule-integrity results/harvested/schedule_integrity.jsonl \
   --eligibility results/harvested/eligibility.json \
   --matrix protocol/matrix.tsv \
-  --schedules-root results/schedules/v3 \
+  --schedules-root results/schedules/v4 \
   --runs-root results/raw \
   --artifact-root results/raw \
   --ledger protocol/evaluation_ledger.json \

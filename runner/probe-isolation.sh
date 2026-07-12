@@ -8,7 +8,12 @@ fi
 system=$2
 
 root=/root/bench-v2
-probe="${root}/preflight/isolation-v3-${system}"
+host_canary="${root}/hidden/held-out-canary.txt"
+[[ -f "${host_canary}" && ! -L "${host_canary}" && -s "${host_canary}" ]] || {
+  echo "host hidden canary must be a non-empty regular file: ${host_canary}" >&2
+  exit 65
+}
+probe="${root}/preflight/isolation-v4-${system}"
 [[ ! -e "${probe}" ]] || { echo "probe already exists: ${probe}" >&2; exit 73; }
 install -d -m 700 "${probe}/workspace" "${probe}/runtime"
 python3 "${root}/runner/connect_proxy.py" \

@@ -1,8 +1,8 @@
 {
-  "benchmark_version": "2026-07-12-v3",
+  "benchmark_version": "2026-07-12-v4",
   "evaluator_manifest_sha256": "sha256:9fafb9f4e87e354c77533736af0ad70f509638ca49882c2db428c4ce87dc98c2",
   "prompt_sha256": "sha256:94bfff14534b9d741a472ee42b3ef9e54d5d72b65fb580a8df5a800788c02172",
-  "runner_image_sha256": "sha256:d8f61e4a46f44e4bddd4ead99a60aae1fc3090d98d5d0a6569ad87161f2da32a",
+  "runner_image_sha256": "sha256:15559315a5072682de5ce4b0fc636c59ffdd101f5b048cac1137bd4c6f7e4bc7",
   "systems": {
     "claude": {
       "cli_version": "2.1.201 (Claude Code)",

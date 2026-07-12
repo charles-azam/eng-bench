@@ -14,6 +14,10 @@ results/excluded/v1-finalizer-bug/core-n3-nstf_blind_derive_duty-codex-r01-a01/
 # blindness. Publish only its checksum ledger and exclusion note before then.
 results/excluded/v2-ineligible-campaign/raw/
 
+# V3 stopped after live host-package drift. Keep its sealed raw tree private until the v4
+# prospective boundary closes; publish only the exclusion note and preservation commitment.
+results/excluded/v3-environment-drift/raw/
+
 # internal — kept locally, never published
 handoff/
 archive/

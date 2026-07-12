@@ -11,8 +11,8 @@ from pydantic import Field, StringConstraints, field_validator, model_validator
 
 from analysis.gate_eligibility import (
     PROTOCOL_STAGE_PREFIXES,
-    V3_EVALUATION_LEDGER_SHA256,
-    V3_PROTOCOL_MANIFEST_SHA256,
+    V4_EVALUATION_LEDGER_SHA256,
+    V4_PROTOCOL_MANIFEST_SHA256,
     GateAttestation,
     build_attestation,
     canonical_json,
@@ -307,9 +307,9 @@ def verify_gate_disclosure(
     ledger_path: Path,
     schedules_root: Path,
     frozen_manifest_path: Path,
-    registered_frozen_manifest_sha256: str = V3_PROTOCOL_MANIFEST_SHA256,
-    registered_attempt_protocol_manifest_sha256: str = V3_PROTOCOL_MANIFEST_SHA256,
-    registered_evaluation_ledger_sha256: str = V3_EVALUATION_LEDGER_SHA256,
+    registered_frozen_manifest_sha256: str = V4_PROTOCOL_MANIFEST_SHA256,
+    registered_attempt_protocol_manifest_sha256: str = V4_PROTOCOL_MANIFEST_SHA256,
+    registered_evaluation_ledger_sha256: str = V4_EVALUATION_LEDGER_SHA256,
 ) -> GateDisclosureVerificationReport:
     disclosure = load_disclosure(path=disclosure_path)
     verified_gates = [
@@ -355,9 +355,9 @@ def build_parser() -> argparse.ArgumentParser:
 def main(
     *,
     arguments: Sequence[str] | None = None,
-    registered_frozen_manifest_sha256: str = V3_PROTOCOL_MANIFEST_SHA256,
-    registered_attempt_protocol_manifest_sha256: str = V3_PROTOCOL_MANIFEST_SHA256,
-    registered_evaluation_ledger_sha256: str = V3_EVALUATION_LEDGER_SHA256,
+    registered_frozen_manifest_sha256: str = V4_PROTOCOL_MANIFEST_SHA256,
+    registered_attempt_protocol_manifest_sha256: str = V4_PROTOCOL_MANIFEST_SHA256,
+    registered_evaluation_ledger_sha256: str = V4_EVALUATION_LEDGER_SHA256,
 ) -> int:
     parsed = build_parser().parse_args(args=arguments)
     report = verify_gate_disclosure(

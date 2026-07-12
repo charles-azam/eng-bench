@@ -32,7 +32,12 @@ ARTIFACT_PATHS: tuple[str, ...] = (
     "workspace.sha256",
     "normalization.stderr",
     "runtime/environment.json",
+    "runtime/environment-final.json",
 )
+POST_INFERENCE_ENVIRONMENT_MARKERS: dict[str, str] = {
+    "mismatched": "post_inference_environment_mismatched",
+    "capture_failed": "post_inference_environment_capture_failed",
+}
 INFRASTRUCTURE_STATUSES: frozenset[RunStatus] = frozenset(
     {RunStatus.PROVIDER_FAILURE, RunStatus.RUNNER_FAILURE}
 )
@@ -229,6 +234,82 @@ def validate_frozen_fields(
         raise ValueError(f"run {metadata.run_id!r} violates frozen fields: {sorted(issues)!r}")
 
 
+def validate_runtime_environments(
+    *,
+    run_directory: Path,
+    metadata: RunMetadata,
+    status: RunStatusRecord,
+    manifest: RunManifest,
+    predictions: list[Prediction],
+) -> None:
+    initial_environment_path = run_directory / "runtime" / "environment.json"
+    final_environment_path = run_directory / "runtime" / "environment-final.json"
+    initial_environment_sha256 = sha256_file(path=initial_environment_path)
+    final_environment_sha256 = sha256_file(path=final_environment_path)
+    if manifest.runner_image_sha256 != initial_environment_sha256:
+        raise ValueError(f"runtime environment hash mismatch: {metadata.run_id!r}")
+
+    initial_environment = initial_environment_path.read_bytes()
+    final_environment = final_environment_path.read_bytes()
+    environments_match = initial_environment == final_environment
+    marker = status.prediction_normalization
+    failure_kind = next(
+        (
+            kind
+            for kind, expected_marker in POST_INFERENCE_ENVIRONMENT_MARKERS.items()
+            if marker == expected_marker
+        ),
+        None,
+    )
+    if marker.startswith("post_inference_environment_") and failure_kind is None:
+        raise ValueError(
+            f"unknown post-inference environment marker for {metadata.run_id!r}: "
+            f"{marker!r}"
+        )
+
+    if failure_kind is None:
+        if (
+            not environments_match
+            or final_environment_sha256 != manifest.runner_image_sha256
+        ):
+            raise ValueError(
+                "post-inference runtime environment differs without a canonical "
+                f"failure disclosure: {metadata.run_id!r}"
+            )
+        return
+
+    if manifest.status is not RunStatus.RUNNER_FAILURE:
+        raise ValueError(
+            "post-inference environment failure must be canonical runner_failure: "
+            f"{metadata.run_id!r}"
+        )
+    if predictions:
+        raise ValueError(
+            "post-inference environment failure contains normalized predictions: "
+            f"{metadata.run_id!r}"
+        )
+    if failure_kind == "mismatched" and environments_match:
+        raise ValueError(
+            "post-inference environment mismatch marker contradicts identical "
+            f"captures: {metadata.run_id!r}"
+        )
+
+    expected_disclosure = (
+        f"post-inference environment verification={failure_kind}; "
+        f"frozen_sha256={initial_environment_sha256.removeprefix('sha256:')}; "
+        f"observed_sha256={final_environment_sha256.removeprefix('sha256:')}; "
+        "raw inference artifacts preserved; predictions not normalized\n"
+    )
+    actual_disclosure = run_directory.joinpath("normalization.stderr").read_text(
+        encoding="utf-8"
+    )
+    if actual_disclosure != expected_disclosure:
+        raise ValueError(
+            "post-inference environment disclosure does not match the captured "
+            f"artifacts: {metadata.run_id!r}"
+        )
+
+
 def validate_run_consistency(
     *,
     run_directory: Path,
@@ -289,9 +370,13 @@ def validate_run_consistency(
     input_ledger_hash = sha256_file(path=run_directory / "input.sha256")
     if manifest.pack_sha256 != input_ledger_hash:
         raise ValueError(f"manifest pack hash mismatch: {metadata.run_id!r}")
-    environment_hash = sha256_file(path=run_directory / "runtime" / "environment.json")
-    if manifest.runner_image_sha256 != environment_hash:
-        raise ValueError(f"runtime environment hash mismatch: {metadata.run_id!r}")
+    validate_runtime_environments(
+        run_directory=run_directory,
+        metadata=metadata,
+        status=status,
+        manifest=manifest,
+        predictions=predictions,
+    )
 
     expected_trace = f"{metadata.run_id}/events.jsonl"
     if manifest.trace_path != expected_trace:

@@ -18,7 +18,7 @@ printf 'docker_version=%s\n' "$(docker --version)"
 jq -e '.switchModelsOnFlag == false' "${root}/runner/claude-settings.json" >/dev/null
 codex login status
 claude auth status | jq '{loggedIn, authMethod, apiProvider, subscriptionType}'
+python3 "${root}/runner/environment_manifest.py" >/dev/null
 df -h /root
 free -h
 printf '%s\n' 'preflight_static=passed'
-

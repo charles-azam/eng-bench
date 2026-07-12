@@ -1,6 +1,6 @@
 # Preregistered native-agent engineering benchmark
 
-Protocol version: `2026-07-12-v3`
+Protocol version: `2026-07-12-v4`
 
 Status: **frozen protocol**. No scored run may start until the freeze procedure in this document
 has produced its manifest and tag. Changes after that tag require a new protocol version and make
@@ -62,6 +62,9 @@ For every launch:
 
 - use the same VPS, hash-checked host/toolchain environment, preinstalled scientific packages, 60-minute model-working
   budget, and 75-minute hard process timeout;
+- keep both automatic APT transaction timers and services masked and inactive for the complete
+  campaign, and forbid package, CLI, runner-environment, or host reboot changes between freeze and
+  final archive;
 - use the highest reasoning setting advertised by each frozen CLI (`max` at protocol drafting);
 - provide a plain task prompt, with no `/goal`, subagents, repository agent instructions, web tools,
   package installation, or task-specific coaching;
@@ -74,6 +77,12 @@ For every launch:
   CLI through a fail-closed proxy;
 - capture the prompt, structured CLI event stream, shell/tool trace, created files, environment
   manifest, timestamps, exit status, usage, and served model identity.
+
+The runner must compare a freshly generated environment manifest byte-for-byte with the frozen
+manifest before allocating a canonical attempt directory and again immediately after inference.
+A failed precondition creates no attempt. A failed post-inference comparison preserves the opaque
+raw outputs, emits no normalized prediction, and finalizes as `runner_failure` for the registered
+single retry.
 
 Freeze exact CLI versions, model identifiers, reasoning settings, allowed tools, proxy allowlist,
 environment-snapshot digest, task prompt, and task-pack hashes. Run a non-scored isolation preflight proving
@@ -117,6 +126,12 @@ prompt after observing a refusal.
 - Incorrect reasoning, missing outputs, schema-invalid output, tool misuse, timeout after a valid
   model session, and served-model refusal are system completion failures. Do not retry them.
 - Never remove a failed attempt from completion-rate denominators.
+
+A stopped stage may resume only from its original complete schedule. The resume verifier may skip
+only a contiguous prefix of finalized, checksum-valid attempts whose metadata matches the frozen
+schedule. It must reject incomplete or corrupt directories, gaps, altered identities, unregistered
+attempt numbers, and retries for non-infrastructure outcomes. All first attempts still precede the
+retry phase, and retries retain original schedule order.
 
 ## 4. Required output contract
 
@@ -252,7 +267,13 @@ from the supplied particle counts; they must not be described as observations.
   model event. Independently, its task/workspace ledger sort inherited the host locale, producing
   ledger-byte hashes that disagreed with the bytewise frozen pack hashes even though the task file
   bytes were identical. These are runner-integrity failures, not model results. No v2 attempt is
-  scored, reviewed, or merged with v3.
+  scored, reviewed, or merged with v4.
+- Protocol v3 is excluded in full after an unattended package upgrade changed the frozen host
+  environment during sequence 8. Sequence 9 then failed closed before metadata creation or model
+  invocation. Because the completed sequence-8 attempt cannot be certified for its full duration
+  or replaced under the frozen retry rule, no v3 attempt is scored, reviewed, or merged with v4.
+  The exact timeline, hashes, and inspection boundary are preserved in
+  `results/excluded/v3-environment-drift/EXCLUSION.md`.
 - HTTR is excluded from the leaderboard because its earlier prompt prescribed much of the method
   and leaked the expected qualitative trajectory. Existing artifacts may appear only in a labeled
   post-hoc audit sidebar.
@@ -264,9 +285,10 @@ from the supplied particle counts; they must not be described as observations.
   task therefore asks about bounded response **through peak**, not a supposedly observed post-peak
   cooldown.
 
-Version 3 preserves the v2 scientific task, prompt, held-out measurement, and evaluator bytes. It
-changes only runner integrity and protocol metadata, and all four primary cells restart from
-replicate 1 under a newly frozen environment, tag, and schedule.
+Version 4 preserves the v3 scientific task, prompt, held-out measurement, and evaluator bytes. It
+changes only runner lifecycle integrity and protocol metadata, freezes the patched host with
+automatic package transactions disabled, adds pre/post environment proof plus safe schedule
+resumption, and restarts all four primary cells from replicate 1 under a new tag and schedule.
 
 ### Freeze
 
@@ -278,7 +300,7 @@ After all preflight tests pass and before the first scored run:
    output, proxy policy, and run-image digest;
 4. write every manifest with deterministic bytewise path collation and without timestamps in
    hash-covered content;
-5. commit and tag `benchmark-2026-07-12-v3`;
+5. commit and tag `benchmark-2026-07-12-v4`;
 6. record the commit, tag, manifest hash, schedule, and preflight artifacts in the run ledger.
 
 Any scientific, scoring, prompt, or runner-policy change after the tag requires a new protocol version and a complete

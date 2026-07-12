@@ -12,6 +12,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from typing import TypedDict
 
 
 RUNNER_ROOT = Path("/root/bench-v2/runner")
@@ -27,6 +28,18 @@ NORMALIZER_VENV = RUNNER_ROOT / ".venv"
 NORMALIZER_PYTHON = NORMALIZER_VENV / "bin/python"
 EXCLUDED_SOURCE_DIRECTORIES = frozenset({".pytest_cache", ".venv", "__pycache__"})
 EXCLUDED_SOURCE_FILES = frozenset({"manifest.sha256"})
+AUTOMATIC_APT_UPDATE_UNITS = (
+    "apt-daily.service",
+    "apt-daily.timer",
+    "apt-daily-upgrade.service",
+    "apt-daily-upgrade.timer",
+)
+
+
+class SystemdUnitState(TypedDict):
+    load_state: str
+    active_state: str
+    unit_file_state: str
 
 
 def sha256_bytes(*, value: bytes) -> str:
@@ -56,6 +69,62 @@ def command_output(*, arguments: list[str]) -> str:
         text=True,
     )
     return result.stdout.strip()
+
+
+def parse_systemd_unit_state(*, unit_name: str, output: str) -> SystemdUnitState:
+    expected_properties = frozenset({"LoadState", "ActiveState", "UnitFileState"})
+    properties: dict[str, str] = {}
+    for line in output.splitlines():
+        name, separator, value = line.partition("=")
+        if separator != "=" or name not in expected_properties or not value:
+            raise ValueError(f"malformed systemd state for {unit_name}: {line!r}")
+        if name in properties:
+            raise ValueError(f"duplicate systemd property for {unit_name}: {name}")
+        properties[name] = value
+    if properties.keys() != expected_properties:
+        missing = sorted(expected_properties - properties.keys())
+        raise ValueError(f"missing systemd state for {unit_name}: {missing!r}")
+
+    load_state = properties["LoadState"]
+    active_state = properties["ActiveState"]
+    unit_file_state = properties["UnitFileState"]
+    if load_state not in {"loaded", "masked"}:
+        raise ValueError(f"unexpected load state for {unit_name}: {load_state}")
+    if active_state != "inactive":
+        raise ValueError(
+            f"automatic update unit must be inactive: {unit_name}={active_state}"
+        )
+    if unit_file_state not in {"disabled", "masked"}:
+        raise ValueError(
+            "automatic update unit must be disabled or masked: "
+            f"{unit_name}={unit_file_state}"
+        )
+    return {
+        "load_state": load_state,
+        "active_state": active_state,
+        "unit_file_state": unit_file_state,
+    }
+
+
+def automatic_apt_update_state() -> dict[str, SystemdUnitState]:
+    states: dict[str, SystemdUnitState] = {}
+    for unit_name in AUTOMATIC_APT_UPDATE_UNITS:
+        output = command_output(
+            arguments=[
+                "systemctl",
+                "show",
+                unit_name,
+                "--property=LoadState",
+                "--property=ActiveState",
+                "--property=UnitFileState",
+                "--no-pager",
+            ]
+        )
+        states[unit_name] = parse_systemd_unit_state(
+            unit_name=unit_name,
+            output=output,
+        )
+    return states
 
 
 def installed_distribution_digest() -> str:
@@ -164,11 +233,12 @@ def main() -> None:
     runner_manifest = Path("/root/bench-v2/runner.sha256")
     verify_runner_manifest(path=runner_manifest)
     manifest = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "architecture": platform.machine(),
         "kernel": platform.release(),
         "os_release_sha256": sha256_file(path=Path("/etc/os-release")),
         "debian_package_manifest_sha256": debian_package_digest(),
+        "automatic_apt_updates": automatic_apt_update_state(),
         "python": {
             "version": platform.python_version(),
             "executable_sha256": sha256_file(path=python),

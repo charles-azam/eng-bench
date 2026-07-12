@@ -1,17 +1,48 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ "${1:-}" != "--run-dir" || -z "${2:-}" ]]; then
-  echo "usage: finalize-run.sh --run-dir DIR" >&2
-  exit 64
+usage() {
+  echo "usage: finalize-run.sh --run-dir DIR [--environment-verification passed|mismatched|capture_failed] [--observed-environment-sha256 HEX]" >&2
+}
+
+run_dir=""
+environment_verification=passed
+observed_environment_sha256=""
+while (($#)); do
+  case "$1" in
+    --run-dir) run_dir="$2"; shift 2 ;;
+    --environment-verification) environment_verification="$2"; shift 2 ;;
+    --observed-environment-sha256) observed_environment_sha256="$2"; shift 2 ;;
+    *) usage; exit 64 ;;
+  esac
+done
+
+[[ -n "${run_dir}" ]] || { usage; exit 64; }
+[[ "${environment_verification}" == passed || "${environment_verification}" == mismatched || "${environment_verification}" == capture_failed ]] || { usage; exit 64; }
+if [[ "${environment_verification}" == mismatched ]]; then
+  [[ "${observed_environment_sha256}" =~ ^[0-9a-f]{64}$ ]] || { usage; exit 64; }
+else
+  [[ -z "${observed_environment_sha256}" || "${observed_environment_sha256}" =~ ^[0-9a-f]{64}$ ]] || { usage; exit 64; }
 fi
-run_dir=$(realpath "$2")
+
+run_dir=$(realpath "${run_dir}")
 case "${run_dir}" in
   /root/bench-v2/runs/*) ;;
   *) echo "run directory must be under /root/bench-v2/runs" >&2; exit 64 ;;
 esac
 
 root=/root/bench-v2
+if [[ -n "${observed_environment_sha256}" ]]; then
+  final_environment="${run_dir}/runtime/environment-final.json"
+  [[ -f "${final_environment}" && ! -L "${final_environment}" ]] || { echo "final environment manifest must be a regular non-symlink file" >&2; exit 65; }
+  actual_environment_sha256=$(sha256sum "${final_environment}" | cut -d ' ' -f1)
+  [[ "${actual_environment_sha256}" == "${observed_environment_sha256}" ]] || { echo "final environment manifest hash does not match finalizer argument" >&2; exit 65; }
+  if [[ "${environment_verification}" == passed ]]; then
+    cmp --silent "${root}/protocol/environment.json" "${final_environment}" || { echo "passed environment verification does not match frozen manifest" >&2; exit 65; }
+  elif [[ "${environment_verification}" == mismatched ]]; then
+    ! cmp --silent "${root}/protocol/environment.json" "${final_environment}" || { echo "mismatched environment verification equals frozen manifest" >&2; exit 65; }
+  fi
+fi
 metadata="${run_dir}/metadata.json"
 events="${run_dir}/events.jsonl"
 raw_status="${run_dir}/status.json"
@@ -44,61 +75,79 @@ fi
 
 canonical_status=runner_failure
 normalization=not_attempted
-case "${classification}" in
-  complete)
-    if [[ -f "${workspace}/output/predictions.json" ]]; then
-      set +e
-      "${root}/runner/.venv/bin/python" "${root}/runner/normalize_predictions.py" \
-        --input "${workspace}/output/predictions.json" \
-        --output "${normalized}" \
-        --workspace "${workspace}" \
-        --run-id "${run_id}" \
-        --task-id "${task}" \
-        --task-file "${task_definition}" \
-        2> "${run_dir}/normalization.stderr"
-      normalize_exit=$?
-      set -e
-      if [[ "${normalize_exit}" -eq 0 ]]; then
-        canonical_status=completed
-        normalization=passed
+if [[ "${environment_verification}" != passed ]]; then
+  canonical_status=runner_failure
+  normalization="post_inference_environment_${environment_verification}"
+  frozen_environment_sha256=$(sha256sum "${root}/protocol/environment.json" | cut -d ' ' -f1)
+  if [[ -n "${observed_environment_sha256}" ]]; then
+    printf 'post-inference environment verification=%s; frozen_sha256=%s; observed_sha256=%s; raw inference artifacts preserved; predictions not normalized\n' \
+      "${environment_verification}" \
+      "${frozen_environment_sha256}" \
+      "${observed_environment_sha256}" \
+      > "${run_dir}/normalization.stderr"
+  else
+    printf 'post-inference environment verification=%s; frozen_sha256=%s; observed manifest unavailable; raw inference artifacts preserved; predictions not normalized\n' \
+      "${environment_verification}" \
+      "${frozen_environment_sha256}" \
+      > "${run_dir}/normalization.stderr"
+  fi
+else
+  case "${classification}" in
+    complete)
+      if [[ -f "${workspace}/output/predictions.json" ]]; then
+        set +e
+        "${root}/runner/.venv/bin/python" "${root}/runner/normalize_predictions.py" \
+          --input "${workspace}/output/predictions.json" \
+          --output "${normalized}" \
+          --workspace "${workspace}" \
+          --run-id "${run_id}" \
+          --task-id "${task}" \
+          --task-file "${task_definition}" \
+          2> "${run_dir}/normalization.stderr"
+        normalize_exit=$?
+        set -e
+        if [[ "${normalize_exit}" -eq 0 ]]; then
+          canonical_status=completed
+          normalization=passed
+        else
+          canonical_status=agent_failure
+          normalization=failed
+        fi
       else
         canonical_status=agent_failure
-        normalization=failed
+        normalization=missing_predictions_file
+        printf '%s\n' 'workspace/output/predictions.json is missing' > "${run_dir}/normalization.stderr"
       fi
-    else
+      ;;
+    model_refusal)
+      canonical_status=refusal
+      ;;
+    model_contamination)
+      canonical_status=fallback_contaminated
+      ;;
+    agent_failure)
       canonical_status=agent_failure
-      normalization=missing_predictions_file
-      printf '%s\n' 'workspace/output/predictions.json is missing' > "${run_dir}/normalization.stderr"
-    fi
-    ;;
-  model_refusal)
-    canonical_status=refusal
-    ;;
-  model_contamination)
-    canonical_status=fallback_contaminated
-    ;;
-  agent_failure)
-    canonical_status=agent_failure
-    ;;
-  timeout)
-    if [[ "${served_models}" == "[]" ]]; then
-      canonical_status=runner_failure
-    else
-      canonical_status=agent_failure
-    fi
-    ;;
-  infrastructure_failure)
-    if grep -Eiq 'authentication|rate.?limit|429|529|overload|transport|connection (lost|failed)|api error' "${events}" "${run_dir}/stderr.log"; then
-      canonical_status=provider_failure
-    else
-      canonical_status=runner_failure
-    fi
-    ;;
-  *)
-    echo "unknown runner classification: ${classification}" >&2
-    exit 65
-    ;;
-esac
+      ;;
+    timeout)
+      if [[ "${served_models}" == "[]" ]]; then
+        canonical_status=runner_failure
+      else
+        canonical_status=agent_failure
+      fi
+      ;;
+    infrastructure_failure)
+      if grep -Eiq 'authentication|rate.?limit|429|529|overload|transport|connection (lost|failed)|api error' "${events}" "${run_dir}/stderr.log"; then
+        canonical_status=provider_failure
+      else
+        canonical_status=runner_failure
+      fi
+      ;;
+    *)
+      echo "unknown runner classification: ${classification}" >&2
+      exit 65
+      ;;
+  esac
+fi
 
 if [[ "${served_models}" == "[]" && ( "${canonical_status}" == completed || "${canonical_status}" == agent_failure || "${canonical_status}" == fallback_contaminated ) ]]; then
   canonical_status=runner_failure

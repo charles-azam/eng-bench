@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import stat
 import subprocess
 import sys
 import tempfile
@@ -11,12 +12,17 @@ from pathlib import Path
 
 import pytest
 
-from environment_manifest import verify_runner_manifest
+from environment_manifest import (
+    AUTOMATIC_APT_UPDATE_UNITS,
+    parse_systemd_unit_state,
+    verify_runner_manifest,
+)
 
 
 ROOT = Path("/root/bench-v2")
 RUNNER = ROOT / "runner"
 PREFLIGHT = ROOT / "preflight"
+RUNNER_SOURCE = Path(__file__).resolve().parents[1]
 
 
 def run_command(*, arguments: list[str]) -> subprocess.CompletedProcess[str]:
@@ -120,12 +126,12 @@ def test_real_sandbox_hides_measurements_and_denies_arbitrary_network() -> None:
 def test_actual_event_streams_distinguish_result_refusal_and_fallback() -> None:
     codex = classify(
         system="codex",
-        events=PREFLIGHT / "isolated-ready-v3-codex" / "events.jsonl",
+        events=PREFLIGHT / "isolated-ready-v4-codex" / "events.jsonl",
         exit_code=0,
     )
     fable = classify(
         system="claude",
-        events=PREFLIGHT / "isolated-heat-flow-v3-claude" / "events.jsonl",
+        events=PREFLIGHT / "isolated-heat-flow-v4-claude" / "events.jsonl",
         exit_code=0,
     )
     refusal = classify(
@@ -173,7 +179,7 @@ def test_exact_scored_invocation_parity_smokes_completed() -> None:
         "  INPUT.txt\n"
     )
     for system in ("codex", "claude"):
-        probe = PREFLIGHT / f"scored-parity-v3-final-{system}"
+        probe = PREFLIGHT / f"scored-parity-v4-final-{system}"
         exit_code = int(
             (probe / "exit-code.txt").read_text(encoding="utf-8").strip()
         )
@@ -411,6 +417,116 @@ def test_runner_verifier_rejects_unlisted_source_files(tmp_path: Path) -> None:
         verify_runner_manifest(path=manifest, runner_root=runner_root)
 
 
+def test_attempt_is_published_only_after_exact_environment_match(
+    tmp_path: Path,
+) -> None:
+    runs_root = tmp_path / "runs"
+    runs_root.mkdir()
+    run_directory = runs_root / "core-synthetic-codex-r01-a01"
+    frozen_environment = tmp_path / "frozen-environment.json"
+    observed_environment = tmp_path / "observed-environment.json"
+    frozen_bytes = b'{"schema_version":"synthetic","value":"frozen"}\n'
+    frozen_environment.write_bytes(frozen_bytes)
+    observed_environment.write_bytes(
+        b'{"schema_version":"synthetic","value":"drifted"}\n'
+    )
+    command = [
+        sys.executable,
+        str(RUNNER_SOURCE / "prepare_attempt.py"),
+        "--run-dir",
+        str(run_directory),
+        "--frozen-environment",
+        str(frozen_environment),
+        "--observed-environment",
+        str(observed_environment),
+    ]
+
+    rejected = run_command(arguments=command)
+
+    assert rejected.returncode == 65
+    assert rejected.stderr == "runtime environment differs from frozen manifest\n"
+    assert not run_directory.exists()
+    assert observed_environment.read_bytes() != frozen_bytes
+
+    observed_environment.write_bytes(frozen_bytes)
+    accepted = run_command(arguments=command)
+
+    assert accepted.returncode == 0, accepted.stderr
+    assert sorted(path.name for path in run_directory.iterdir()) == [
+        "input",
+        "runtime",
+        "workspace",
+    ]
+    assert stat.S_IMODE(run_directory.stat().st_mode) == 0o700
+    for directory_name in ("input", "runtime", "workspace"):
+        assert stat.S_IMODE(
+            run_directory.joinpath(directory_name).stat().st_mode
+        ) == 0o700
+    assert (
+        run_directory / "runtime" / "environment.json"
+    ).read_bytes() == frozen_bytes
+    assert not observed_environment.exists()
+
+
+def test_automatic_apt_update_units_fail_closed_unless_disabled_and_inactive() -> None:
+    assert AUTOMATIC_APT_UPDATE_UNITS == (
+        "apt-daily.service",
+        "apt-daily.timer",
+        "apt-daily-upgrade.service",
+        "apt-daily-upgrade.timer",
+    )
+    disabled = parse_systemd_unit_state(
+        unit_name="apt-daily.timer",
+        output=(
+            "LoadState=loaded\n"
+            "ActiveState=inactive\n"
+            "UnitFileState=disabled\n"
+        ),
+    )
+    masked = parse_systemd_unit_state(
+        unit_name="apt-daily-upgrade.service",
+        output=(
+            "LoadState=masked\n"
+            "ActiveState=inactive\n"
+            "UnitFileState=masked\n"
+        ),
+    )
+    assert disabled == {
+        "load_state": "loaded",
+        "active_state": "inactive",
+        "unit_file_state": "disabled",
+    }
+    assert masked == {
+        "load_state": "masked",
+        "active_state": "inactive",
+        "unit_file_state": "masked",
+    }
+
+    with pytest.raises(ValueError, match="must be disabled or masked"):
+        parse_systemd_unit_state(
+            unit_name="apt-daily.timer",
+            output=(
+                "LoadState=loaded\n"
+                "ActiveState=inactive\n"
+                "UnitFileState=enabled\n"
+            ),
+        )
+    with pytest.raises(ValueError, match="must be inactive"):
+        parse_systemd_unit_state(
+            unit_name="apt-daily-upgrade.timer",
+            output=(
+                "LoadState=loaded\n"
+                "ActiveState=active\n"
+                "UnitFileState=disabled\n"
+            ),
+        )
+    with pytest.raises(ValueError, match="missing systemd state"):
+        parse_systemd_unit_state(
+            unit_name="apt-daily.service",
+            output="LoadState=masked\nActiveState=inactive\n",
+        )
+
+
 def test_finalizer_writes_a_manifest_for_no_model_infrastructure_failure() -> None:
     runs_root = ROOT / "runs"
     with tempfile.TemporaryDirectory(prefix="pytest-finalize-", dir=runs_root) as temporary:
@@ -468,6 +584,102 @@ def test_finalizer_writes_a_manifest_for_no_model_infrastructure_failure() -> No
         assert status["canonical_status"] == "runner_failure"
         assert status["prediction_normalization"] == "not_attempted"
         assert status["served_models"] == []
+
+
+def test_post_inference_environment_drift_preserves_outputs_and_forces_runner_failure() -> None:
+    runs_root = ROOT / "runs"
+    with tempfile.TemporaryDirectory(
+        prefix="pytest-environment-drift-", dir=runs_root
+    ) as temporary:
+        run_dir = Path(temporary)
+        workspace = run_dir / "workspace"
+        output = workspace / "output"
+        runtime = run_dir / "runtime"
+        output.mkdir(parents=True, mode=0o700)
+        runtime.mkdir(mode=0o700)
+        run_id = run_dir.name
+        events_bytes = (
+            b'{"type":"thread.started","thread_id":"synthetic"}\n'
+            b'{"type":"item.completed","item":{"type":"agent_message",'
+            b'"text":"synthetic result"}}\n'
+        )
+        predictions_bytes = b'{"raw_model_output":"preserve exactly"}\n'
+        note_bytes = b"# Raw synthetic calculation\n"
+        (run_dir / "events.jsonl").write_bytes(events_bytes)
+        (run_dir / "stderr.log").write_text("", encoding="utf-8")
+        (run_dir / "status.json").write_text(
+            json.dumps(
+                {
+                    "classification": "complete",
+                    "detail": "event stream and requested model passed runner checks",
+                    "exit_code": 0,
+                }
+            ),
+            encoding="utf-8",
+        )
+        (run_dir / "metadata.json").write_text(
+            json.dumps(
+                {
+                    "run_id": run_id,
+                    "system": "codex",
+                    "requested_model": "gpt-5.6-sol",
+                    "cli_version": "codex-cli synthetic",
+                    "effort": "max",
+                    "task": "nstf_blind_derive_duty",
+                    "attempt": 1,
+                    "start_time": "2026-07-12T08:00:00Z",
+                    "end_time": "2026-07-12T08:00:01Z",
+                    "prompt_sha256": "c" * 64,
+                }
+            ),
+            encoding="utf-8",
+        )
+        (run_dir / "input.sha256").write_text("", encoding="utf-8")
+        (output / "predictions.json").write_bytes(predictions_bytes)
+        (output / "calculation_note.md").write_bytes(note_bytes)
+        final_environment_bytes = b'{"synthetic_environment":"drifted"}\n'
+        (runtime / "environment-final.json").write_bytes(final_environment_bytes)
+        observed_environment_sha256 = hashlib.sha256(
+            final_environment_bytes
+        ).hexdigest()
+
+        finalized = run_command(
+            arguments=[
+                str(RUNNER / "finalize-run.sh"),
+                "--run-dir",
+                str(run_dir),
+                "--environment-verification",
+                "mismatched",
+                "--observed-environment-sha256",
+                observed_environment_sha256,
+            ]
+        )
+
+        assert finalized.returncode == 0, finalized.stderr
+        manifest = json.loads(
+            (run_dir / "manifest.jsonl").read_text(encoding="utf-8")
+        )
+        status = json.loads((run_dir / "status.json").read_text(encoding="utf-8"))
+        assert manifest["status"] == "runner_failure"
+        assert manifest["served_models"] == ["gpt-5.6-sol"]
+        assert manifest["artifact_paths"] == [
+            f"{run_id}/workspace/output/calculation_note.md",
+            f"{run_id}/workspace/output/predictions.json",
+        ]
+        assert status["classification"] == "complete"
+        assert status["canonical_status"] == "runner_failure"
+        assert status["prediction_normalization"] == (
+            "post_inference_environment_mismatched"
+        )
+        assert (run_dir / "predictions.jsonl").read_bytes() == b""
+        assert (run_dir / "events.jsonl").read_bytes() == events_bytes
+        assert (output / "predictions.json").read_bytes() == predictions_bytes
+        assert (output / "calculation_note.md").read_bytes() == note_bytes
+        diagnostic = (run_dir / "normalization.stderr").read_text(
+            encoding="utf-8"
+        )
+        assert "raw inference artifacts preserved" in diagnostic
+        assert f"observed_sha256={observed_environment_sha256}" in diagnostic
 
 
 def test_finalizer_writes_a_manifest_for_malformed_claude_trace() -> None:

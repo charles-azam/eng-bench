@@ -145,7 +145,7 @@ def prepare_final_disclosed_campaign(*, root: Path) -> SyntheticDisclosedCampaig
     runs_root, matrix_path, ledger_path, ledger = prepare_repository(
         root=results_root
     )
-    schedules_root = results_root / "schedules" / "v3"
+    schedules_root = results_root / "schedules" / "v4"
     gates_root = results_root / "gates"
     gates_root.mkdir()
     private_keys_root = root / "private-keys"

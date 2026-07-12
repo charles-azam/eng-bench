@@ -4,7 +4,7 @@ The harvester verifies copied raw run directories before producing any evaluator
 the fixed artifact ledger, exact input/workspace file sets and hashes, rejects symlinks, reconciles
 the run ID across directory/metadata/manifest records, and enforces the preregistered one-retry rule.
 
-Run it only on the clean v3 raw-results directory. The excluded v1 and v2 campaigns must remain in
+Run it only on the clean v4 raw-results directory. The excluded v1, v2, and v3 campaigns must remain in
 separate `excluded/` trees and are explicitly rejected as a harvest root or child.
 
 ```bash
@@ -12,7 +12,7 @@ uv run python -m analysis.harvest \
   --runs-root results/raw \
   --matrix protocol/matrix.tsv \
   --ledger protocol/evaluation_ledger.json \
-  --schedules-root results/schedules/v3 \
+  --schedules-root results/schedules/v4 \
   --output-dir results/harvested
 ```
 
@@ -29,7 +29,7 @@ accident. Physical infrastructure failures and their retry remain visible in the
 eligibility counts the final outcome once per scheduled replicate.
 
 Before publishing the next registered schedule, create a content-free gate attestation. The gate
-independently re-harvests the immutable raw tree, authenticates the v3 protocol and evaluation
+independently re-harvests the immutable raw tree, authenticates the v4 protocol and evaluation
 ledger, and requires every present stage schedule to be closed. It fails unless the selected dataset
 has every exact registered replicate, no missing final outcome, and no infrastructure-failed final
 outcome. Completed versus non-completed system outcomes are deliberately omitted because completion
@@ -49,7 +49,7 @@ uv run python -m analysis.gate_eligibility \
   --runs-root results/raw \
   --matrix protocol/matrix.tsv \
   --ledger protocol/evaluation_ledger.json \
-  --schedules-root results/schedules/v3 \
+  --schedules-root results/schedules/v4 \
   --frozen-manifest protocol/frozen_manifest.sha256 \
   --commitment-key /private/gate-keys/core-n3.key \
   --dataset n3 \
@@ -89,7 +89,7 @@ uv run python -m analysis.verify_gate_disclosure \
   --runs-root results/raw \
   --matrix protocol/matrix.tsv \
   --ledger protocol/evaluation_ledger.json \
-  --schedules-root results/schedules/v3 \
+  --schedules-root results/schedules/v4 \
   --frozen-manifest protocol/frozen_manifest.sha256
 ```
 
@@ -133,7 +133,7 @@ same command supports a completed n3-only campaign, n3 plus n5, or all three reg
 uv run python -m analysis.blind_review prepare \
   --runs-root results/raw \
   --matrix protocol/matrix.tsv \
-  --schedules-root results/schedules/v3 \
+  --schedules-root results/schedules/v4 \
   --ledger protocol/evaluation_ledger.json \
   --rubric-source protocol/ARTIFACT_REVIEW.md \
   --review-bundle /public-review-area/review-bundle \
@@ -180,7 +180,7 @@ Finalize only after the review is complete:
 uv run python -m analysis.blind_review finalize \
   --runs-root results/raw \
   --matrix protocol/matrix.tsv \
-  --schedules-root results/schedules/v3 \
+  --schedules-root results/schedules/v4 \
   --ledger protocol/evaluation_ledger.json \
   --rubric-source protocol/ARTIFACT_REVIEW.md \
   --review-bundle /public-review-area/review-bundle \

@@ -3,7 +3,7 @@
 Can a native coding agent make useful engineering predictions from a bounded evidence pack, before
 it sees the experimental outcome?
 
-This repository contains the frozen `2026-07-12-v3` protocol for comparing:
+This repository contains the frozen `2026-07-12-v4` protocol for comparing:
 
 - Codex with requested model GPT-5.6 Sol;
 - Claude Code with requested model Claude Fable 5; served identity is verified per attempt.
@@ -52,10 +52,18 @@ deliberate-sandbox marker, and locale-dependent ledger ordering disagreed with t
 task-pack hashes. The complete diagnosis and inspection boundary are preserved in
 [`results/excluded/v2-ineligible-campaign/EXCLUSION.md`](results/excluded/v2-ineligible-campaign/EXCLUSION.md).
 
-Version 3 keeps the corrected task, prompt, held-out measurement, and evaluator bytes unchanged. It
-sets `IS_SANDBOX=1` inside the real bubblewrap boundary, forces `LC_ALL=C` for pack/workspace
-ledgers, and requires both systems to complete a neutral checksum task through the exact scored CLI
-wrapper before freeze. All four primary cells restart from replicate 1; no v2 attempt is reused.
+Version 3 kept those scientific bytes unchanged and fixed the v2 runner defects. It is nevertheless
+excluded in full because an unattended curl/libcurl update changed the live, bind-mounted host
+environment during a completed scored attempt. The next row then failed closed before model
+invocation. The campaign was preserved without opening predictions or submitted artifacts; the
+timeline and hashes are in
+[`results/excluded/v3-environment-drift/EXCLUSION.md`](results/excluded/v3-environment-drift/EXCLUSION.md).
+
+Version 4 again keeps the corrected task, prompt, held-out measurement, and evaluator bytes
+unchanged. It freezes the patched host with automatic APT transaction units masked, records their
+state in the environment manifest, compares that manifest before and after every inference, creates
+no attempt directory on a failed precondition, and safely resumes only checksum-valid prefixes of
+the original frozen schedule. Every primary cell restarts from replicate 1; no v3 attempt is reused.
 
 ## Reproduce the evaluator
 
@@ -101,7 +109,9 @@ answers are preserved but cannot contribute to Fable quality metrics. Current Co
 expose an equivalent per-message server-model field, so GPT-5.6 Sol is disclosed as the requested and
 assumed served model, with exact CLI/native hashes.
 
-The frozen environment record is a hash-covered VPS/toolchain snapshot, not an OCI image. Native
+The frozen environment record is a hash-covered VPS/toolchain snapshot, not an OCI image. It is
+checked before and after each physical attempt, and the final capture is retained in the fixed
+artifact ledger. Native
 agent credentials must be readable by their CLI process and are therefore technically readable by a
 shell child inside the same sandbox; they are never copied into artifacts. This limitation does not
 expose held-out measurements, but it is part of the threat model.
