@@ -56,3 +56,21 @@ incident review and are not cleaned up mid-campaign.
 Any scientifically scored successor is a new benchmark version with a new preregistration. It must
 run only after V4 is durably closed, must prevent package-management changes while attempts are
 active, and must include this incident in its provenance rather than silently replacing V4.
+
+## Content-blind remediation record
+
+This section was appended before terminal archival and without opening campaign payloads.
+
+- The public incident record was committed and pushed as
+  `5f6ddbcc122697727b2988bcbff1f62d6b927e56` before host remediation.
+- Dpkg removed only `bubblewrap` at 12:57:05 UTC and completed its pre-existing `man-db` trigger at
+  12:57:08 UTC. A fresh environment capture then reproduced the frozen SHA-256
+  `15559315a5072682de5ce4b0fc636c59ffdd101f5b048cac1137bd4c6f7e4bc7` exactly.
+- The registered recovery preserved the failed attempt, stopped and replaced only the exact
+  retention/main transient units, rechecked the public schedule and frozen environment, and started
+  the same complete schedule at 13:00:47 UTC. The recovered main invocation is
+  `baacc86a8b3e451296dc146346e93848`; its retention invocation is
+  `fd959685e22249e5974a4a34a32b6e2c`.
+- The content-blind planner selected the first of the two never-started registered retries,
+  `core-n3-nstf_blind_derive_duty-claude-r03-a02`. It did not create an `a03` attempt for the
+  affected replicate. Terminal accounting remains pending at the time of this append.

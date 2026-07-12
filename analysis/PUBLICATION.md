@@ -8,6 +8,16 @@ summary must be model-equal to that independent recomputation.
 
 Run it once for each gated dataset that was actually evaluated:
 
+This command runs only when the gate selected a dataset; the V4 operator-incident path selected
+none and therefore emits no publication table. The command below is the internal finalization
+command and requires the private verified
+`results/raw` tree. Complete raw attempts are intentionally withheld from the public release after
+the V4 sandbox-confidentiality finding. The published tables are therefore byte-reproduced
+internally against private raw evidence and hash-committed, but they are not independently
+recomputable from the public bundle alone. Public readers can verify the commitments and internal
+consistency of the released derived files; they cannot rerun full scoring without the withheld raw
+evidence.
+
 ```sh
 uv run python -m analysis.publication \
   --dataset n5 \
@@ -85,3 +95,5 @@ Limitations:
   but their evaluator fields are null because they are not evaluator score rows.
 - No hypothesis tests, cross-provider token comparison, overall score, or
   winner claim is produced.
+- The public V4 bundle omits complete raw attempts for confidentiality. It supports hash and
+  derived-table verification, not independent end-to-end score recomputation.

@@ -274,7 +274,6 @@ def prepare_synthetic_review(
 def complete_review(*, review_path: Path) -> None:
     with review_path.open(mode="r", encoding="utf-8", newline="") as stream:
         rows = list(csv.DictReader(stream))
-    item_six_index = 0
     for row in rows:
         if row["item_id"] == "no_unavailable_access":
             note = (
@@ -295,27 +294,10 @@ def complete_review(*, review_path: Path) -> None:
                 row["rationale"] = "Raw traces are absent from the identity-blind packet."
         elif row["item_id"] == "artifacts_and_offline_scripts":
             row["status"] = "pass"
-            if item_six_index % 2 == 0:
-                row["rationale"] = (
-                    "No applicable scripts: Cited artifacts verified: calculation_note.md "
-                    "and predictions.json."
-                )
-            else:
-                packet_manifest = json.loads(
-                    (
-                        review_path.parent
-                        / "packets"
-                        / row["neutral_label"]
-                        / "packet.json"
-                    ).read_text(encoding="utf-8")
-                )
-                row["rationale"] = (
-                    "Offline command: bwrap --unshare-net uv run python "
-                    "submitted-output/check.py; "
-                    f"Runner manifest: {packet_manifest['runner_image_sha256']}; "
-                    "Result: passed."
-                )
-            item_six_index += 1
+            row["rationale"] = (
+                "No applicable scripts: Cited artifacts verified: calculation_note.md "
+                "and predictions.json."
+            )
         else:
             row["status"] = "pass"
             row["rationale"] = "The submitted artifact provides auditable evidence."
@@ -456,9 +438,14 @@ def test_prepare_and_finalize_complete_campaign_with_public_provenance(
         for row in invalid_item_six_rows
         if row["item_id"] == "artifacts_and_offline_scripts"
     )
+    packet_for_invalid_item = next(
+        packet
+        for packet in mapping.packets
+        if packet.neutral_label == invalid_item_six["neutral_label"]
+    )
     invalid_item_six["rationale"] = (
-        f"Offline command: bwrap --unshare-net uv run python check.py; "
-        f"Runner manifest: sha256:{'b' * 64}; Result: passed."
+        "Offline command: bwrap --unshare-net uv run python check.py; "
+        f"Runner manifest: {packet_for_invalid_item.runner_image_sha256}; Result: passed."
     )
     with review_path.open(mode="w", encoding="utf-8", newline="") as stream:
         writer = csv.DictWriter(
@@ -469,7 +456,7 @@ def test_prepare_and_finalize_complete_campaign_with_public_provenance(
         writer.writeheader()
         writer.writerows(invalid_item_six_rows)
     invalid_item_six_public = public_parent / "invalid-item-six"
-    with pytest.raises(ValueError, match="exact packet runner manifest"):
+    with pytest.raises(ValueError, match="no applicable submitted script"):
         finalize_review_bundle(
             runs_root=runs_root,
             matrix_path=matrix_path,
@@ -481,6 +468,36 @@ def test_prepare_and_finalize_complete_campaign_with_public_provenance(
             public_bundle=invalid_item_six_public,
         )
     assert not invalid_item_six_public.exists()
+
+    invalid_partial_rows = [dict(row) for row in valid_rows]
+    invalid_partial = next(
+        row
+        for row in invalid_partial_rows
+        if row["item_id"] == "artifacts_and_offline_scripts"
+    )
+    invalid_partial["status"] = "partial"
+    invalid_partial["rationale"] = "The cited artifact is incomplete."
+    with review_path.open(mode="w", encoding="utf-8", newline="") as stream:
+        writer = csv.DictWriter(
+            stream,
+            fieldnames=list(REVIEW_FIELDNAMES),
+            lineterminator="\n",
+        )
+        writer.writeheader()
+        writer.writerows(invalid_partial_rows)
+    invalid_partial_public = public_parent / "invalid-item-six-partial"
+    with pytest.raises(ValueError, match="must disclose non-execution"):
+        finalize_review_bundle(
+            runs_root=runs_root,
+            matrix_path=matrix_path,
+            schedules_root=schedules_root,
+            ledger_path=ledger_path,
+            rubric_source_path=RUBRIC_SOURCE,
+            review_bundle=review_bundle,
+            sealed_mapping_path=mapping_path,
+            public_bundle=invalid_partial_public,
+        )
+    assert not invalid_partial_public.exists()
 
     with review_path.open(mode="w", encoding="utf-8", newline="") as stream:
         writer = csv.DictWriter(
@@ -581,18 +598,7 @@ def test_prepare_and_finalize_complete_campaign_with_public_provenance(
         rationale.startswith("No applicable scripts: Cited artifacts verified:")
         for rationale in item_six_rationales
     )
-    assert any("Offline command:" in rationale for rationale in item_six_rationales)
-    packet_by_run_id = {packet.run_id: packet for packet in mapping.packets}
-    for row in public_item_rows:
-        if (
-            row["item_id"] == "artifacts_and_offline_scripts"
-            and "Offline command:" in row["rationale"]
-        ):
-            assert (
-                f"Runner manifest: "
-                f"{packet_by_run_id[row['run_id']].runner_image_sha256}"
-                in row["rationale"]
-            )
+    assert all("Offline command:" not in rationale for rationale in item_six_rationales)
     item_eight_statuses = {
         row["status"]
         for row in public_item_rows
@@ -793,6 +799,51 @@ def test_explicit_identity_fails_closed(tmp_path: Path) -> None:
     )
     review_bundle, mapping_path, _ = bundle_locations(root=tmp_path)
     with pytest.raises(ValueError, match="explicit run/system/model identity"):
+        prepare_review_bundle(
+            runs_root=runs_root,
+            matrix_path=matrix_path,
+            schedules_root=schedules_root,
+            ledger_path=ledger_path,
+            rubric_source_path=RUBRIC_SOURCE,
+            review_bundle=review_bundle,
+            sealed_mapping_path=mapping_path,
+        )
+    assert not review_bundle.exists()
+    assert not mapping_path.exists()
+
+
+def test_credential_like_submitted_output_fails_closed(tmp_path: Path) -> None:
+    runs_root, matrix_path, ledger_path, ledger = prepare_repository(root=tmp_path)
+    schedules_root = tmp_path / "schedules"
+    materialize_complete_n3_campaign(
+        runs_root=runs_root,
+        schedules_root=schedules_root,
+        ledger=ledger,
+    )
+    leaky_run, manifest = next(
+        (path, candidate_manifest)
+        for path in runs_root.iterdir()
+        for candidate_manifest in (
+            load_single_jsonl(
+                path=path / "manifest.jsonl",
+                model_type=RunManifest,
+            ),
+        )
+        if candidate_manifest.status is RunStatus.COMPLETED
+    )
+    rewrite_attempt_output(
+        run_directory=leaky_run,
+        status=RunStatus.COMPLETED,
+        classification="complete",
+        served_models=manifest.served_models,
+        note_contents=(
+            b"codex accidentally copied "
+            b"access_token=synthetic_token_value_123456789\n"
+        ),
+    )
+    review_bundle, mapping_path, _ = bundle_locations(root=tmp_path)
+
+    with pytest.raises(ValueError, match="credential-like material"):
         prepare_review_bundle(
             runs_root=runs_root,
             matrix_path=matrix_path,

@@ -23,6 +23,10 @@ secret; it establishes that the frozen sandbox made such access possible.
 - The running frozen campaign is not mutated or silently restarted.
 - Complete raw attempts, including event streams, proxy logs, runtime state, and workspaces,
   remain private rather than entering the public results commit.
+- Published scores and article tables are byte-reproduced internally against that private verified
+  evidence and bound by public hashes. Because the public bundle omits the complete raw attempts,
+  outsiders can verify commitments and derived-file consistency but cannot independently rerun the
+  full scorer from public bytes alone.
 - Identity-blind packet preparation scans every submitted-output path and byte stream for
   credential-like material before a reviewer receives it. A hit fails closed without printing,
   redacting, or publishing the matching material.
@@ -32,6 +36,11 @@ secret; it establishes that the frozen sandbox made such access possible.
 - Provider-credential rotation and a VPS host review are post-closure security actions. They are
   not performed mid-campaign because doing so would alter the frozen invocation environment and
   invalidate remaining attempts.
+
+At 12:48 UTC a separate operator action nevertheless installed a package during an active retry and
+triggered exactly that fail-closed invalidation. `operations/V4_OPERATOR_ENVIRONMENT_INCIDENT.md`
+records the cause, restoration, recovery boundary, and resulting no-score decision. It is an
+operator-integrity incident, not evidence about either model's engineering performance.
 
 ## Requirement for a hardened rerun
 

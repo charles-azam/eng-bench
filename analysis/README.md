@@ -7,6 +7,12 @@ the run ID across directory/metadata/manifest records, and enforces the preregis
 Run it only on the clean v4 raw-results directory. The excluded v1, v2, and v3 campaigns must remain in
 separate `excluded/` trees and are explicitly rejected as a harvest root or child.
 
+For V4, this is an internal finalization workflow over private verified raw evidence. Complete raw
+attempts are not released because the frozen sandbox could expose host and provider secrets. Public
+Any selected results are byte-reproduced internally and commitment-backed, but the public bundle
+alone is not sufficient for independent end-to-end harvesting or score recomputation. The actual
+V4 operator-incident path selects no score dataset and publishes campaign accounting only.
+
 ```bash
 uv run python -m analysis.harvest \
   --runs-root results/raw \
@@ -164,10 +170,9 @@ Fill every row with `pass`, `partial`, `fail`, or `not_applicable` and a short r
 items need especially careful semantics:
 
 - Item 6 can pass with `No applicable scripts: Cited artifacts verified: ...` when the submitted
-  work contains no applicable scripts. When a script is applicable, a pass requires the reviewer
-  to actually run it with an offline sandbox command in an environment whose regenerated manifest
-  matches that packet's `runner_image_sha256`, recording the command, that exact manifest hash, and
-  result. The packet tool does not execute scripts.
+  work contains no applicable scripts. Submitted scripts are not executed in this campaign. When a
+  script is applicable, use `partial` or `fail` from the inert cited-artifact evidence and disclose
+  that the script was not run.
 - Item 8 must be `not_applicable` because traces are absent unless the submitted artifact itself
   records an access attempt. Artifact-only review can never pass this item. When such evidence
   exists, use `partial` or `fail` with a `Submitted artifact evidence:` rationale. Sandbox and proxy

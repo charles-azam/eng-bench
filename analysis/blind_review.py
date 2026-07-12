@@ -8,6 +8,7 @@ import hashlib
 import io
 import json
 import os
+import re
 import secrets
 import shutil
 import stat
@@ -43,6 +44,45 @@ from analysis.schedules import (
     validate_stage_chronology,
 )
 from eng_bench.models import FrozenLedger, RunStatus, Sha256
+
+
+CREDENTIAL_LIKE_PATH_FRAGMENTS: tuple[bytes, ...] = (
+    b"auth.json",
+    b"credentials.json",
+    b"id_ed25519",
+    b"id_rsa",
+    b"private_key",
+)
+CREDENTIAL_LIKE_PATTERNS: tuple[re.Pattern[bytes], ...] = (
+    re.compile(pattern=rb"-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----", flags=re.IGNORECASE),
+    re.compile(
+        pattern=rb"authorization\s*:\s*(?:bearer|basic)\s+\S+",
+        flags=re.IGNORECASE,
+    ),
+    re.compile(
+        pattern=(
+            rb"(?:api[_-]?key|access[_-]?token|refresh[_-]?token|session[_-]?token|"
+            rb"client[_-]?secret)[\"'= :]+[A-Za-z0-9_./+:-]{12,}"
+        ),
+        flags=re.IGNORECASE,
+    ),
+    re.compile(
+        pattern=(
+            rb"(?:sk-[A-Za-z0-9_-]{20,}|sk-ant-[A-Za-z0-9_-]{20,}|"
+            rb"gh[pousr]_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16})"
+        )
+    ),
+    re.compile(
+        pattern=(
+            rb"eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\."
+            rb"[A-Za-z0-9_-]{10,}"
+        )
+    ),
+    re.compile(
+        pattern=rb"^[a-z_][a-z0-9_-]*:\$(?:[156y]|2[aby])\$[^:\r\n]+:",
+        flags=re.IGNORECASE | re.MULTILINE,
+    ),
+)
 
 
 NonEmptyString = Annotated[str, StringConstraints(min_length=1)]
@@ -148,12 +188,10 @@ the sealed mapping until every row in `review.csv` is complete and its bytes hav
 
 Use only `pass`, `partial`, `fail`, or `not_applicable`, with a short rationale for every item.
 
-- Item 6: if no submitted script is applicable, a `pass` rationale must use
-  `No applicable scripts: Cited artifacts verified: ...`. If a script is applicable, a `pass`
-  requires actually running it with an offline sandbox command in an environment whose regenerated
-  environment manifest matches the packet's `runner_image_sha256`; record
-  `Offline command: ...; Runner manifest: sha256:...; Result: ...`. The packet generator does not
-  execute submitted scripts.
+- Item 6: a `pass` is permitted only when no submitted script is applicable; its rationale must use
+  `No applicable scripts: Cited artifacts verified: ...`. Submitted scripts are not executed in
+  this campaign. If a script is applicable, use `partial` or `fail` from the inert cited-artifact
+  evidence and state explicitly that the script was not run.
 - Item 8: raw traces and proxy logs are deliberately absent. Use `not_applicable` unless the
   submitted artifact itself records an access attempt. This item can never pass from artifact-only
   review. Use `partial` or `fail` with a rationale beginning `Submitted artifact evidence:` when
@@ -834,6 +872,19 @@ def validate_no_explicit_identity_leak(
         )
 
 
+def validate_no_credential_like_material(
+    *, attempt: HarvestedAttempt, relative_path: str, data: bytes
+) -> None:
+    lowered_path = relative_path.casefold().encode(encoding="utf-8")
+    if any(fragment in lowered_path for fragment in CREDENTIAL_LIKE_PATH_FRAGMENTS) or any(
+        pattern.search(data) is not None for pattern in CREDENTIAL_LIKE_PATTERNS
+    ):
+        raise ValueError(
+            "submitted output contains credential-like material in "
+            f"{attempt.metadata.run_id!r}"
+        )
+
+
 def snapshot_packet_files(*, attempt: HarvestedAttempt) -> list[SnapshotFile]:
     input_ledger_snapshot = read_regular_snapshot(
         path=attempt.run_directory / "input.sha256",
@@ -880,6 +931,11 @@ def snapshot_packet_files(*, attempt: HarvestedAttempt) -> list[SnapshotFile]:
             path=attempt.run_directory / "workspace" / relative_path,
             expected_digest=expected_digest,
             label="submitted-output file",
+        )
+        validate_no_credential_like_material(
+            attempt=attempt,
+            relative_path=output_relative,
+            data=snapshot.data,
         )
         validate_no_explicit_identity_leak(
             attempt=attempt,
@@ -1464,21 +1520,22 @@ def parse_completed_review_snapshot(
                     "item 8 partial/fail needs a rationale beginning "
                     "'Submitted artifact evidence:'"
                 )
-        if row.item_id == "artifacts_and_offline_scripts" and row.status is ReviewStatus.PASS:
+        if row.item_id == "artifacts_and_offline_scripts":
             lowered = row.rationale.casefold()
-            required_fragments = ("offline command:", "runner manifest:", "result:")
-            offline_execution_recorded = all(
-                fragment in lowered for fragment in required_fragments
-            ) and f"runner manifest: {packet.runner_image_sha256.casefold()}" in lowered
-            no_applicable_scripts_recorded = lowered.startswith(
-                "no applicable scripts:"
-            ) and "cited artifacts verified:" in lowered
-            if not offline_execution_recorded and not no_applicable_scripts_recorded:
+            if row.status is ReviewStatus.NOT_APPLICABLE:
+                raise ValueError("item 6 cannot be not_applicable")
+            if row.status is ReviewStatus.PASS and not (
+                lowered.startswith("no applicable scripts:")
+                and "cited artifacts verified:" in lowered
+            ):
                 raise ValueError(
-                    "an item 6 pass must record either verified cited artifacts with no "
-                    "applicable scripts or the offline command, exact packet runner manifest, "
-                    "and result"
+                    "an item 6 pass requires verified cited artifacts and no applicable "
+                    "submitted script"
                 )
+            if row.status in {ReviewStatus.PARTIAL, ReviewStatus.FAIL} and not (
+                "not executed" in lowered or "not run" in lowered
+            ):
+                raise ValueError("item 6 partial/fail must disclose non-execution")
     expected_keys = {
         (packet.neutral_label, item.item_id)
         for packet in mapping.packets

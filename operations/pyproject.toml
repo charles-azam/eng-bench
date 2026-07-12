@@ -16,5 +16,5 @@ package = false
 
 [tool.pytest.ini_options]
 addopts = "--strict-config --strict-markers"
-pythonpath = [".."]
+pythonpath = ["..", "../src"]
 testpaths = ["tests"]

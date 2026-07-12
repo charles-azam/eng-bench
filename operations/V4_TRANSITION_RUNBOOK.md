@@ -91,9 +91,19 @@ done
 case "${V4_TRANSITION_LOCK_ALREADY_HELD:-0}" in
   0)
     mkdir -m 700 "$TRANSITION_LOCK"
-    trap 'rmdir -- "$TRANSITION_LOCK"' EXIT
+    TRANSITION_LOCK_OWNED=1
+    TRANSITION_SUCCEEDED=0
+    preserve_transition_lock_on_failure() {
+      local exit_status=$?
+      if test "${TRANSITION_SUCCEEDED:-0}" = 1; then
+        rmdir -- "$TRANSITION_LOCK"
+      fi
+      return "$exit_status"
+    }
+    trap preserve_transition_lock_on_failure EXIT
     ;;
   1)
+    TRANSITION_LOCK_OWNED=0
     test -d "$TRANSITION_LOCK"
     test ! -L "$TRANSITION_LOCK"
     test -z "$(find "$TRANSITION_LOCK" -mindepth 1 -print -quit)"
@@ -566,7 +576,10 @@ ssh -o BatchMode=yes "root@$VPS" systemctl stop "$RETENTION_SERVICE"
 At core closure the gate accepts only the core schedule. At extension closure it accepts only core
 plus extension. Any present but unclosed stage fails closed. For `nstf-duty-ablation-n3`, stop here:
 there is no third interstage gate or later schedule. The archive/import does not unlock payload
-inspection; continue with the three-phase procedure in `operations/V4_FINALIZATION_RUNBOOK.md`.
+inspection. In the same shell, run
+`export V4_FINALIZATION_LOCK_ALREADY_HELD=1` and continue at section 0 of
+`operations/V4_FINALIZATION_RUNBOOK.md`; it verifies and takes over the existing lock. Do not exit
+and do not remove the lock manually.
 
 ## 4. Create and reproduce a fresh-key gate
 
@@ -647,10 +660,16 @@ the n3 call succeeds only when extension closure is valid, n5 is infrastructure-
 remains eligible; it recomputes the full campaign rather than trusting the first error text.
 
 ```bash
+GATE_MODE=selected
 if test "$STAGE" = core-n3; then
   SELECTED_DATASET=n3
-  run_gate n3 "$GATE" \
+  if ! run_gate n3 "$GATE" \
     "$LOG_PREFIX-primary.stdout" "$LOG_PREFIX-primary.stderr"
+  then
+    test ! -e "$GATE"
+    test ! -L "$GATE"
+    GATE_MODE=core-ineligible
+  fi
 else
   CORE_KEY="$PRIVATE/gate-keys/core-n3.key"
   test -f "$CORE_KEY"
@@ -675,20 +694,29 @@ else
     SELECTED_DATASET=n3
   fi
 fi
-test -f "$GATE"
-test ! -L "$GATE"
+if test "$GATE_MODE" = selected; then
+  test -f "$GATE"
+  test ! -L "$GATE"
 
-RECHECK="$PRIVATE/$STAGE-$PUBLIC_BASE-gate-recheck.json"
-test ! -e "$RECHECK"
-test ! -L "$RECHECK"
-run_gate "$SELECTED_DATASET" "$RECHECK" \
-  "$LOG_PREFIX-recheck.stdout" "$LOG_PREFIX-recheck.stderr"
-test -f "$RECHECK"
-test ! -L "$RECHECK"
-cmp --silent "$GATE" "$RECHECK"
+  RECHECK="$PRIVATE/$STAGE-$PUBLIC_BASE-gate-recheck.json"
+  test ! -e "$RECHECK"
+  test ! -L "$RECHECK"
+  run_gate "$SELECTED_DATASET" "$RECHECK" \
+    "$LOG_PREFIX-recheck.stdout" "$LOG_PREFIX-recheck.stderr"
+  test -f "$RECHECK"
+  test ! -L "$RECHECK"
+  cmp --silent "$GATE" "$RECHECK"
+else
+  test "$STAGE:$GATE_MODE" = core-n3:core-ineligible
+  chmod 400 "$LOG_PREFIX-primary.stdout" "$LOG_PREFIX-primary.stderr"
+fi
 ```
 
 If both extension calls fail, stop. Do not generate the ablation schedule.
+If `GATE_MODE=core-ineligible`, there is no later stage: in the same shell run
+`export V4_FINALIZATION_LOCK_ALREADY_HELD=1`, skip sections 5–7, and continue at section 0 of
+`V4_FINALIZATION_RUNBOOK.md`. The finalizer publishes complete campaign accounting without a scored
+comparison or core gate.
 
 ## 5. Commit and push the gate alone
 
@@ -877,6 +905,12 @@ launch_exact_stage "$NEXT_STAGE" "$NEXT_SERVICE" "$SCHEDULE_COMMIT"
 ssh -o BatchMode=yes "root@$VPS" \
   systemctl show "$NEXT_SERVICE" \
   -p ActiveState -p SubState -p Result -p ExecMainStatus -p MainPID -p LoadState
+
+if test "$TRANSITION_LOCK_OWNED" = 1; then
+  TRANSITION_SUCCEEDED=1
+  rmdir -- "$TRANSITION_LOCK"
+  trap - EXIT
+fi
 ```
 
 If the launch SSH result is ambiguous, inspect that exact `NEXT_SERVICE`. An active unit is the
