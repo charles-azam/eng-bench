@@ -4,21 +4,21 @@ import argparse
 from pathlib import Path
 from typing import Sequence
 
-from eng_bench.integrity import (
+from nstf_bench.integrity import (
     evaluator_manifest_sha256,
     render_evaluator_manifest,
     validate_evaluator_manifest,
 )
-from eng_bench.io import load_jsonl, write_json, write_jsonl
-from eng_bench.models import FrozenLedger, Measurement, Prediction, RunManifest
-from eng_bench.scoring import evaluate
-from eng_bench.task_output import TaskOutput, normalize_task_output
+from nstf_bench.io import load_jsonl, write_json, write_jsonl
+from nstf_bench.models import FrozenLedger, Measurement, Prediction, RunManifest
+from nstf_bench.scoring import evaluate
+from nstf_bench.task_output import TaskOutput, normalize_task_output
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="eng-bench",
-        description="Validate and score frozen eng-bench run artifacts.",
+        prog="nstf-bench",
+        description="Validate and score frozen nstf-bench run artifacts.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
     evaluate_parser = subparsers.add_parser(

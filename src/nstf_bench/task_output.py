@@ -5,7 +5,7 @@ from typing import Annotated, Self
 
 from pydantic import Field, model_validator
 
-from eng_bench.models import NonEmptyString, Prediction, StrictModel
+from nstf_bench.models import NonEmptyString, Prediction, StrictModel
 
 
 class TaskPrediction(StrictModel):

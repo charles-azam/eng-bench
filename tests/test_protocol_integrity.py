@@ -4,9 +4,9 @@ import re
 import subprocess
 from pathlib import Path
 
-from eng_bench.integrity import render_evaluator_manifest, validate_evaluator_manifest
-from eng_bench.io import load_jsonl
-from eng_bench.models import FrozenLedger, Measurement
+from nstf_bench.integrity import render_evaluator_manifest, validate_evaluator_manifest
+from nstf_bench.io import load_jsonl
+from nstf_bench.models import FrozenLedger, Measurement
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]

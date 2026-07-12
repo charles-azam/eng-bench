@@ -1,7 +1,7 @@
 [project]
-name = "eng-bench-evaluator"
+name = "nstf-bench"
 version = "0.1.0"
-description = "Deterministic evaluator for the eng-bench engineering experiments"
+description = "NSTF-Bench: agentic engineering analysis benchmark with a deterministic evaluator"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -9,7 +9,7 @@ dependencies = [
 ]
 
 [project.scripts]
-eng-bench = "eng_bench.cli:main"
+nstf-bench = "nstf_bench.cli:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -21,7 +21,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/eng_bench"]
+packages = ["src/nstf_bench"]
 
 [tool.pytest.ini_options]
 addopts = "--strict-config --strict-markers"

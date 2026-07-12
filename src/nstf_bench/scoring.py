@@ -6,7 +6,7 @@ from pathlib import Path
 from statistics import fmean
 from typing import Callable, Iterable, TypeVar
 
-from eng_bench.models import (
+from nstf_bench.models import (
     EvaluationResult,
     EvaluationSummary,
     FrozenLedger,
@@ -19,7 +19,7 @@ from eng_bench.models import (
     Score,
     TaskAggregate,
 )
-from eng_bench.units import UNIT_DEFINITIONS, can_convert_units, convert_value
+from nstf_bench.units import UNIT_DEFINITIONS, can_convert_units, convert_value
 
 
 ValueT = TypeVar("ValueT")

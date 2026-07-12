@@ -4,7 +4,7 @@ import hashlib
 import re
 from pathlib import Path, PurePosixPath
 
-from eng_bench.models import Sha256
+from nstf_bench.models import Sha256
 
 
 EVALUATOR_ROOT_FILES: tuple[str, ...] = (
@@ -13,7 +13,7 @@ EVALUATOR_ROOT_FILES: tuple[str, ...] = (
     "uv.lock",
 )
 EVALUATOR_SOURCE_DIRECTORIES: tuple[str, ...] = (
-    "src/eng_bench",
+    "src/nstf_bench",
     "tests",
 )
 EXCLUDED_DIRECTORY_NAMES: frozenset[str] = frozenset(

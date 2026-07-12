@@ -10,9 +10,9 @@ from pathlib import Path
 
 import pytest
 
-from eng_bench.integrity import evaluator_manifest_sha256
-from eng_bench.io import write_json, write_jsonl
-from eng_bench.models import (
+from nstf_bench.integrity import evaluator_manifest_sha256
+from nstf_bench.io import write_json, write_jsonl
+from nstf_bench.models import (
     EvidenceClass,
     FrozenLedger,
     FrozenSystem,
@@ -24,8 +24,8 @@ from eng_bench.models import (
     RunStatus,
     Score,
 )
-from eng_bench.task_output import TaskOutput
-from eng_bench.units import can_convert_units
+from nstf_bench.task_output import TaskOutput
+from nstf_bench.units import can_convert_units
 
 
 SHA_A = f"sha256:{'a' * 64}"
@@ -118,7 +118,7 @@ def run_cli(
         [
             sys.executable,
             "-m",
-            "eng_bench",
+            "nstf_bench",
             "evaluate",
             "--manifests",
             str(manifests_path),
@@ -203,7 +203,7 @@ def test_task_output_normalization_enforces_the_frozen_agent_contract(
         [
             sys.executable,
             "-m",
-            "eng_bench",
+            "nstf_bench",
             "normalize",
             "--run-id",
             "codex-nstf-01",

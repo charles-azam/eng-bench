@@ -1,6 +1,6 @@
 {
-  "benchmark_version": "2026-07-12-v4",
-  "evaluator_manifest_sha256": "sha256:3b51d5fad3bf11a88122d31bec997af0e41de25b5404ba0d3d8c885dd3522702",
+  "benchmark_version": "2026-07-nstf-bench-v5",
+  "evaluator_manifest_sha256": "sha256:60b991b277ec8ef1861b332a8be4bce7397267dab5c74810ceb85b7f2b9ffacf",
   "prompt_sha256": "sha256:94bfff14534b9d741a472ee42b3ef9e54d5d72b65fb580a8df5a800788c02172",
   "runner_image_sha256": "sha256:15559315a5072682de5ce4b0fc636c59ffdd101f5b048cac1137bd4c6f7e4bc7",
   "systems": {
